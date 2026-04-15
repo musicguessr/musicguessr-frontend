@@ -75,3 +75,43 @@ License
 
 ---
 This README was generated from a code inspection of the repository.
+
+Runtime configuration and deployment
+-----------------------------------
+
+This project writes `config.json` at container startup from environment variables (see `entrypoint.sh`). Use the environment variable `API_URL` to set the backend URL at runtime.
+
+Run locally (example):
+
+```bash
+docker build -t musicguessr-frontend:latest .
+docker run -e API_URL=https://api.prod -e SPOTIFY_CLIENT_ID=abc -p 8080:8080 musicguessr-frontend:latest
+```
+
+Using GitHub Container Registry (GHCR)
+- If your organization blocks `GITHUB_TOKEN` from creating organization packages, create a Personal Access Token (PAT) with `write:packages` (and `repo` for private repos) and add it as repository secret `GHCR_PAT`.
+
+Example: create PAT permissions
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic) (or fine-grained tokens)
+2. Select `write:packages` and `repo` (if repository is private)
+3. Save token to repository secret `GHCR_PAT`
+
+Example GitHub Actions step to deploy the image to a remote host and run it with `API_URL` (requires `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER` secrets):
+
+```yaml
+- name: Deploy to server
+  uses: appleboy/ssh-action@v0.1.7
+  with:
+    host: ${{ secrets.SSH_HOST }}
+    username: ${{ secrets.SSH_USER }}
+    key: ${{ secrets.SSH_PRIVATE_KEY }}
+    script: |
+      docker pull ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:latest
+      docker rm -f musicguessr-frontend || true
+      docker run -d --name musicguessr-frontend -e API_URL="${{ secrets.DEPLOY_API_URL }}" -p 80:8080 ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:latest
+```
+
+Notes
+- Prefer runtime env injection (this repo's `entrypoint.sh`) so you can build a single multi-arch image and deploy it to different environments without rebuilding.
+- Alternatively, you can generate/replace `src/config.json` during CI before `ng build` if you must bake values into the bundle (not recommended if you need one image per environment).
+
