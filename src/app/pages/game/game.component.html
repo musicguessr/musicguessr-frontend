@@ -1,0 +1,102 @@
+<div class="page game-page" *ngIf="track()">
+
+  <!-- TAP TO PLAY overlay -->
+  <div
+    class="play-overlay"
+    [class.visible]="showOverlay()"
+    (click)="onOverlayTap()"
+  >
+    <div class="play-circle" [class.ready]="overlayReady() && !overlayError()">
+      <div class="play-triangle" *ngIf="overlayReady() && !overlayError()"></div>
+      <span class="spinner large" *ngIf="!overlayReady()"></span>
+      <span class="error-icon" *ngIf="overlayError()">!</span>
+    </div>
+    <p class="play-label">{{ overlayLabel }}</p>
+    <p class="play-sub">{{ overlaySub }}</p>
+  </div>
+
+  <!-- Game card -->
+  <div class="game-content" [class.overlay-hidden]="!showOverlay()">
+
+    <div class="top-bar">
+      <div class="logo">musicguessr</div>
+      <div class="top-bar-right">
+        <a class="gh-link" href="https://github.com/musicguessr" target="_blank" rel="noopener" aria-label="GitHub">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+        </a>
+        <div class="provider-badge">
+          <span class="p-dot"></span>{{ provider() | titlecase }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Track card -->
+    <div class="card track-card">
+      <!-- Artwork -->
+      <div class="artwork-wrap" [class.blurred]="!revealed()">
+        <div class="artwork-placeholder" *ngIf="!track()!.artwork_url">🎵</div>
+        <img
+          *ngIf="track()!.artwork_url"
+          [src]="track()!.artwork_url"
+          alt="album art"
+          class="artwork-img"
+        >
+      </div>
+
+      <!-- Title & Artist -->
+      <div class="track-meta">
+        <div class="track-title" [class.blurred]="!revealed()">
+          {{ track()!.title || '—' }}
+        </div>
+        <div class="track-artist" [class.blurred]="!revealed()">
+          {{ track()!.artist || '—' }}
+        </div>
+      </div>
+
+      <!-- Year -->
+      <div class="year-row">
+        <span class="year-label">Year</span>
+        <span class="year-value" [class.blurred]="!revealed()">
+          {{ track()!.year || '?' }}
+        </span>
+      </div>
+
+      <!-- Reveal button -->
+      <button class="reveal-btn" *ngIf="!revealed()" (click)="reveal()">
+        Tap to reveal
+      </button>
+      <button class="reveal-btn revealed" *ngIf="revealed()" (click)="hide()">
+        Tap to hide
+      </button>
+    </div>
+
+    <!-- YouTube blurred player -->
+    <div class="yt-player-wrap" *ngIf="provider() === 'youtube'" [class.hidden]="!isPlaying()">
+      <div class="yt-blur-label">Now playing</div>
+      <div class="yt-blur-container"
+           [class.blur-hidden]="!revealed() && videoBlur() === 'hidden'"
+           [class.blur-blurred]="!revealed() && videoBlur() === 'blurred'"
+           [class.blur-visible]="revealed() || videoBlur() === 'visible'">
+        <div id="yt-player-container"></div>
+      </div>
+    </div>
+
+    <!-- Player error -->
+    <div class="error-msg" *ngIf="playerError()">
+      {{ playerError() }}
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" (click)="scanNext()">
+        SCAN NEXT CARD
+      </button>
+      <button class="btn btn-ghost" (click)="endGame()">
+        End game
+      </button>
+    </div>
+
+  </div>
+</div>
