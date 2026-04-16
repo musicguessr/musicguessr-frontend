@@ -1,5 +1,5 @@
 import {
-  Component, OnDestroy, OnInit, signal, inject, ElementRef, ViewChild
+  Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
@@ -45,7 +45,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   async startScanner(): Promise<void> {
-    if (this.scanning()) return;
+    if (this.scanning()) {return;}
     this.error.set(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -84,11 +84,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   private scan(): void {
     const video = this.videoRef.nativeElement;
-    if (video.readyState < 2) return;
+    if (video.readyState < 2) {return;}
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    if (!vw || !vh) return;
+    if (!vw || !vh) {return;}
 
     const scale = Math.min(1, MAX_DIMENSION / Math.max(vw, vh));
     const w = Math.floor(vw * scale);

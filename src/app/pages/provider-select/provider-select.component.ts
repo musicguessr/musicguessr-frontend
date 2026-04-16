@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { GameStateService, Provider, VideoBlur } from '../../services/game-state.service';
@@ -6,7 +6,7 @@ import { SpotifyService } from '../../services/spotify.service';
 import { AppleMusicService } from '../../services/apple-music.service';
 import { ConfigService } from '../../services/config.service';
 
-interface ProviderOption {
+type ProviderOption = {
   id: Provider;
   label: string;
   icon: string;
@@ -72,19 +72,19 @@ export class ProviderSelectComponent implements OnInit {
 
     // Pre-select if returning
     const p = this.state.provider();
-    if (p) this.selected.set(p);
+    if (p) {this.selected.set(p);}
   }
 
   select(p: Provider): void {
-    if (!p) return;
+    if (!p) {return;}
     const opt = this.providers.find(x => x.id === p);
-    if (!opt?.available) return;
+    if (!opt?.available) {return;}
     this.selected.set(p);
   }
 
   async confirm(): Promise<void> {
     const p = this.selected();
-    if (!p) return;
+    if (!p) {return;}
     this.errorMsg.set(null);
     this.loading.set(true);
 

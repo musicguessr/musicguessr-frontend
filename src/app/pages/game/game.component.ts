@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
@@ -40,9 +40,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     const p = this.provider();
-    if (p === 'youtube') this.ytPlayer.destroy();
-    if (p === 'spotify') this.spotify.stop();
-    if (p === 'apple') this.apple.stop();
+    if (p === 'youtube') {this.ytPlayer.destroy();}
+    if (p === 'spotify') {this.spotify.stop();}
+    if (p === 'apple') {this.apple.stop();}
   }
 
   private async preparePlayer(): Promise<void> {
@@ -101,7 +101,7 @@ export class GameComponent implements OnInit, OnDestroy {
         this.isPlaying.set(true);
       } else if (this.overlayError()) {
         const link = this.getFallbackLink(t);
-        if (link) window.open(link, '_blank', 'noopener');
+        if (link) {window.open(link, '_blank', 'noopener');}
       }
       return;
     }
@@ -144,29 +144,29 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private getFallbackLink(t: TrackInfo): string | null {
     const p = this.provider();
-    if (p === 'spotify') return t.spotify_url;
-    if (p === 'apple') return t.links?.['apple_music'] ?? null;
+    if (p === 'spotify') {return t.spotify_url;}
+    if (p === 'apple') {return t.links?.['apple_music'] ?? null;}
     return t.links?.['youtube_music'] ?? null;
   }
 
   get overlayLabel(): string {
-    if (!this.overlayReady()) return 'LOADING…';
-    if (this.overlayError()) return 'TAP TO OPEN';
+    if (!this.overlayReady()) {return 'LOADING…';}
+    if (this.overlayError()) {return 'TAP TO OPEN';}
     return 'TAP TO PLAY';
   }
 
   get overlaySub(): string {
     const p = this.provider();
-    if (this.overlayError()) return this.overlayError()!;
-    if (p === 'youtube') return 'Playing via YouTube';
-    if (p === 'spotify') return 'Playing via Spotify';
-    if (p === 'apple') return 'Playing via Apple Music';
+    if (this.overlayError()) {return this.overlayError()!;}
+    if (p === 'youtube') {return 'Playing via YouTube';}
+    if (p === 'spotify') {return 'Playing via Spotify';}
+    if (p === 'apple') {return 'Playing via Apple Music';}
     return '';
   }
 
   get streamingLinks(): { key: string; name: string; url: string }[] {
     const t = this.track();
-    if (!t?.links) return [];
+    if (!t?.links) {return [];}
     const order: [string, string][] = [
       ['spotify', 'Spotify'],
       ['apple_music', 'Apple Music'],

@@ -1,9 +1,9 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 
 export type Provider = 'youtube' | 'spotify' | 'apple' | null;
 export type VideoBlur = 'hidden' | 'blurred' | 'visible';
 
-export interface TrackInfo {
+export type TrackInfo = {
   spotify_id: string;
   spotify_url: string;
   artist?: string;
@@ -35,9 +35,9 @@ export class GameStateService {
 
   readonly hasAuth = computed(() => {
     const p = this.provider();
-    if (p === 'youtube') return true;
-    if (p === 'spotify') return !!this.getSpotifyToken();
-    if (p === 'apple') return !!this.getAppleMusicToken();
+    if (p === 'youtube') {return true;}
+    if (p === 'spotify') {return !!this.getSpotifyToken();}
+    if (p === 'apple') {return !!this.getAppleMusicToken();}
     return false;
   });
 
@@ -105,7 +105,7 @@ export class GameStateService {
   getSpotifyToken(): string | null {
     const token = localStorage.getItem(KEYS.spotifyToken);
     const expiry = Number(localStorage.getItem(KEYS.spotifyExpiry) || 0);
-    if (!token || Date.now() > expiry) return null;
+    if (!token || Date.now() > expiry) {return null;}
     return token;
   }
 

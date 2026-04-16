@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-interface AppConfig {
+type AppConfig = {
   apiUrl: string;
   spotifyClientId: string;
   appleDevToken: string;
