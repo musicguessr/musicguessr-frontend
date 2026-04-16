@@ -11,7 +11,9 @@ export class HitsterService {
 
   async resolve(qrUrl: string, ytVariants = true): Promise<TrackInfo> {
     let url = `${this.config.apiUrl}/api/resolve?url=${encodeURIComponent(qrUrl)}`;
-    if (ytVariants) {url += '&yt_variants=1';}
+    if (ytVariants) {
+      url += '&yt_variants=1';
+    }
     const data = await firstValueFrom(this.http.get<TrackInfo & { error?: string }>(url));
     if ((data as any).error) {
       throw new Error((data as any).error);

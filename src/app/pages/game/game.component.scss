@@ -16,7 +16,9 @@
   background: rgba(0, 0, 0, 0.93);
   cursor: pointer;
   animation: fadeIn 0.2s ease;
-  transition: opacity 0.3s, pointer-events 0.3s;
+  transition:
+    opacity 0.3s,
+    pointer-events 0.3s;
 
   &:not(.visible) {
     opacity: 0;
@@ -25,7 +27,8 @@
 }
 
 .play-circle {
-  width: 120px; height: 120px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: var(--surface2);
   border: 2px solid var(--border);
@@ -33,7 +36,9 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  transition: background 0.3s, box-shadow 0.3s;
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
 
   &.ready {
     background: var(--accent);
@@ -44,7 +49,8 @@
 }
 
 .play-triangle {
-  width: 0; height: 0;
+  width: 0;
+  height: 0;
   border-style: solid;
   border-width: 22px 0 22px 40px;
   border-color: transparent transparent transparent #000;
@@ -74,14 +80,20 @@
 }
 
 .spinner.large {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   border-width: 3px;
   margin: 0;
 }
 
 @keyframes scalePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 // ── Game content ──
@@ -120,7 +132,8 @@
 }
 
 .p-dot {
-  width: 8px; height: 8px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent);
 }
@@ -148,7 +161,8 @@
 }
 
 .artwork-placeholder {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +171,8 @@
 }
 
 .artwork-img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
@@ -212,9 +227,13 @@
   font-size: 0.85rem;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
-  &:active { background: var(--border); }
+  &:active {
+    background: var(--border);
+  }
 
   &.revealed {
     color: var(--accent);
@@ -256,16 +275,39 @@
   background: var(--surface2);
   color: var(--text);
   border: 1px solid var(--border);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 
-  &:active { opacity: 0.75; }
+  &:active {
+    opacity: 0.75;
+  }
 
-  &--spotify      { border-color: #1db954; color: #1db954; }
-  &--apple_music  { border-color: #fc3c44; color: #fc3c44; }
-  &--deezer       { border-color: #a238ff; color: #a238ff; }
-  &--tidal        { border-color: #c5c5c5; color: #c5c5c5; }
-  &--youtube      { border-color: #ff4444; color: #ff4444; }
-  &--youtube_music { border-color: #ff6f6f; color: #ff6f6f; }
+  &--spotify {
+    border-color: #1db954;
+    color: #1db954;
+  }
+  &--apple_music {
+    border-color: #fc3c44;
+    color: #fc3c44;
+  }
+  &--deezer {
+    border-color: #a238ff;
+    color: #a238ff;
+  }
+  &--tidal {
+    border-color: #c5c5c5;
+    color: #c5c5c5;
+  }
+  &--youtube {
+    border-color: #ff4444;
+    color: #ff4444;
+  }
+  &--youtube_music {
+    border-color: #ff6f6f;
+    color: #ff6f6f;
+  }
 }
 
 // ── YouTube blurred player ──

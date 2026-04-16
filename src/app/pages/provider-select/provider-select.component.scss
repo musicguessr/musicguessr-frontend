@@ -35,7 +35,9 @@
   border: 2px solid var(--border);
   border-radius: var(--r);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   text-align: left;
   width: 100%;
 
@@ -111,7 +113,9 @@
   border: 2px solid var(--border);
   border-radius: var(--r);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 
   &.active {
     border-color: var(--accent);
@@ -119,8 +123,15 @@
   }
 }
 
-.blur-icon { font-size: 1.4rem; line-height: 1; }
-.blur-name { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.3px; }
+.blur-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.blur-name {
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
 
 .toggle-row {
   display: flex;
@@ -135,7 +146,9 @@
   user-select: none;
   transition: background 0.15s;
 
-  &:active { background: var(--surface2); }
+  &:active {
+    background: var(--surface2);
+  }
 }
 
 .toggle-info {
@@ -198,8 +211,12 @@
   padding: 0 8px;
 }
 
-.mt { margin-top: 8px; }
-.mt-sm { margin-top: 6px; }
+.mt {
+  margin-top: 8px;
+}
+.mt-sm {
+  margin-top: 6px;
+}
 
 .locked-card {
   display: flex;
@@ -210,8 +227,14 @@
   text-align: center;
 }
 
-.locked-icon { font-size: 2.5rem; margin-bottom: 8px; }
-.locked-label { font-size: 0.85rem; color: var(--muted); }
+.locked-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+.locked-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
 .locked-provider {
   font-family: var(--font-display);
   font-size: 2rem;

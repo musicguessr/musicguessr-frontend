@@ -14,7 +14,7 @@ module.exports = defineConfig([
       tseslint.configs.recommended,
       tseslint.configs.stylistic,
       angular.configs.tsRecommended,
-      eslintConfigPrettier
+      eslintConfigPrettier,
     ],
     processor: angular.processInlineTemplates,
     rules: {
@@ -65,7 +65,6 @@ module.exports = defineConfig([
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/no-shadow': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
-
 
       eqeqeq: 'error',
       complexity: ['error', 20],

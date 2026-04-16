@@ -19,27 +19,41 @@ import { GameStateService } from '../../services/game-state.service';
       }
     </div>
   `,
-  styles: [`
-    .callback-page {
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      padding: 32px;
-    }
-    .logo {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      letter-spacing: 2px;
-      color: var(--accent);
-      margin-bottom: 16px;
-    }
-    .msg { font-size: 0.9rem; color: var(--muted); }
-    .error { color: #ff6b6b; font-size: 0.9rem; text-align: center; }
-    .spinner.large { width: 36px; height: 36px; border-width: 3px; margin: 0; }
-  `]
+  styles: [
+    `
+      .callback-page {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 32px;
+      }
+      .logo {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        color: var(--accent);
+        margin-bottom: 16px;
+      }
+      .msg {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .error {
+        color: #ff6b6b;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+      .spinner.large {
+        width: 36px;
+        height: 36px;
+        border-width: 3px;
+        margin: 0;
+      }
+    `,
+  ],
 })
 export class CallbackComponent implements OnInit {
   private router = inject(Router);
@@ -75,5 +89,7 @@ export class CallbackComponent implements OnInit {
     this.error.set('No authorization code received');
   }
 
-  goHome(): void { this.router.navigate(['/']); }
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
 }

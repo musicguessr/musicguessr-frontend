@@ -7,6 +7,7 @@ Angular frontend for a QR-based music guessing game.
 MusicGuessr is a client-side Angular application that lets users select a playback provider (YouTube, Spotify or Apple Music), scan a QR code (from hitstergame.com), resolve a matching track and play it.
 
 **Key features:**
+
 - Provider selection with persistent state
 - QR scanner using the device camera and `jsqr`
 - Playback via YouTube IFrame API, Spotify Web Playback SDK and Apple Music
@@ -57,11 +58,11 @@ The app loads runtime settings from `src/config.json`. This file is **never buil
 }
 ```
 
-| Key | Required | Description |
-|-----|----------|-------------|
-| `apiUrl` | Yes | Base URL of the Go backend. Default: `http://localhost:8080` |
-| `spotifyClientId` | No | Spotify app Client ID. If empty, the Spotify option is hidden. |
-| `appleDevToken` | No | Apple MusicKit developer JWT. If empty, the Apple Music option is hidden. |
+| Key               | Required | Description                                                               |
+| ----------------- | -------- | ------------------------------------------------------------------------- |
+| `apiUrl`          | Yes      | Base URL of the Go backend. Default: `http://localhost:8080`              |
+| `spotifyClientId` | No       | Spotify app Client ID. If empty, the Spotify option is hidden.            |
+| `appleDevToken`   | No       | Apple MusicKit developer JWT. If empty, the Apple Music option is hidden. |
 
 > **YouTube requires zero configuration** — it is always available without any credentials.
 
@@ -71,11 +72,11 @@ The app loads runtime settings from `src/config.json`. This file is **never buil
 
 When running via Docker, `entrypoint.sh` generates `config.json` at container startup from environment variables. You do **not** need to modify `src/config.json` — just pass the variables to the container:
 
-| Variable | Maps to | Default |
-|----------|---------|---------|
-| `API_URL` | `apiUrl` | `http://localhost:8080` |
-| `SPOTIFY_CLIENT_ID` | `spotifyClientId` | _(empty — Spotify hidden)_ |
-| `APPLE_DEV_TOKEN` | `appleDevToken` | _(empty — Apple Music hidden)_ |
+| Variable            | Maps to           | Default                        |
+| ------------------- | ----------------- | ------------------------------ |
+| `API_URL`           | `apiUrl`          | `http://localhost:8080`        |
+| `SPOTIFY_CLIENT_ID` | `spotifyClientId` | _(empty — Spotify hidden)_     |
+| `APPLE_DEV_TOKEN`   | `appleDevToken`   | _(empty — Apple Music hidden)_ |
 
 **Example — run locally with Docker:**
 
@@ -121,6 +122,7 @@ Required for Spotify PKCE OAuth and Web Playback SDK. Uses **no client secret** 
 Required to initialize MusicKit JS. This is a **developer token** (not a user token) — a short-lived JWT signed with your Apple private key, valid for up to 6 months.
 
 **Prerequisites:**
+
 - An Apple Developer Program membership ($99/year)
 - A MusicKit identifier and a private key created in Apple Developer portal
 
@@ -156,7 +158,7 @@ const token = jwt.sign({}, privateKey, {
   algorithm: 'ES256',
   expiresIn: '180d',
   issuer: 'YOUR_TEAM_ID',
-  header: { alg: 'ES256', kid: 'YOUR_KEY_ID' }
+  header: { alg: 'ES256', kid: 'YOUR_KEY_ID' },
 });
 
 console.log(token);
@@ -170,22 +172,22 @@ console.log(token);
 
 ### Project layout
 
-| Path | Responsibility |
-|------|---------------|
-| `src/config.json` | Runtime settings (not built into bundle) |
-| `entrypoint.sh` | Generates `config.json` from env vars at container start |
-| `src/app/app.config.ts` | APP_INITIALIZER loads `config.json` |
-| `src/app/app.routes.ts` | Routes: `/`, `/scan`, `/game`, `/callback` |
-| `src/app/services/config.service.ts` | Reads `config.json` |
-| `src/app/services/game-state.service.ts` | All game state in `localStorage`, Angular signals |
-| `src/app/services/spotify.service.ts` | PKCE OAuth + Web Playback SDK |
-| `src/app/services/apple-music.service.ts` | MusicKit JS |
-| `src/app/services/youtube-player.service.ts` | YouTube IFrame API |
-| `src/app/services/hitster.service.ts` | Calls `GET /api/resolve?url=…` on the backend |
-| `src/app/pages/provider-select/` | Step 1: choose provider, OAuth if needed |
-| `src/app/pages/scanner/` | Step 2: jsQR camera scanner |
-| `src/app/pages/game/` | Step 3: TAP TO PLAY → music + blurred card |
-| `src/app/pages/callback/` | Spotify OAuth redirect handler |
+| Path                                         | Responsibility                                           |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `src/config.json`                            | Runtime settings (not built into bundle)                 |
+| `entrypoint.sh`                              | Generates `config.json` from env vars at container start |
+| `src/app/app.config.ts`                      | APP_INITIALIZER loads `config.json`                      |
+| `src/app/app.routes.ts`                      | Routes: `/`, `/scan`, `/game`, `/callback`               |
+| `src/app/services/config.service.ts`         | Reads `config.json`                                      |
+| `src/app/services/game-state.service.ts`     | All game state in `localStorage`, Angular signals        |
+| `src/app/services/spotify.service.ts`        | PKCE OAuth + Web Playback SDK                            |
+| `src/app/services/apple-music.service.ts`    | MusicKit JS                                              |
+| `src/app/services/youtube-player.service.ts` | YouTube IFrame API                                       |
+| `src/app/services/hitster.service.ts`        | Calls `GET /api/resolve?url=…` on the backend            |
+| `src/app/pages/provider-select/`             | Step 1: choose provider, OAuth if needed                 |
+| `src/app/pages/scanner/`                     | Step 2: jsQR camera scanner                              |
+| `src/app/pages/game/`                        | Step 3: TAP TO PLAY → music + blurred card               |
+| `src/app/pages/callback/`                    | Spotify OAuth redirect handler                           |
 
 ---
 
