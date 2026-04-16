@@ -1,24 +1,22 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { SpotifyService } from '../../services/spotify.service';
 import { GameStateService } from '../../services/game-state.service';
 
 @Component({
   selector: 'app-callback',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="callback-page">
       <div class="logo">musicguessr</div>
-      <ng-container *ngIf="!error(); else errTpl">
+      @if (!error()) {
         <span class="spinner large"></span>
         <p class="msg">Connecting to {{ provider() }}…</p>
-      </ng-container>
-      <ng-template #errTpl>
+      } @else {
         <p class="error">{{ error() }}</p>
         <button class="btn btn-ghost" (click)="goHome()">Go back</button>
-      </ng-template>
+      }
     </div>
   `,
   styles: [`
