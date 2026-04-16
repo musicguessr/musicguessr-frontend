@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 
@@ -21,8 +21,12 @@ export class SpotifyService {
   private config = inject(ConfigService);
   private state = inject(GameStateService);
 
-  get clientId(): string { return this.config.spotifyClientId; }
-  get redirectUri(): string { return `${window.location.origin}/callback`; }
+  get clientId(): string {
+    return this.config.spotifyClientId;
+  }
+  get redirectUri(): string {
+    return `${window.location.origin}/callback`;
+  }
 
   // Step 1: redirect to Spotify auth
   async authorize(): Promise<void> {
@@ -36,7 +40,7 @@ export class SpotifyService {
       redirect_uri: this.redirectUri,
       code_challenge_method: 'S256',
       code_challenge: challenge,
-      scope: 'streaming user-read-email user-read-private user-modify-playback-state'
+      scope: 'streaming user-read-email user-read-private user-modify-playback-state',
     });
 
     window.location.href = `https://accounts.spotify.com/authorize?${params}`;
@@ -45,7 +49,9 @@ export class SpotifyService {
   // Step 2: exchange code for token (called in /callback)
   async handleCallback(code: string): Promise<void> {
     const verifier = sessionStorage.getItem('pkce_verifier');
-    if (!verifier) throw new Error('Missing PKCE verifier');
+    if (!verifier) {
+      throw new Error('Missing PKCE verifier');
+    }
 
     const resp = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -55,11 +61,13 @@ export class SpotifyService {
         grant_type: 'authorization_code',
         code,
         redirect_uri: this.redirectUri,
-        code_verifier: verifier
-      })
+        code_verifier: verifier,
+      }),
     });
 
-    if (!resp.ok) throw new Error('Token exchange failed');
+    if (!resp.ok) {
+      throw new Error('Token exchange failed');
+    }
     const data = await resp.json();
     this.state.setSpotifyToken(data.access_token, data.refresh_token, data.expires_in);
     sessionStorage.removeItem('pkce_verifier');
@@ -68,7 +76,9 @@ export class SpotifyService {
   // Step 3: refresh token silently
   async refreshToken(): Promise<boolean> {
     const refresh = this.state.getSpotifyRefreshToken();
-    if (!refresh) return false;
+    if (!refresh) {
+      return false;
+    }
 
     const resp = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -76,11 +86,13 @@ export class SpotifyService {
       body: new URLSearchParams({
         client_id: this.clientId,
         grant_type: 'refresh_token',
-        refresh_token: refresh
-      })
+        refresh_token: refresh,
+      }),
     });
 
-    if (!resp.ok) return false;
+    if (!resp.ok) {
+      return false;
+    }
     const data = await resp.json();
     this.state.setSpotifyToken(data.access_token, data.refresh_token || refresh, data.expires_in);
     return true;
@@ -90,21 +102,27 @@ export class SpotifyService {
   initSDK(): Promise<void> {
     return new Promise((resolve, reject) => {
       const token = this.state.getSpotifyToken();
-      if (!token) { reject(new Error('No Spotify token')); return; }
+      if (!token) {
+        reject(new Error('No Spotify token'));
+        return;
+      }
 
-      window.onSpotifyWebPlaybackSDKReady = () => {
+      window.onSpotifyWebPlaybackSDKReady = (): void => {
         this.player = new window.Spotify.Player({
           name: 'musicguessr',
-          getOAuthToken: async (cb: (t: string) => void) => {
+          getOAuthToken: async (cb: (t: string) => void): Promise<void> => {
             let t = this.state.getSpotifyToken();
             if (!t) {
               const ok = await this.refreshToken();
-              if (!ok) { this.error.set('Session expired, please reconnect Spotify'); return; }
+              if (!ok) {
+                this.error.set('Session expired, please reconnect Spotify');
+                return;
+              }
               t = this.state.getSpotifyToken();
             }
             cb(t!);
           },
-          volume: 1.0
+          volume: 1.0,
         });
 
         this.player.addListener('ready', ({ device_id }: { device_id: string }) => {
@@ -151,27 +169,33 @@ export class SpotifyService {
   // Play track by Spotify URI — must be called in click handler
   async play(spotifyId: string): Promise<void> {
     const token = this.state.getSpotifyToken();
-    if (!token || !this.deviceId) throw new Error('Spotify not ready');
+    if (!token || !this.deviceId) {
+      throw new Error('Spotify not ready');
+    }
 
     await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ uris: [`spotify:track:${spotifyId}`] })
+      body: JSON.stringify({ uris: [`spotify:track:${spotifyId}`] }),
     });
 
     this.isPlaying.set(true);
   }
 
   stop(): void {
-    if (this.player) { this.player.pause(); }
+    if (this.player) {
+      this.player.pause();
+    }
     this.isPlaying.set(false);
   }
 
   disconnect(): void {
-    if (this.player) { this.player.disconnect(); }
+    if (this.player) {
+      this.player.disconnect();
+    }
     this.isReady.set(false);
     this.isPlaying.set(false);
     this.deviceId = null;
@@ -182,13 +206,17 @@ export class SpotifyService {
     const arr = new Uint8Array(32);
     crypto.getRandomValues(arr);
     return btoa(String.fromCharCode(...arr))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
   }
 
   private async generateChallenge(verifier: string): Promise<string> {
     const data = new TextEncoder().encode(verifier);
     const digest = await crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
   }
 }

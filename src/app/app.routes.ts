@@ -7,40 +7,41 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./pages/provider-select/provider-select.component').then(m => m.ProviderSelectComponent)
+      import('./pages/provider-select/provider-select.component').then((m) => m.ProviderSelectComponent),
   },
   {
     path: 'scan',
-    loadComponent: () =>
-      import('./pages/scanner/scanner.component').then(m => m.ScannerComponent),
-    canActivate: [() => {
-      const state = inject(GameStateService);
-      const router = inject(Router);
-      if (!state.provider()) {
-        router.navigate(['/']);
-        return false;
-      }
-      return true;
-    }]
+    loadComponent: () => import('./pages/scanner/scanner.component').then((m) => m.ScannerComponent),
+    canActivate: [
+      (): boolean => {
+        const state = inject(GameStateService);
+        const router = inject(Router);
+        if (!state.provider()) {
+          router.navigate(['/']);
+          return false;
+        }
+        return true;
+      },
+    ],
   },
   {
     path: 'game',
-    loadComponent: () =>
-      import('./pages/game/game.component').then(m => m.GameComponent),
-    canActivate: [() => {
-      const state = inject(GameStateService);
-      const router = inject(Router);
-      if (!state.provider()) {
-        router.navigate(['/']);
-        return false;
-      }
-      return true;
-    }]
+    loadComponent: () => import('./pages/game/game.component').then((m) => m.GameComponent),
+    canActivate: [
+      (): boolean => {
+        const state = inject(GameStateService);
+        const router = inject(Router);
+        if (!state.provider()) {
+          router.navigate(['/']);
+          return false;
+        }
+        return true;
+      },
+    ],
   },
   {
     path: 'callback',
-    loadComponent: () =>
-      import('./pages/callback/callback.component').then(m => m.CallbackComponent)
+    loadComponent: () => import('./pages/callback/callback.component').then((m) => m.CallbackComponent),
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];

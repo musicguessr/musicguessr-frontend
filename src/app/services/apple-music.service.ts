@@ -1,9 +1,11 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 
 declare global {
-  interface Window { MusicKit: any; }
+  interface Window {
+    MusicKit: any;
+  }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -18,12 +20,14 @@ export class AppleMusicService {
   private state = inject(GameStateService);
 
   private loadKit(): Promise<void> {
-    if (window.MusicKit) return Promise.resolve();
+    if (window.MusicKit) {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('Failed to load MusicKit'));
+      s.onload = (): void => resolve();
+      s.onerror = (): void => reject(new Error('Failed to load MusicKit'));
       document.head.appendChild(s);
     });
   }
@@ -39,7 +43,7 @@ export class AppleMusicService {
 
     this.music = await window.MusicKit.configure({
       developerToken: devToken,
-      app: { name: 'musicguessr', build: '1.0.0' }
+      app: { name: 'musicguessr', build: '1.0.0' },
     });
 
     // Restore user token if we have one
@@ -50,8 +54,12 @@ export class AppleMusicService {
   }
 
   async authorize(): Promise<void> {
-    if (!this.music) await this.init();
-    if (!this.music) throw new Error('MusicKit not initialized');
+    if (!this.music) {
+      await this.init();
+    }
+    if (!this.music) {
+      throw new Error('MusicKit not initialized');
+    }
 
     const userToken = await this.music.authorize();
     this.state.setAppleMusicToken(userToken);
@@ -60,13 +68,15 @@ export class AppleMusicService {
 
   // Play track — must be called inside click handler for iOS
   async play(trackInfo: { artist: string; title: string; appleMusicUrl?: string }): Promise<void> {
-    if (!this.music) throw new Error('MusicKit not ready');
+    if (!this.music) {
+      throw new Error('MusicKit not ready');
+    }
 
     // Search by artist + title using catalog search
     const query = encodeURIComponent(`${trackInfo.artist} ${trackInfo.title}`);
     try {
       const result = await this.music.api.music(
-        `/v1/catalog/{{storefrontId}}/search?term=${query}&types=songs&limit=1`
+        `/v1/catalog/{{storefrontId}}/search?term=${query}&types=songs&limit=1`,
       );
       const songs = result?.data?.results?.songs?.data;
       if (songs?.length) {
@@ -83,12 +93,16 @@ export class AppleMusicService {
   }
 
   stop(): void {
-    if (this.music) { this.music.stop(); }
+    if (this.music) {
+      this.music.stop();
+    }
     this.isPlaying.set(false);
   }
 
   unauthorize(): void {
-    if (this.music) { this.music.unauthorize(); }
+    if (this.music) {
+      this.music.unauthorize();
+    }
     this.state.clearAppleMusicToken();
     this.isReady.set(false);
     this.isPlaying.set(false);

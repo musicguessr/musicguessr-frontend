@@ -18,9 +18,11 @@ export class YoutubePlayerService {
   private containerId = 'yt-player-container';
 
   loadAPI(): Promise<void> {
-    if (this.apiReady) return Promise.resolve();
-    return new Promise(resolve => {
-      window.onYouTubeIframeAPIReady = () => {
+    if (this.apiReady) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      window.onYouTubeIframeAPIReady = (): void => {
         this.apiReady = true;
         resolve();
       };
@@ -74,13 +76,13 @@ export class YoutubePlayerService {
       playerVars: {
         autoplay: 1,
         controls: 1,
-        playsinline: 1,   // critical for iOS - don't go fullscreen
+        playsinline: 1, // critical for iOS - don't go fullscreen
         rel: 0,
         modestbranding: 1,
         fs: 0,
       },
       events: {
-        onReady: (e: any) => {
+        onReady: (e: any): void => {
           // Play is attempted synchronously from the user gesture; onReady is a fallback.
           try {
             e.target.playVideo();
@@ -89,15 +91,15 @@ export class YoutubePlayerService {
             // ignore
           }
         },
-        onStateChange: (e: any) => {
+        onStateChange: (e: any): void => {
           // YT.PlayerState.PLAYING = 1, PAUSED = 2, ENDED = 0
           this.isPlaying.set(e.data === 1);
         },
-        onError: (e: any) => {
+        onError: (e: any): void => {
           console.error('YouTube player error:', e.data);
           this.isPlaying.set(false);
-        }
-      }
+        },
+      },
     });
   }
 

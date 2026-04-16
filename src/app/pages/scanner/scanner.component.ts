@@ -1,6 +1,4 @@
-import {
-  Component, OnDestroy, OnInit, signal, inject, ElementRef, ViewChild
-} from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import jsQR from 'jsqr';
@@ -16,7 +14,7 @@ const MAX_DIMENSION = 600;
   standalone: true,
   imports: [TitleCasePipe],
   templateUrl: './scanner.component.html',
-  styleUrl: './scanner.component.scss'
+  styleUrl: './scanner.component.scss',
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   @ViewChild('videoEl', { static: true }) videoRef!: ElementRef<HTMLVideoElement>;
@@ -45,7 +43,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   async startScanner(): Promise<void> {
-    if (this.scanning()) return;
+    if (this.scanning()) {
+      return;
+    }
     this.error.set(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -58,8 +58,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
         video: {
           facingMode: { ideal: 'environment' },
           width: { ideal: 1280 },
-          height: { ideal: 1280 }
-        }
+          height: { ideal: 1280 },
+        },
       });
 
       const video = this.videoRef.nativeElement;
@@ -75,20 +75,27 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   stopScanner(): void {
     this.scanning.set(false);
-    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
     if (this.stream) {
-      this.stream.getTracks().forEach(t => t.stop());
+      this.stream.getTracks().forEach((t) => t.stop());
       this.stream = null;
     }
   }
 
   private scan(): void {
     const video = this.videoRef.nativeElement;
-    if (video.readyState < 2) return;
+    if (video.readyState < 2) {
+      return;
+    }
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    if (!vw || !vh) return;
+    if (!vw || !vh) {
+      return;
+    }
 
     const scale = Math.min(1, MAX_DIMENSION / Math.max(vw, vh));
     const w = Math.floor(vw * scale);
