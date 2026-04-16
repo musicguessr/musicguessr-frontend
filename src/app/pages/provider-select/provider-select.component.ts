@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { GameStateService, Provider, VideoBlur } from '../../services/game-state.service';
 import { SpotifyService } from '../../services/spotify.service';
 import { AppleMusicService } from '../../services/apple-music.service';
@@ -18,7 +18,7 @@ interface ProviderOption {
 @Component({
   selector: 'app-provider-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TitleCasePipe],
   templateUrl: './provider-select.component.html',
   styleUrl: './provider-select.component.scss'
 })

@@ -1,4 +1,5 @@
-<div class="page game-page" *ngIf="track()">
+@if (track()) {
+<div class="page game-page">
 
   <!-- TAP TO PLAY overlay -->
   <div
@@ -7,9 +8,15 @@
     (click)="onOverlayTap()"
   >
     <div class="play-circle" [class.ready]="overlayReady() && !overlayError()">
-      <div class="play-triangle" *ngIf="overlayReady() && !overlayError()"></div>
-      <span class="spinner large" *ngIf="!overlayReady()"></span>
-      <span class="error-icon" *ngIf="overlayError()">!</span>
+      @if (overlayReady() && !overlayError()) {
+        <div class="play-triangle"></div>
+      }
+      @if (!overlayReady()) {
+        <span class="spinner large"></span>
+      }
+      @if (overlayError()) {
+        <span class="error-icon">!</span>
+      }
     </div>
     <p class="play-label">{{ overlayLabel }}</p>
     <p class="play-sub">{{ overlaySub }}</p>
@@ -36,13 +43,16 @@
     <div class="card track-card">
       <!-- Artwork -->
       <div class="artwork-wrap" [class.blurred]="!revealed()">
-        <div class="artwork-placeholder" *ngIf="!track()!.artwork_url">🎵</div>
-        <img
-          *ngIf="track()!.artwork_url"
-          [src]="track()!.artwork_url"
-          alt="album art"
-          class="artwork-img"
-        >
+        @if (!track()!.artwork_url) {
+          <div class="artwork-placeholder">🎵</div>
+        }
+        @if (track()!.artwork_url) {
+          <img
+            [src]="track()!.artwork_url"
+            alt="album art"
+            class="artwork-img"
+          >
+        }
       </div>
 
       <!-- Title & Artist -->
@@ -64,29 +74,36 @@
       </div>
 
       <!-- Reveal button -->
-      <button class="reveal-btn" *ngIf="!revealed()" (click)="reveal()">
-        Tap to reveal
-      </button>
-      <button class="reveal-btn revealed" *ngIf="revealed()" (click)="hide()">
-        Tap to hide
-      </button>
+      @if (!revealed()) {
+        <button class="reveal-btn" (click)="reveal()">
+          Tap to reveal
+        </button>
+      } @else {
+        <button class="reveal-btn revealed" (click)="hide()">
+          Tap to hide
+        </button>
+      }
     </div>
 
     <!-- YouTube blurred player -->
-    <div class="yt-player-wrap" *ngIf="provider() === 'youtube'" [class.hidden]="!isPlaying()">
-      <div class="yt-blur-label">Now playing</div>
-      <div class="yt-blur-container"
-           [class.blur-hidden]="!revealed() && videoBlur() === 'hidden'"
-           [class.blur-blurred]="!revealed() && videoBlur() === 'blurred'"
-           [class.blur-visible]="revealed() || videoBlur() === 'visible'">
-        <div id="yt-player-container"></div>
+    @if (provider() === 'youtube') {
+      <div class="yt-player-wrap" [class.hidden]="!isPlaying()">
+        <div class="yt-blur-label">Now playing</div>
+        <div class="yt-blur-container"
+             [class.blur-hidden]="!revealed() && videoBlur() === 'hidden'"
+             [class.blur-blurred]="!revealed() && videoBlur() === 'blurred'"
+             [class.blur-visible]="revealed() || videoBlur() === 'visible'">
+          <div id="yt-player-container"></div>
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Player error -->
-    <div class="error-msg" *ngIf="playerError()">
-      {{ playerError() }}
-    </div>
+    @if (playerError()) {
+      <div class="error-msg">
+        {{ playerError() }}
+      </div>
+    }
 
     <!-- Actions -->
     <div class="actions">
@@ -100,3 +117,4 @@
 
   </div>
 </div>
+}

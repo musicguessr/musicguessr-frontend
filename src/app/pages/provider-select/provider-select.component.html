@@ -10,82 +10,94 @@
 
   <div class="content">
 
-    <!-- Locked state -->
-    <ng-container *ngIf="isLocked() && isAuthed; else selectView">
+    @if (isLocked() && isAuthed) {
+      <!-- Locked state -->
       <div class="locked-card card">
         <div class="locked-icon">🔒</div>
         <p class="locked-label">Provider locked for this game</p>
         <p class="locked-provider">{{ currentProvider | titlecase }}</p>
         <button class="btn btn-primary mt" (click)="confirm()" [disabled]="loading()">
-          <span class="spinner" *ngIf="loading()"></span>
+          @if (loading()) {
+            <span class="spinner"></span>
+          }
           START SCANNING
         </button>
         <button class="btn btn-ghost mt-sm" (click)="changeProvider()">
           Change provider
         </button>
       </div>
-    </ng-container>
-
-    <!-- Select view -->
-    <ng-template #selectView>
+    } @else {
+      <!-- Select view -->
       <h2 class="heading">Choose your music service</h2>
       <p class="subheading">You can't change this mid-game</p>
 
       <div class="provider-list">
-        <button
-          *ngFor="let p of providers"
-          class="provider-item"
-          [class.active]="selected() === p.id"
-          [class.disabled]="!p.available"
-          (click)="select(p.id)"
-          [attr.aria-disabled]="!p.available"
-        >
-          <span class="p-icon">{{ p.icon }}</span>
-          <div class="p-info">
-            <span class="p-label">{{ p.label }}</span>
-            <span class="p-desc">{{ p.available ? p.description : p.unavailableReason }}</span>
-          </div>
-          <span class="p-check" *ngIf="selected() === p.id">✓</span>
-        </button>
+        @for (p of providers; track p.id) {
+          <button
+            class="provider-item"
+            [class.active]="selected() === p.id"
+            [class.disabled]="!p.available"
+            (click)="select(p.id)"
+            [attr.aria-disabled]="!p.available"
+          >
+            <span class="p-icon">{{ p.icon }}</span>
+            <div class="p-info">
+              <span class="p-label">{{ p.label }}</span>
+              <span class="p-desc">{{ p.available ? p.description : p.unavailableReason }}</span>
+            </div>
+            @if (selected() === p.id) {
+              <span class="p-check">✓</span>
+            }
+          </button>
+        }
       </div>
 
       <!-- Video blur setting -->
-      <div class="setting-group" *ngIf="selected() === 'youtube'">
-        <label class="setting-label">YouTube video visibility</label>
-        <div class="blur-options">
-          <button
-            *ngFor="let opt of blurOptions"
-            class="blur-option"
-            [class.active]="videoBlur() === opt.value"
-            (click)="setBlur(opt.value)"
-          >
-            <span class="blur-icon">{{ opt.icon }}</span>
-            <span class="blur-name">{{ opt.label }}</span>
-          </button>
+      @if (selected() === 'youtube') {
+        <div class="setting-group">
+          <label class="setting-label">YouTube video visibility</label>
+          <div class="blur-options">
+            @for (opt of blurOptions; track opt.value) {
+              <button
+                class="blur-option"
+                [class.active]="videoBlur() === opt.value"
+                (click)="setBlur(opt.value)"
+              >
+                <span class="blur-icon">{{ opt.icon }}</span>
+                <span class="blur-name">{{ opt.label }}</span>
+              </button>
+            }
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Variant fallback setting (YouTube only) -->
-      <div class="setting-group" *ngIf="selected() === 'youtube'">
-        <div class="toggle-row" (click)="toggleYtVariants()">
-          <div class="toggle-info">
-            <span class="setting-label">Fallback to remixes &amp; alt versions</span>
-            <span class="toggle-desc">When the original isn't on YouTube, use the best available version</span>
-          </div>
-          <div class="toggle" [class.on]="ytVariants()">
-            <div class="toggle-knob"></div>
+      @if (selected() === 'youtube') {
+        <div class="setting-group">
+          <div class="toggle-row" (click)="toggleYtVariants()">
+            <div class="toggle-info">
+              <span class="setting-label">Fallback to remixes &amp; alt versions</span>
+              <span class="toggle-desc">When the original isn't on YouTube, use the best available version</span>
+            </div>
+            <div class="toggle" [class.on]="ytVariants()">
+              <div class="toggle-knob"></div>
+            </div>
           </div>
         </div>
-      </div>
+      }
 
-      <div class="error-msg" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+      @if (errorMsg()) {
+        <div class="error-msg">{{ errorMsg() }}</div>
+      }
 
       <button
         class="btn btn-primary"
         [disabled]="!selected() || loading()"
         (click)="confirm()"
       >
-        <span class="spinner" *ngIf="loading()"></span>
+        @if (loading()) {
+          <span class="spinner"></span>
+        }
         {{ loading() ? 'CONNECTING...' : 'CONFIRM &amp; START' }}
       </button>
 
@@ -93,7 +105,7 @@
         Spotify and Apple Music require your own subscription.
         YouTube works for everyone, no login needed.
       </p>
-    </ng-template>
+    }
 
   </div>
 </div>

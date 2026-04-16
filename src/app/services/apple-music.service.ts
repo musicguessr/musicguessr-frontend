@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 
@@ -14,10 +14,8 @@ export class AppleMusicService {
 
   private music: any = null;
 
-  constructor(
-    private config: ConfigService,
-    private state: GameStateService
-  ) {}
+  private config = inject(ConfigService);
+  private state = inject(GameStateService);
 
   private loadKit(): Promise<void> {
     if (window.MusicKit) return Promise.resolve();

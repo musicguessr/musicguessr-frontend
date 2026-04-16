@@ -2,7 +2,7 @@ import {
   Component, OnDestroy, OnInit, signal, inject, ElementRef, ViewChild
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import jsQR from 'jsqr';
 import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
@@ -14,7 +14,7 @@ const MAX_DIMENSION = 600;
 @Component({
   selector: 'app-scanner',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TitleCasePipe],
   templateUrl: './scanner.component.html',
   styleUrl: './scanner.component.scss'
 })

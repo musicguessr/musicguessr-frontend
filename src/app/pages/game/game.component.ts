@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { TitleCasePipe } from '@angular/common';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
 import { YoutubePlayerService } from '../../services/youtube-player.service';
 import { SpotifyService } from '../../services/spotify.service';
@@ -9,7 +9,7 @@ import { AppleMusicService } from '../../services/apple-music.service';
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule],
+  imports: [TitleCasePipe],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss'
 })

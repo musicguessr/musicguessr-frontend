@@ -21,38 +21,49 @@
     <video #videoEl autoplay muted playsinline></video>
 
     <!-- Idle overlay -->
-    <div class="scanner-idle" *ngIf="!scanning() && !loading()" (click)="startScanner()">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-        <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-        <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-        <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-        <path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/>
-      </svg>
-      <p>Tap to start scanning</p>
-    </div>
+    @if (!scanning() && !loading()) {
+      <div class="scanner-idle" (click)="startScanner()">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/>
+        </svg>
+        <p>Tap to start scanning</p>
+      </div>
+    }
 
     <!-- Scanning frame -->
-    <div class="scan-frame" *ngIf="scanning()">
-      <div class="scan-corner tl"></div>
-      <div class="scan-corner tr"></div>
-      <div class="scan-corner bl"></div>
-      <div class="scan-corner br"></div>
-    </div>
-    <p class="scan-hint" *ngIf="scanning()">Hold card QR code steady inside the frame</p>
+    @if (scanning()) {
+      <div class="scan-frame">
+        <div class="scan-corner tl"></div>
+        <div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div>
+        <div class="scan-corner br"></div>
+      </div>
+      <p class="scan-hint">Hold card QR code steady inside the frame</p>
+    }
 
     <!-- Loading -->
-    <div class="scanner-loading" *ngIf="loading()">
-      <span class="spinner large"></span>
-      <p>Looking up track…</p>
-    </div>
+    @if (loading()) {
+      <div class="scanner-loading">
+        <span class="spinner large"></span>
+        <p>Looking up track…</p>
+      </div>
+    }
   </div>
 
-  <div class="error-msg" *ngIf="error()">{{ error() }}</div>
+  @if (error()) {
+    <div class="error-msg">{{ error() }}</div>
+  }
 
-  <button class="btn btn-primary" *ngIf="!scanning() && !loading()" (click)="startScanner()">
-    SCAN CARD
-  </button>
-  <button class="btn btn-secondary" *ngIf="scanning()" (click)="stopScanner()">
-    STOP
-  </button>
+  @if (!scanning() && !loading()) {
+    <button class="btn btn-primary" (click)="startScanner()">
+      SCAN CARD
+    </button>
+  } @else if (scanning()) {
+    <button class="btn btn-secondary" (click)="stopScanner()">
+      STOP
+    </button>
+  }
 </div>

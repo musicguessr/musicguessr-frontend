@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 
@@ -18,10 +18,8 @@ export class SpotifyService {
   private player: any = null;
   private deviceId: string | null = null;
 
-  constructor(
-    private config: ConfigService,
-    private state: GameStateService
-  ) {}
+  private config = inject(ConfigService);
+  private state = inject(GameStateService);
 
   get clientId(): string { return this.config.spotifyClientId; }
   get redirectUri(): string { return `${window.location.origin}/callback`; }
