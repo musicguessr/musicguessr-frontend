@@ -114,7 +114,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (p === 'apple') {
-      this.apple.play({ artist: t.artist, title: t.title, appleMusicUrl: t.apple_music_url })
+      this.apple.play({ artist: t.artist ?? '', title: t.title ?? '', appleMusicUrl: t.links?.['apple_music'] })
         .then(() => this.isPlaying.set(true))
         .catch((e: Error) => this.playerError.set(e.message));
       return;
@@ -145,8 +145,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private getFallbackLink(t: TrackInfo): string | null {
     const p = this.provider();
     if (p === 'spotify') return t.spotify_url;
-    if (p === 'apple') return t.apple_music_url;
-    return t.links?.['youtube_music'] || null;
+    if (p === 'apple') return t.links?.['apple_music'] ?? null;
+    return t.links?.['youtube_music'] ?? null;
   }
 
   get overlayLabel(): string {
@@ -162,5 +162,21 @@ export class GameComponent implements OnInit, OnDestroy {
     if (p === 'spotify') return 'Playing via Spotify';
     if (p === 'apple') return 'Playing via Apple Music';
     return '';
+  }
+
+  get streamingLinks(): { key: string; name: string; url: string }[] {
+    const t = this.track();
+    if (!t?.links) return [];
+    const order: [string, string][] = [
+      ['spotify', 'Spotify'],
+      ['apple_music', 'Apple Music'],
+      ['deezer', 'Deezer'],
+      ['tidal', 'Tidal'],
+      ['youtube_music', 'YT Music'],
+      ['youtube', 'YouTube'],
+    ];
+    return order
+      .filter(([key]) => !!t.links[key])
+      .map(([key, name]) => ({ key, name, url: t.links[key] }));
   }
 }
