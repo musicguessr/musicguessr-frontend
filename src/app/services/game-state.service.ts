@@ -6,12 +6,11 @@ export type VideoBlur = 'hidden' | 'blurred' | 'visible';
 export interface TrackInfo {
   spotify_id: string;
   spotify_url: string;
-  artist: string;
-  title: string;
-  year: number;
-  artwork_url: string;
-  apple_music_url: string;
-  youtube_video_id: string;
+  artist?: string;
+  title?: string;
+  year?: number;
+  artwork_url?: string;
+  youtube_video_id?: string;
   links: Record<string, string>;
 }
 
