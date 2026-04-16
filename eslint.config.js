@@ -78,7 +78,7 @@ module.exports = defineConfig([
           comments: 160,
         },
       ],
-      'max-lines': ['error', 400], // my favorite rule to keep files small
+      'max-lines': ['error', 400],
       'no-bitwise': 'error',
       'no-console': 'off',
       'no-new-wrappers': 'error',
