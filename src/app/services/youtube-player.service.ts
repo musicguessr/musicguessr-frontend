@@ -48,6 +48,15 @@ export class YoutubePlayerService {
       this.isPlaying.set(true);
     } else {
       this.createPlayer(videoId);
+      // Try to start playback synchronously so it's attributed to the user gesture.
+      try {
+        if (this.player && typeof this.player.playVideo === 'function') {
+          this.player.playVideo();
+          this.isPlaying.set(true);
+        }
+      } catch (err) {
+        // ignore - playback may be handled in onReady
+      }
     }
   }
 
@@ -72,8 +81,13 @@ export class YoutubePlayerService {
       },
       events: {
         onReady: (e: any) => {
-          e.target.playVideo();
-          this.isPlaying.set(true);
+          // Play is attempted synchronously from the user gesture; onReady is a fallback.
+          try {
+            e.target.playVideo();
+            this.isPlaying.set(true);
+          } catch (err) {
+            // ignore
+          }
         },
         onStateChange: (e: any) => {
           // YT.PlayerState.PLAYING = 1, PAUSED = 2, ENDED = 0
@@ -101,5 +115,16 @@ export class YoutubePlayerService {
     }
     this.isPlaying.set(false);
     this.videoId.set(null);
+  }
+
+  // Call to unmute the player (can be invoked after a user gesture)
+  unmute(): void {
+    if (this.player && typeof this.player.unMute === 'function') {
+      try {
+        this.player.unMute();
+      } catch (err) {
+        // ignore
+      }
+    }
   }
 }
