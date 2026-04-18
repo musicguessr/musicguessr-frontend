@@ -1,0 +1,69 @@
+<div class="page">
+  <div class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
+    <span class="heading-sub">Deck</span>
+  </div>
+
+  <div class="content">
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="spinner large"></span>
+        <p>Loading deck…</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <p class="error-msg">{{ error() }}</p>
+        <a class="btn btn-ghost" routerLink="/">Go home</a>
+      </div>
+    } @else if (deck(); as d) {
+      <div class="deck-header">
+        <div class="deck-id-badge">{{ d.id }}</div>
+        <div class="deck-stats">
+          <span>{{ d.cards.length }} cards</span>
+          @if (isExpired()) {
+            <span class="badge-expired">Expired</span>
+          } @else {
+            <span class="badge-active">Expires {{ d.expires_at | date: 'mediumDate' }}</span>
+          }
+        </div>
+      </div>
+
+      @if (!isExpired()) {
+        <button class="btn btn-primary play-btn" (click)="play()">▶ Play this deck</button>
+      }
+
+      <!-- QR + share -->
+      <div class="share-section">
+        <div class="qr-wrap">
+          <div #qrCanvas class="qr-canvas"></div>
+        </div>
+        <div class="share-link-row">
+          <span class="share-url-text">{{ shareUrl() }}</span>
+          <button class="btn-copy" (click)="copyLink()">Copy link</button>
+        </div>
+      </div>
+
+      <!-- Song list -->
+      <div class="song-list-section">
+        <h3 class="section-title">Songs in this deck</h3>
+        <div class="song-list">
+          @for (card of d.cards; track card.yt_id; let i = $index) {
+            <div class="song-row">
+              <span class="song-num">{{ i + 1 }}</span>
+              @if (card.artwork) {
+                <img class="song-thumb" [src]="card.artwork" alt="" loading="lazy" />
+              } @else {
+                <div class="song-thumb-placeholder">♪</div>
+              }
+              <div class="song-info">
+                <span class="song-title">{{ card.title || '—' }}</span>
+                <span class="song-artist">{{ card.artist || '—' }}</span>
+              </div>
+              <span class="song-year">{{ card.year || '?' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

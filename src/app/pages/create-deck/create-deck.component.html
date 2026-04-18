@@ -1,0 +1,140 @@
+<div class="page">
+  <div class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
+    <span class="heading-sub">Create Deck</span>
+  </div>
+
+  @if (result(); as res) {
+    <!-- Success state -->
+    <div class="content success-view">
+      <div class="success-icon">🎉</div>
+      <h2 class="success-title">Deck created!</h2>
+      <p class="success-sub">Share this link or QR code with players.</p>
+
+      <div class="share-box">
+        <span class="share-url">{{ res.share_url }}</span>
+        <button class="btn-copy" (click)="copyLink()">Copy</button>
+      </div>
+
+      <div class="qr-wrap">
+        <div #qrCanvas class="qr-canvas"></div>
+      </div>
+
+      <p class="expires-note">Expires {{ res.expires_at | date: 'mediumDate' }}</p>
+
+      <div class="success-actions">
+        <button class="btn btn-primary" (click)="playNow()">Play now</button>
+        <button class="btn btn-ghost" (click)="createAnother()">Create another deck</button>
+      </div>
+    </div>
+  } @else {
+    <!-- Builder state -->
+    <div class="content builder-view">
+      <p class="builder-sub">Add up to {{ MAX_CARDS }} YouTube tracks. Validate each one before submitting.</p>
+
+      <!-- Playlist import -->
+      <div class="playlist-import">
+        <p class="playlist-label">Import from YouTube playlist</p>
+        <div class="playlist-row">
+          <input
+            class="input"
+            placeholder="Playlist URL or ID (e.g. PLxxxx…)"
+            [(ngModel)]="playlistUrl"
+            (keydown.enter)="importPlaylist()"
+          />
+          <button
+            class="btn btn-ghost playlist-btn"
+            [disabled]="playlistImporting() || !playlistUrl.trim()"
+            (click)="importPlaylist()"
+          >
+            @if (playlistImporting()) {
+              <span class="status-spinner"></span>
+            } @else {
+              Import
+            }
+          </button>
+        </div>
+        @if (playlistError()) {
+          <p class="playlist-msg">{{ playlistError() }}</p>
+        }
+      </div>
+
+      <div class="card-list">
+        @for (card of cards(); track trackByIndex($index)) {
+          <div class="card-row" [class.valid]="card.valid === true" [class.invalid]="card.valid === false">
+            <div class="card-num">{{ $index + 1 }}</div>
+
+            <div class="card-fields">
+              <div class="field-group">
+                <input
+                  class="input"
+                  placeholder="YouTube URL or video ID"
+                  [(ngModel)]="card.ytUrl"
+                  (blur)="onUrlBlur($index)"
+                />
+                @if (card.validating) {
+                  <span class="status-spinner"></span>
+                }
+                @if (card.valid === true) {
+                  <span class="status-ok">✓</span>
+                }
+                @if (card.valid === false) {
+                  <span class="status-err" [title]="card.error ?? ''">✗</span>
+                }
+              </div>
+              @if (card.error) {
+                <p class="field-error">{{ card.error }}</p>
+              }
+
+              <div class="meta-row">
+                <input class="input input-sm" placeholder="Title" [(ngModel)]="card.title" />
+                <input class="input input-sm" placeholder="Artist" [(ngModel)]="card.artist" />
+                <input class="input input-sm input-year" type="number" placeholder="Year" [(ngModel)]="card.year" />
+                @if (card.artwork) {
+                  <img class="thumb" [src]="card.artwork" alt="" loading="lazy" />
+                }
+              </div>
+            </div>
+
+            <button class="btn-remove" (click)="removeCard($index)" title="Remove">×</button>
+          </div>
+        }
+      </div>
+
+      @if (cards().length < MAX_CARDS) {
+        <button class="btn btn-ghost add-btn" (click)="addCard()">+ Add card</button>
+      }
+
+      <div class="ttl-row">
+        <label class="ttl-label">Deck expires after</label>
+        <div class="ttl-options">
+          @for (opt of ttlOptions; track opt.value) {
+            <button
+              class="ttl-btn"
+              [class.active]="selectedTTL() === opt.value"
+              (click)="selectedTTL.set(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (submitError()) {
+        <p class="submit-error">{{ submitError() }}</p>
+      }
+
+      <button
+        class="btn btn-primary submit-btn"
+        [disabled]="submitting() || cards().length === 0"
+        (click)="submit()"
+      >
+        @if (submitting()) {
+          <span class="spinner"></span> Creating…
+        } @else {
+          Create deck ({{ cards().length }} card{{ cards().length !== 1 ? 's' : '' }})
+        }
+      </button>
+    </div>
+  }
+</div>

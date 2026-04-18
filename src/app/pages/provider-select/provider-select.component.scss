@@ -241,3 +241,73 @@
   color: var(--accent);
   letter-spacing: 2px;
 }
+
+// ── Custom deck section ──
+.custom-deck-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.custom-deck-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.75rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.custom-deck-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.custom-deck-input {
+  flex: 1;
+  background: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: var(--fg);
+  font-size: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  outline: none;
+
+  &:focus { border-color: var(--accent); }
+  &::placeholder { color: #555; }
+}
+
+.custom-deck-btn {
+  white-space: nowrap;
+  padding: 0.6rem 1rem;
+}
+
+.custom-deck-error {
+  font-size: 0.8rem;
+  color: #e57373;
+  margin: 0;
+}
+
+.custom-deck-links {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  font-size: 0.78rem;
+}
+
+.link-subtle {
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+
+  &:hover { color: var(--accent); }
+}
+
+.link-sep { color: rgba(255, 255, 255, 0.2); }

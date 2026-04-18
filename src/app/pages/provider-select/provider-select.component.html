@@ -95,6 +95,36 @@
       <p class="footer-note">
         Spotify and Apple Music require your own subscription. YouTube works for everyone, no login needed.
       </p>
+
+      <!-- Custom deck section -->
+      <div class="custom-deck-section">
+        <div class="custom-deck-divider">
+          <span>or play a custom deck</span>
+        </div>
+        <div class="custom-deck-row">
+          <input
+            class="custom-deck-input"
+            placeholder="Paste deck ID or link…"
+            [(ngModel)]="deckInput"
+            (keydown.enter)="loadCustomDeck()"
+          />
+          <button
+            class="btn btn-ghost custom-deck-btn"
+            [disabled]="!deckInput() || deckLoading()"
+            (click)="loadCustomDeck()"
+          >
+            @if (deckLoading()) { <span class="spinner"></span> } @else { Load }
+          </button>
+        </div>
+        @if (deckError()) {
+          <p class="custom-deck-error">{{ deckError() }}</p>
+        }
+        <div class="custom-deck-links">
+          <a routerLink="/create-deck" class="link-subtle">Create a deck</a>
+          <span class="link-sep">·</span>
+          <a routerLink="/deck" class="link-subtle">My decks</a>
+        </div>
+      </div>
     }
   </div>
 </div>

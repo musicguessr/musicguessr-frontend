@@ -1,0 +1,35 @@
+<div class="page">
+  <div class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
+    <span class="heading-sub">My Decks</span>
+  </div>
+
+  <div class="content">
+    @if (entries.length === 0) {
+      <div class="empty-state">
+        <p>You haven't created or played any custom decks yet.</p>
+        <a class="btn btn-primary" routerLink="/create-deck">Create a deck</a>
+      </div>
+    } @else {
+      <div class="deck-list">
+        @for (entry of entries; track entry.id) {
+          <a class="deck-item" [routerLink]="['/deck', entry.id]" [class.expired]="isExpired(entry.expiresAt)">
+            <div class="deck-item-info">
+              <span class="deck-id">{{ entry.id }}</span>
+              <span class="deck-meta">{{ entry.cardCount }} cards</span>
+              <span class="deck-meta">
+                @if (isExpired(entry.expiresAt)) {
+                  Expired
+                } @else {
+                  Expires {{ entry.expiresAt | date: 'mediumDate' }}
+                }
+              </span>
+            </div>
+            <span class="deck-arrow">›</span>
+          </a>
+        }
+      </div>
+      <a class="btn btn-ghost create-link" routerLink="/create-deck">+ Create new deck</a>
+    }
+  </div>
+</div>

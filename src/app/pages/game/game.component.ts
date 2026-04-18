@@ -1,10 +1,12 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
 import { YoutubePlayerService } from '../../services/youtube-player.service';
 import { SpotifyService } from '../../services/spotify.service';
 import { AppleMusicService } from '../../services/apple-music.service';
+import { DeckService } from '../../services/deck.service';
+import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-game',
@@ -12,6 +14,7 @@ import { AppleMusicService } from '../../services/apple-music.service';
   imports: [TitleCasePipe],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -19,6 +22,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private ytPlayer = inject(YoutubePlayerService);
   private spotify = inject(SpotifyService);
   private apple = inject(AppleMusicService);
+  private deckService = inject(DeckService);
+  private seo = inject(SeoService);
 
   readonly track = this.state.currentTrack;
   readonly provider = this.state.provider;
@@ -30,9 +35,25 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly playerError = signal<string | null>(null);
   readonly isPlaying = signal(false);
 
+  // Custom deck mode
+  readonly isCustomMode = this.state.isCustomDeckMode;
+  readonly customCard = this.state.currentCustomCard;
+  readonly customProgress = this.state.customDeckProgress;
+  readonly isFinished = this.state.isCustomDeckFinished;
+
+  readonly effectiveYtId = computed(() => {
+    if (this.isCustomMode()) return this.customCard()?.yt_id ?? null;
+    return this.track()?.youtube_video_id ?? null;
+  });
+
   ngOnInit(): void {
-    if (!this.track()) {
+    this.seo.set({ title: 'Playing', noindex: true });
+    if (!this.isCustomMode() && !this.track()) {
       this.router.navigate(['/scan']);
+      return;
+    }
+    if (this.isCustomMode() && this.isFinished()) {
+      // Game already finished — stay on finished screen
       return;
     }
     this.preparePlayer();
@@ -40,32 +61,29 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     const p = this.provider();
-    if (p === 'youtube') {
-      this.ytPlayer.destroy();
-    }
-    if (p === 'spotify') {
-      this.spotify.stop();
-    }
-    if (p === 'apple') {
-      this.apple.stop();
-    }
+    if (p === 'youtube') this.ytPlayer.destroy();
+    if (p === 'spotify') this.spotify.stop();
+    if (p === 'apple') this.apple.stop();
   }
 
   private async preparePlayer(): Promise<void> {
     const p = this.provider();
-    const t = this.track()!;
+    const ytId = this.effectiveYtId();
 
     if (p === 'youtube') {
-      if (t.youtube_video_id) {
+      if (ytId) {
         try {
           await this.ytPlayer.loadAPI();
+          // Pre-create the player so loadVideoById() in the tap handler is
+          // called on a ready player — required for iOS Safari autoplay.
+          await this.ytPlayer.preloadPlayer();
           this.overlayReady.set(true);
         } catch {
           this.overlayError.set('Failed to load YouTube player');
           this.overlayReady.set(true);
         }
       } else {
-        this.overlayError.set('No YouTube match found for this track');
+        this.overlayError.set('No YouTube video available for this card');
         this.overlayReady.set(true);
       }
       return;
@@ -85,6 +103,12 @@ export class GameComponent implements OnInit, OnDestroy {
     if (p === 'apple') {
       try {
         await this.apple.init();
+        // Pre-load the track queue so play() in the tap handler has no async work
+        // before music.play() — required for iOS Safari autoplay (C2 fix).
+        const t = this.track();
+        if (t?.artist && t?.title) {
+          await this.apple.preloadTrack(t.artist, t.title);
+        }
         this.overlayReady.set(true);
       } catch (e: any) {
         this.overlayError.set(e.message || 'Apple Music failed to initialize');
@@ -97,45 +121,75 @@ export class GameComponent implements OnInit, OnDestroy {
   // Called synchronously inside click handler — required for iOS autoplay
   onOverlayTap(): void {
     const p = this.provider();
-    const t = this.track()!;
+    const ytId = this.effectiveYtId();
+    const t = this.track();
 
     this.showOverlay.set(false);
 
     if (p === 'youtube') {
-      if (t.youtube_video_id) {
-        this.ytPlayer.playVideo(t.youtube_video_id);
+      if (ytId) {
+        this.ytPlayer.playVideo(ytId);
         this.isPlaying.set(true);
       } else if (this.overlayError()) {
-        const link = this.getFallbackLink(t);
-        if (link) {
-          window.open(link, '_blank', 'noopener');
+        // In custom mode there's no fallback link — error already shown in overlaySub.
+        // In standard mode, try to open a fallback streaming link.
+        if (!this.isCustomMode() && t) {
+          const link = this.getFallbackLink(t);
+          if (link) window.open(link, '_blank', 'noopener');
         }
       }
       return;
     }
 
-    if (p === 'spotify') {
+    if (p === 'spotify' && t) {
       this.spotify
         .play(t.spotify_id)
         .then(() => this.isPlaying.set(true))
-        .catch((e: Error) => this.playerError.set(e.message));
+        .catch((e: any) => this.playerError.set(e?.message ?? 'Spotify playback failed'));
       return;
     }
 
     if (p === 'apple') {
+      // Queue was pre-loaded in preparePlayer(); play() calls music.play() immediately
+      // as the first operation — iOS attributes it to this user gesture.
       this.apple
-        .play({ artist: t.artist ?? '', title: t.title ?? '', appleMusicUrl: t.links?.['apple_music'] })
+        .play()
         .then(() => this.isPlaying.set(true))
-        .catch((e: Error) => this.playerError.set(e.message));
+        .catch((e: any) => this.playerError.set(e?.message ?? 'Apple Music playback failed'));
       return;
     }
   }
 
-  reveal(): void {
-    this.revealed.set(true);
-  }
-  hide(): void {
+  reveal(): void { this.revealed.set(true); }
+  hide(): void { this.revealed.set(false); }
+
+  nextCustomCard(): void {
+    this.ytPlayer.destroy();
+    this.state.nextCustomCard();
     this.revealed.set(false);
+    this.showOverlay.set(true);
+    this.overlayReady.set(false);
+    this.overlayError.set(null);
+    this.playerError.set(null);
+    this.isPlaying.set(false);
+
+    if (!this.state.isCustomDeckFinished()) {
+      this.preparePlayer();
+    }
+  }
+
+  restartCustomDeck(): void {
+    const deck = this.state.customDeck()?.deck;
+    if (!deck) return;
+    const shuffleOrder = this.deckService.shuffle(deck.cards.map((_, i) => i));
+    this.state.restartCustomDeck(shuffleOrder);
+    this.revealed.set(false);
+    this.showOverlay.set(true);
+    this.overlayReady.set(false);
+    this.overlayError.set(null);
+    this.playerError.set(null);
+    this.isPlaying.set(false);
+    this.preparePlayer();
   }
 
   scanNext(): void {
@@ -151,6 +205,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.spotify.stop();
     this.apple.stop();
     this.state.currentTrack.set(null);
+    this.state.clearCustomDeck();
     this.state.unlock();
     this.state.setProvider(null);
     this.router.navigate(['/']);
@@ -158,47 +213,29 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private getFallbackLink(t: TrackInfo): string | null {
     const p = this.provider();
-    if (p === 'spotify') {
-      return t.spotify_url;
-    }
-    if (p === 'apple') {
-      return t.links?.['apple_music'] ?? null;
-    }
+    if (p === 'spotify') return t.spotify_url;
+    if (p === 'apple') return t.links?.['apple_music'] ?? null;
     return t.links?.['youtube_music'] ?? null;
   }
 
-  get overlayLabel(): string {
-    if (!this.overlayReady()) {
-      return 'LOADING…';
-    }
-    if (this.overlayError()) {
-      return 'TAP TO OPEN';
-    }
+  readonly overlayLabel = computed(() => {
+    if (!this.overlayReady()) return 'LOADING…';
+    if (this.overlayError()) return 'TAP TO OPEN';
     return 'TAP TO PLAY';
-  }
+  });
 
-  get overlaySub(): string {
+  readonly overlaySub = computed(() => {
     const p = this.provider();
-    if (this.overlayError()) {
-      return this.overlayError()!;
-    }
-    if (p === 'youtube') {
-      return 'Playing via YouTube';
-    }
-    if (p === 'spotify') {
-      return 'Playing via Spotify';
-    }
-    if (p === 'apple') {
-      return 'Playing via Apple Music';
-    }
+    if (this.overlayError()) return this.overlayError()!;
+    if (p === 'youtube') return 'Playing via YouTube';
+    if (p === 'spotify') return 'Playing via Spotify';
+    if (p === 'apple') return 'Playing via Apple Music';
     return '';
-  }
+  });
 
-  get streamingLinks(): { key: string; name: string; url: string }[] {
+  readonly streamingLinks = computed(() => {
     const t = this.track();
-    if (!t?.links) {
-      return [];
-    }
+    if (!t?.links) return [];
     const order: [string, string][] = [
       ['spotify', 'Spotify'],
       ['apple_music', 'Apple Music'],
@@ -208,5 +245,5 @@ export class GameComponent implements OnInit, OnDestroy {
       ['youtube', 'YouTube'],
     ];
     return order.filter(([key]) => !!t.links[key]).map(([key, name]) => ({ key, name, url: t.links[key] }));
-  }
+  });
 }

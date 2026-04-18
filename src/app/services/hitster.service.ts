@@ -15,8 +15,8 @@ export class HitsterService {
       url += '&yt_variants=1';
     }
     const data = await firstValueFrom(this.http.get<TrackInfo & { error?: string }>(url));
-    if ((data as any).error) {
-      throw new Error((data as any).error);
+    if (data.error) {
+      throw new Error(data.error);
     }
     return data;
   }

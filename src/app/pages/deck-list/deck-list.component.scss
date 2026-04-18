@@ -1,0 +1,86 @@
+.page {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 0 1rem 4rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0 1rem;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.heading-sub {
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+.content {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 0;
+  opacity: 0.6;
+
+  p { margin-bottom: 1.5rem; }
+}
+
+.deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.deck-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #141414;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  color: var(--fg);
+  transition: border-color 0.15s;
+
+  &:hover { border-color: var(--accent); }
+  &.expired { opacity: 0.4; pointer-events: none; }
+}
+
+.deck-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.deck-id {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.deck-meta {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+.deck-arrow {
+  font-size: 1.2rem;
+  opacity: 0.4;
+}
+
+.create-link {
+  width: 100%;
+}

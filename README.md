@@ -11,6 +11,7 @@ MusicGuessr is a client-side Angular application that lets users select a playba
 - Provider selection with persistent state
 - QR scanner using the device camera and `jsqr`
 - Playback via YouTube IFrame API, Spotify Web Playback SDK and Apple Music
+- Custom decks — create, share and play YouTube-based card decks
 - Lazy-loaded standalone components and Angular signals
 
 ---
@@ -172,22 +173,26 @@ console.log(token);
 
 ### Project layout
 
-| Path                                         | Responsibility                                           |
-| -------------------------------------------- | -------------------------------------------------------- |
-| `src/config.json`                            | Runtime settings (not built into bundle)                 |
-| `entrypoint.sh`                              | Generates `config.json` from env vars at container start |
-| `src/app/app.config.ts`                      | APP_INITIALIZER loads `config.json`                      |
-| `src/app/app.routes.ts`                      | Routes: `/`, `/scan`, `/game`, `/callback`               |
-| `src/app/services/config.service.ts`         | Reads `config.json`                                      |
-| `src/app/services/game-state.service.ts`     | All game state in `localStorage`, Angular signals        |
-| `src/app/services/spotify.service.ts`        | PKCE OAuth + Web Playback SDK                            |
-| `src/app/services/apple-music.service.ts`    | MusicKit JS                                              |
-| `src/app/services/youtube-player.service.ts` | YouTube IFrame API                                       |
-| `src/app/services/hitster.service.ts`        | Calls `GET /api/resolve?url=…` on the backend            |
-| `src/app/pages/provider-select/`             | Step 1: choose provider, OAuth if needed                 |
-| `src/app/pages/scanner/`                     | Step 2: jsQR camera scanner                              |
-| `src/app/pages/game/`                        | Step 3: TAP TO PLAY → music + blurred card               |
-| `src/app/pages/callback/`                    | Spotify OAuth redirect handler                           |
+| Path | Responsibility |
+|------|----------------|
+| `src/config.json` | Runtime settings (not built into bundle) |
+| `entrypoint.sh` | Generates `config.json` from env vars at container start |
+| `src/app/app.config.ts` | APP_INITIALIZER loads `config.json` |
+| `src/app/app.routes.ts` | Routes: `/`, `/scan`, `/game`, `/callback`, `/create-deck`, `/deck`, `/deck/:id` |
+| `src/app/services/config.service.ts` | Reads `config.json` |
+| `src/app/services/game-state.service.ts` | All game state in `localStorage`, Angular signals, custom deck state |
+| `src/app/services/deck.service.ts` | Custom deck API calls, localStorage deck registry and cache |
+| `src/app/services/spotify.service.ts` | PKCE OAuth + Web Playback SDK |
+| `src/app/services/apple-music.service.ts` | MusicKit JS |
+| `src/app/services/youtube-player.service.ts` | YouTube IFrame API |
+| `src/app/services/hitster.service.ts` | Calls `GET /api/resolve?url=…` on the backend |
+| `src/app/pages/provider-select/` | Step 1: choose provider, OAuth if needed, custom deck entry |
+| `src/app/pages/scanner/` | Step 2: jsQR camera scanner |
+| `src/app/pages/game/` | Step 3: TAP TO PLAY → music + blurred card (standard and custom deck modes) |
+| `src/app/pages/callback/` | Spotify OAuth redirect handler |
+| `src/app/pages/create-deck/` | Custom deck builder — add YouTube URLs, validate, set TTL, generate QR |
+| `src/app/pages/deck-list/` | `/deck` — list of locally saved decks |
+| `src/app/pages/deck-detail/` | `/deck/:id` — deck info, song list, QR code, Play button |
 
 ---
 

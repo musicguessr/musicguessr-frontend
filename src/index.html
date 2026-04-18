@@ -3,13 +3,80 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
+
+    <!-- Primary meta -->
+    <title>musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music</title>
+    <meta name="description" content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks." />
+    <meta name="keywords" content="hitster, music quiz, guess the year, hitster online, musicguessr, youtube music game, spotify music quiz, custom deck, music card game" />
+    <meta name="author" content="musicguessr" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="__SITE_URL__" />
+
+    <!-- Search engine verification — tokens injected at runtime via entrypoint.sh -->
+    <meta name="google-site-verification" content="__GOOGLE_VERIFICATION__" />
+    <meta name="msvalidate.01" content="__BING_VERIFICATION__" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="musicguessr" />
+    <meta property="og:title" content="musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music" />
+    <meta property="og:description" content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks." />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music" />
+    <meta name="twitter:description" content="Play any Hitster card with YouTube, Spotify or Apple Music — no lock-in. Guess the year, create custom music quiz decks." />
+    <meta name="twitter:image" content="__SITE_URL__/assets/og-image.png" />
+
+    <!-- PWA -->
     <meta content="#0a0a0a" name="theme-color" />
     <meta content="yes" name="apple-mobile-web-app-capable" />
     <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style" />
     <meta content="musicguessr" name="apple-mobile-web-app-title" />
     <link href="manifest.webmanifest" rel="manifest" />
-    <title>musicguessr</title>
+
+    <!-- Structured data: WebApplication (Schema.org) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "musicguessr",
+      "url": "__SITE_URL__",
+      "description": "Play any Hitster card with YouTube, Spotify or Apple Music. Scan QR codes, guess the year, and create custom music quiz decks — no subscription lock-in.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript. Requires a modern browser with camera access for QR scanning.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "YouTube playback — no account required",
+        "Spotify Web Playback SDK integration",
+        "Apple Music via MusicKit JS",
+        "QR code scanner for Hitster cards",
+        "Custom deck creator with YouTube playlist import",
+        "Shareable deck links with QR codes",
+        "Progressive Web App — installable on mobile"
+      ],
+      "screenshot": "__SITE_URL__/assets/og-image.png",
+      "creator": {
+        "@type": "Organization",
+        "name": "musicguessr",
+        "url": "__SITE_URL__"
+      }
+    }
+    </script>
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap"
       rel="stylesheet"

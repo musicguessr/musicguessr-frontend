@@ -1,0 +1,60 @@
+# musicguessr
+
+> Open-source, platform-agnostic web companion for the Hitster card game. Play any Hitster card with YouTube, Spotify, or Apple Music — no subscription lock-in.
+
+## What is musicguessr?
+
+musicguessr lets players scan QR codes from Hitster music quiz cards and instantly play the corresponding track in their browser using whichever music service they have:
+
+- **YouTube** — always available, no account required
+- **Spotify** — via Web Playback SDK (requires Premium)
+- **Apple Music** — via MusicKit JS (requires subscription)
+
+The game: players listen to a song snippet, then guess which year it was released. Cards are placed on a timeline in chronological order. The player with the most correctly placed cards wins.
+
+## Key Features
+
+- **QR code scanner** — point your camera at any Hitster card to identify the track
+- **Multi-provider playback** — YouTube, Spotify, Apple Music
+- **Custom deck creator** — build your own music quiz deck from YouTube videos or playlists
+- **Playlist import** — import an entire YouTube playlist as a deck in one click
+- **Shareable decks** — share a link or QR code so friends can play your custom deck
+- **PWA** — installable on mobile, works offline (cached decks)
+- **No user accounts** — fully stateless, no login required
+
+## How it works
+
+1. Go to musicguessr and choose your music provider (YouTube / Spotify / Apple Music)
+2. Scan a QR code from a Hitster card using your camera
+3. Tap to play — the track starts in your browser
+4. Guess the year, then tap to reveal the answer
+5. Optionally create and share your own custom music quiz decks
+
+## Custom Decks
+
+Users can create custom decks at `/create-deck`:
+- Add YouTube video URLs one by one, or import an entire YouTube playlist
+- Each card stores the YouTube video ID, title, artist, and year
+- Decks are shareable via a short link and QR code
+- Decks expire after a configurable TTL (1 week to 1 year)
+
+## Technical Details
+
+- Frontend: Angular 19 PWA (TypeScript, standalone components, signals)
+- Backend: Go 1.23 REST API (stdlib only, no framework)
+- Storage: local filesystem or S3-compatible object storage (Cloudflare R2)
+- No user authentication, no cookies, no tracking
+- Open source — MIT license
+
+## Supported Platforms
+
+- Modern browsers: Chrome, Firefox, Safari, Edge
+- Mobile: iOS Safari, Android Chrome (QR scanner requires camera permission)
+- iOS autoplay: handled via tap-to-play gesture gate
+
+## Links
+
+- Home: /
+- Create custom deck: /create-deck
+- My decks: /deck
+- GitHub: https://github.com/musicguessr

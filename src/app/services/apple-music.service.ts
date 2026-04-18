@@ -20,9 +20,7 @@ export class AppleMusicService {
   private state = inject(GameStateService);
 
   private loadKit(): Promise<void> {
-    if (window.MusicKit) {
-      return Promise.resolve();
-    }
+    if (window.MusicKit) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
       s.src = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
@@ -46,7 +44,6 @@ export class AppleMusicService {
       app: { name: 'musicguessr', build: '1.0.0' },
     });
 
-    // Restore user token if we have one
     const userToken = this.state.getAppleMusicToken();
     if (userToken) {
       this.isReady.set(true);
@@ -54,55 +51,45 @@ export class AppleMusicService {
   }
 
   async authorize(): Promise<void> {
-    if (!this.music) {
-      await this.init();
-    }
-    if (!this.music) {
-      throw new Error('MusicKit not initialized');
-    }
+    if (!this.music) await this.init();
+    if (!this.music) throw new Error('MusicKit not initialized');
 
     const userToken = await this.music.authorize();
     this.state.setAppleMusicToken(userToken);
     this.isReady.set(true);
   }
 
-  // Play track — must be called inside click handler for iOS
-  async play(trackInfo: { artist: string; title: string; appleMusicUrl?: string }): Promise<void> {
-    if (!this.music) {
-      throw new Error('MusicKit not ready');
-    }
+  // Pre-loads the track queue before the user taps — required for iOS autoplay.
+  // Separates the async API work (search + setQueue) from play() so that play()
+  // can be called synchronously inside a user gesture without any preceding awaits.
+  async preloadTrack(artist: string, title: string): Promise<void> {
+    if (!this.music) throw new Error('MusicKit not ready');
+    const query = encodeURIComponent(`${artist} ${title}`);
+    const result = await this.music.api.music(
+      // [C1] Fix: use this.music.storefrontId, not the literal "{{storefrontId}}"
+      `/v1/catalog/${this.music.storefrontId}/search?term=${query}&types=songs&limit=1`,
+    );
+    const songs = result?.data?.results?.songs?.data;
+    if (!songs?.length) throw new Error('Track not found on Apple Music');
+    await this.music.setQueue({ song: songs[0].id });
+  }
 
-    // Search by artist + title using catalog search
-    const query = encodeURIComponent(`${trackInfo.artist} ${trackInfo.title}`);
-    try {
-      const result = await this.music.api.music(
-        `/v1/catalog/{{storefrontId}}/search?term=${query}&types=songs&limit=1`,
-      );
-      const songs = result?.data?.results?.songs?.data;
-      if (songs?.length) {
-        await this.music.setQueue({ song: songs[0].id });
-        await this.music.play();
-        this.isPlaying.set(true);
-        return;
-      }
-    } catch (e) {
-      console.warn('Apple Music catalog search failed', e);
-    }
-
-    this.error.set('Track not found on Apple Music');
+  // [C2] Fix: play() is now called as the very first operation inside the click
+  // handler (no preceding awaits), so iOS attributes it to the user gesture.
+  // Queue must be pre-loaded via preloadTrack() before this is called.
+  async play(): Promise<void> {
+    if (!this.music) throw new Error('MusicKit not ready');
+    await this.music.play();
+    this.isPlaying.set(true);
   }
 
   stop(): void {
-    if (this.music) {
-      this.music.stop();
-    }
+    if (this.music) this.music.stop();
     this.isPlaying.set(false);
   }
 
   unauthorize(): void {
-    if (this.music) {
-      this.music.unauthorize();
-    }
+    if (this.music) this.music.unauthorize();
     this.state.clearAppleMusicToken();
     this.isReady.set(false);
     this.isPlaying.set(false);

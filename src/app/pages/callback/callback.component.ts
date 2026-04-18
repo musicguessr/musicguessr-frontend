@@ -1,12 +1,14 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SpotifyService } from '../../services/spotify.service';
 import { GameStateService } from '../../services/game-state.service';
+import { SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-callback',
   standalone: true,
   imports: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="callback-page">
       <div class="logo">musicguessr</div>
@@ -60,11 +62,13 @@ export class CallbackComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private spotify = inject(SpotifyService);
   private state = inject(GameStateService);
+  private seo = inject(SeoService);
 
   readonly error = signal<string | null>(null);
   readonly provider = signal<string>('Spotify');
 
   async ngOnInit(): Promise<void> {
+    this.seo.set({ title: 'Connecting…', noindex: true });
     const params = this.route.snapshot.queryParams;
     const code = params['code'];
     const errorParam = params['error'];

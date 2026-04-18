@@ -1,10 +1,13 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { GameStateService, Provider, VideoBlur } from '../../services/game-state.service';
 import { SpotifyService } from '../../services/spotify.service';
 import { AppleMusicService } from '../../services/apple-music.service';
 import { ConfigService } from '../../services/config.service';
+import { DeckService } from '../../services/deck.service';
+import { SeoService } from '../../services/seo.service';
 
 type ProviderOption = {
   id: Provider;
@@ -18,9 +21,10 @@ type ProviderOption = {
 @Component({
   selector: 'app-provider-select',
   standalone: true,
-  imports: [TitleCasePipe],
+  imports: [TitleCasePipe, RouterLink, FormsModule],
   templateUrl: './provider-select.component.html',
   styleUrl: './provider-select.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProviderSelectComponent implements OnInit {
   private router = inject(Router);
@@ -28,12 +32,19 @@ export class ProviderSelectComponent implements OnInit {
   private spotify = inject(SpotifyService);
   private apple = inject(AppleMusicService);
   private config = inject(ConfigService);
+  private deckService = inject(DeckService);
+  private seo = inject(SeoService);
 
   readonly loading = signal(false);
   readonly errorMsg = signal<string | null>(null);
   readonly selected = signal<Provider>(null);
   readonly videoBlur = this.state.videoBlur;
   readonly ytVariants = this.state.ytVariants;
+
+  // Custom deck entry
+  readonly deckInput = signal('');
+  readonly deckLoading = signal(false);
+  readonly deckError = signal<string | null>(null);
 
   readonly blurOptions: { value: VideoBlur; label: string; icon: string }[] = [
     { value: 'hidden', label: 'Hidden', icon: '🙈' },
@@ -44,6 +55,10 @@ export class ProviderSelectComponent implements OnInit {
   providers: ProviderOption[] = [];
 
   ngOnInit(): void {
+    this.seo.set({
+      title: 'Play Hitster Cards Online',
+      description: 'Choose YouTube, Spotify, or Apple Music to play Hitster cards in your browser. No subscription lock-in — guess the year, scan QR codes, enjoy the music quiz.',
+    });
     this.providers = [
       {
         id: 'youtube',
@@ -146,7 +161,33 @@ export class ProviderSelectComponent implements OnInit {
   changeProvider(): void {
     this.state.unlock();
     this.state.setProvider(null);
+    this.state.clearCustomDeck();
     this.selected.set(null);
+  }
+
+  async loadCustomDeck(): Promise<void> {
+    const raw = this.deckInput().trim();
+    if (!raw) return;
+
+    // Accept full URL or bare ID
+    const id = raw.split('/').pop() ?? raw;
+
+    this.deckLoading.set(true);
+    this.deckError.set(null);
+    try {
+      // Try cache first
+      let deck = this.deckService.getCachedDeck(id);
+      if (!deck || new Date(deck.expires_at) < new Date()) {
+        deck = await this.deckService.getDeck(id);
+        this.deckService.cacheDeck(deck);
+        this.deckService.saveLocalDeckEntry(deck);
+      }
+      this.router.navigate(['/deck', id]);
+    } catch (e: any) {
+      this.deckError.set(e.message ?? 'Failed to load deck');
+    } finally {
+      this.deckLoading.set(false);
+    }
   }
 
   isLocked(): boolean {

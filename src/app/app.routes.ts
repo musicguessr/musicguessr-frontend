@@ -35,6 +35,10 @@ export const routes: Routes = [
           router.navigate(['/']);
           return false;
         }
+        if (!state.currentTrack() && !state.isCustomDeckMode()) {
+          router.navigate(['/scan']);
+          return false;
+        }
         return true;
       },
     ],
@@ -42,6 +46,21 @@ export const routes: Routes = [
   {
     path: 'callback',
     loadComponent: () => import('./pages/callback/callback.component').then((m) => m.CallbackComponent),
+  },
+  {
+    path: 'create-deck',
+    loadComponent: () =>
+      import('./pages/create-deck/create-deck.component').then((m) => m.CreateDeckComponent),
+  },
+  {
+    path: 'deck',
+    loadComponent: () =>
+      import('./pages/deck-list/deck-list.component').then((m) => m.DeckListComponent),
+  },
+  {
+    path: 'deck/:id',
+    loadComponent: () =>
+      import('./pages/deck-detail/deck-detail.component').then((m) => m.DeckDetailComponent),
   },
   { path: '**', redirectTo: '' },
 ];

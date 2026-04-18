@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /scan
+Disallow: /game
+Disallow: /callback
+
+Sitemap: __SITE_URL__/sitemap.xml

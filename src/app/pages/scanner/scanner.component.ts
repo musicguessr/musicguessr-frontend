@@ -1,9 +1,10 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import jsQR from 'jsqr';
 import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
+import { SeoService } from '../../services/seo.service';
 
 const QR_PATTERN = /hitstergame\.com\/[^/]+\/([a-zA-Z0-9]+)\/(\d+)/;
 const SCAN_INTERVAL = 250;
@@ -15,6 +16,7 @@ const MAX_DIMENSION = 600;
   imports: [TitleCasePipe],
   templateUrl: './scanner.component.html',
   styleUrl: './scanner.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   @ViewChild('videoEl', { static: true }) videoRef!: ElementRef<HTMLVideoElement>;
@@ -22,6 +24,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private hitster = inject(HitsterService);
   private state = inject(GameStateService);
+  private seo = inject(SeoService);
 
   readonly scanning = signal(false);
   readonly loading = signal(false);
@@ -34,6 +37,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private ctx!: CanvasRenderingContext2D;
 
   ngOnInit(): void {
+    this.seo.set({ title: 'Scan QR Code', noindex: true });
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
   }
@@ -119,10 +123,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.error.set(null);
     try {
       const track = await this.hitster.resolve(url, this.state.ytVariants());
+      this.state.clearCustomDeck();
       this.state.currentTrack.set(track);
       this.router.navigate(['/game']);
     } catch (e: any) {
       this.error.set(e.message || 'Failed to resolve track');
+    } finally {
       this.loading.set(false);
     }
   }

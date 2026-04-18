@@ -100,6 +100,8 @@ export class SpotifyService {
 
   // Step 4: initialize Web Playback SDK
   initSDK(): Promise<void> {
+    if (this.player) return Promise.resolve();
+
     return new Promise((resolve, reject) => {
       const token = this.state.getSpotifyToken();
       if (!token) {
@@ -169,18 +171,20 @@ export class SpotifyService {
   // Play track by Spotify URI — must be called in click handler
   async play(spotifyId: string): Promise<void> {
     const token = this.state.getSpotifyToken();
-    if (!token || !this.deviceId) {
-      throw new Error('Spotify not ready');
-    }
+    if (!token || !this.deviceId) throw new Error('Spotify not ready');
 
-    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
+    const resp = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ uris: [`spotify:track:${spotifyId}`] }),
     });
+
+    if (!resp.ok) {
+      if (resp.status === 401) throw new Error('Spotify session expired, please reconnect');
+      if (resp.status === 403) throw new Error('Spotify Premium required');
+      if (resp.status === 429) throw new Error('Too many requests, try again in a moment');
+      throw new Error(`Spotify error ${resp.status}`);
+    }
 
     this.isPlaying.set(true);
   }
@@ -194,7 +198,13 @@ export class SpotifyService {
 
   disconnect(): void {
     if (this.player) {
+      this.player.removeListener('ready');
+      this.player.removeListener('not_ready');
+      this.player.removeListener('player_state_changed');
+      this.player.removeListener('initialization_error');
+      this.player.removeListener('authentication_error');
       this.player.disconnect();
+      this.player = null;
     }
     this.isReady.set(false);
     this.isPlaying.set(false);

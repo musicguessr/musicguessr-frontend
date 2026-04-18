@@ -14,13 +14,10 @@ export class YoutubePlayerService {
 
   private player: any = null;
   private apiReady = false;
-  private pendingVideoId: string | null = null;
   private containerId = 'yt-player-container';
 
   loadAPI(): Promise<void> {
-    if (this.apiReady) {
-      return Promise.resolve();
-    }
+    if (this.apiReady) return Promise.resolve();
     return new Promise((resolve) => {
       window.onYouTubeIframeAPIReady = (): void => {
         this.apiReady = true;
@@ -35,31 +32,65 @@ export class YoutubePlayerService {
     });
   }
 
-  // Must be called inside a click/touchend handler for iOS autoplay
+  // Pre-creates the player (no video) so it's ready before the user taps.
+  // Must be called after loadAPI() and after the DOM container exists.
+  // iOS Safari requires play() to be called synchronously inside a user gesture —
+  // pre-creating the player ensures loadVideoById() in the tap handler is the
+  // only async boundary that iOS sees.
+  preloadPlayer(): Promise<void> {
+    if (this.player) return Promise.resolve();
+    return new Promise((resolve) => {
+      // setTimeout(0) ensures Angular change detection has rendered the container
+      setTimeout(() => {
+        const container = document.getElementById(this.containerId);
+        if (!container) { resolve(); return; }
+
+        this.player = new window.YT.Player(this.containerId, {
+          width: '100%',
+          height: '100%',
+          playerVars: {
+            autoplay: 0,
+            controls: 1,
+            playsinline: 1,
+            rel: 0,
+            modestbranding: 1,
+            fs: 0,
+          },
+          events: {
+            onReady: () => resolve(),
+            onStateChange: (e: any): void => {
+              this.isPlaying.set(e.data === 1);
+            },
+            onError: (e: any): void => {
+              console.error('YouTube player error:', e.data);
+              this.isPlaying.set(false);
+              resolve();
+            },
+          },
+        });
+      }, 0);
+    });
+  }
+
+  // Must be called inside a click/touchend handler for iOS autoplay.
+  // With a pre-loaded player, loadVideoById() is synchronous from iOS's perspective.
   playVideo(videoId: string): void {
     this.videoId.set(videoId);
-    this.pendingVideoId = videoId;
-
-    if (!this.apiReady) {
-      this.loadAPI().then(() => this.createPlayer(videoId));
-      return;
-    }
 
     if (this.player) {
       this.player.loadVideoById(videoId);
       this.isPlaying.set(true);
-    } else {
-      this.createPlayer(videoId);
-      // Try to start playback synchronously so it's attributed to the user gesture.
-      try {
-        if (this.player && typeof this.player.playVideo === 'function') {
-          this.player.playVideo();
-          this.isPlaying.set(true);
-        }
-      } catch (err) {
-        // ignore - playback may be handled in onReady
-      }
+      return;
     }
+
+    // Fallback: no pre-loaded player (preloadPlayer() was not called or failed).
+    // Create the player with autoplay=1; onReady will attempt play, but this
+    // may not work on iOS Safari due to the async gap.
+    if (!this.apiReady) {
+      this.loadAPI().then(() => setTimeout(() => this.createPlayer(videoId), 0));
+      return;
+    }
+    this.createPlayer(videoId);
   }
 
   private createPlayer(videoId: string): void {
@@ -76,23 +107,16 @@ export class YoutubePlayerService {
       playerVars: {
         autoplay: 1,
         controls: 1,
-        playsinline: 1, // critical for iOS - don't go fullscreen
+        playsinline: 1,
         rel: 0,
         modestbranding: 1,
         fs: 0,
       },
       events: {
         onReady: (e: any): void => {
-          // Play is attempted synchronously from the user gesture; onReady is a fallback.
-          try {
-            e.target.playVideo();
-            this.isPlaying.set(true);
-          } catch (err) {
-            // ignore
-          }
+          try { e.target.playVideo(); this.isPlaying.set(true); } catch { /* ignore */ }
         },
         onStateChange: (e: any): void => {
-          // YT.PlayerState.PLAYING = 1, PAUSED = 2, ENDED = 0
           this.isPlaying.set(e.data === 1);
         },
         onError: (e: any): void => {
@@ -119,14 +143,9 @@ export class YoutubePlayerService {
     this.videoId.set(null);
   }
 
-  // Call to unmute the player (can be invoked after a user gesture)
   unmute(): void {
     if (this.player && typeof this.player.unMute === 'function') {
-      try {
-        this.player.unMute();
-      } catch (err) {
-        // ignore
-      }
+      try { this.player.unMute(); } catch { /* ignore */ }
     }
   }
 }

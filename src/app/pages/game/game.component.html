@@ -1,5 +1,16 @@
-@if (track(); as t) {
-  <div class="page game-page">
+<div class="page game-page">
+
+  <!-- Finished screen (custom deck only) -->
+  @if (isCustomMode() && isFinished()) {
+    <div class="finished-screen">
+      <div class="logo">musicguessr</div>
+      <div class="finished-icon">🎉</div>
+      <h2 class="finished-title">All cards played!</h2>
+      <p class="finished-sub">{{ customProgress()?.total }} songs done.</p>
+      <button class="btn btn-primary" (click)="restartCustomDeck()">Shuffle &amp; play again</button>
+      <button class="btn btn-ghost mt-sm" (click)="endGame()">End game</button>
+    </div>
+  } @else {
     <!-- TAP TO PLAY overlay -->
     <div
       class="play-overlay"
@@ -19,76 +30,83 @@
           <span class="error-icon">!</span>
         }
       </div>
-      <p class="play-label">{{ overlayLabel }}</p>
-      <p class="play-sub">{{ overlaySub }}</p>
+      <p class="play-label">{{ overlayLabel() }}</p>
+      <p class="play-sub">{{ overlaySub() }}</p>
     </div>
 
-    <!-- Game card -->
+    <!-- Game content -->
     <div class="game-content" [class.overlay-hidden]="!showOverlay()">
       <div class="top-bar">
         <div class="logo">musicguessr</div>
         <div class="top-bar-right">
-          <a aria-label="GitHub" class="gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
-            <svg fill="currentColor" height="18" viewBox="0 0 16 16" width="18">
-              <path
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
-              />
-            </svg>
-          </a>
+          @if (isCustomMode() && customProgress(); as p) {
+            <span class="progress-badge">{{ p.current }} / {{ p.total }}</span>
+          }
           <div class="provider-badge"><span class="p-dot"></span>{{ provider() | titlecase }}</div>
         </div>
       </div>
 
-      <!-- Track card -->
-      <div class="card track-card">
-        <!-- Artwork -->
-        <div class="artwork-wrap" [class.blurred]="!revealed()">
-          @if (t.artwork_url) {
-            <img alt="album art" class="artwork-img" [src]="t.artwork_url" />
+      <!-- Custom deck card -->
+      @if (isCustomMode() && customCard(); as card) {
+        <div class="card track-card">
+          <div class="artwork-wrap" [class.blurred]="!revealed()">
+            @if (card.artwork) {
+              <img alt="album art" class="artwork-img" [src]="card.artwork" loading="lazy" />
+            } @else {
+              <div class="artwork-placeholder">🎵</div>
+            }
+          </div>
+          <div class="track-meta">
+            <div class="track-title" [class.blurred]="!revealed()">{{ card.title || '—' }}</div>
+            <div class="track-artist" [class.blurred]="!revealed()">{{ card.artist || '—' }}</div>
+          </div>
+          <div class="year-row">
+            <span class="year-label">Year</span>
+            <span class="year-value" [class.blurred]="!revealed()">{{ card.year ?? '?' }}</span>
+          </div>
+          @if (!revealed()) {
+            <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
           } @else {
-            <div class="artwork-placeholder">🎵</div>
+            <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
           }
         </div>
+      }
 
-        <!-- Title & Artist -->
-        <div class="track-meta">
-          <div class="track-title" [class.blurred]="!revealed()">
-            {{ t.title || '—' }}
+      <!-- Standard Hitster card -->
+      @if (!isCustomMode() && track(); as t) {
+        <div class="card track-card">
+          <div class="artwork-wrap" [class.blurred]="!revealed()">
+            @if (t.artwork_url) {
+              <img alt="album art" class="artwork-img" [src]="t.artwork_url" loading="lazy" />
+            } @else {
+              <div class="artwork-placeholder">🎵</div>
+            }
           </div>
-          <div class="track-artist" [class.blurred]="!revealed()">
-            {{ t.artist || '—' }}
+          <div class="track-meta">
+            <div class="track-title" [class.blurred]="!revealed()">{{ t.title || '—' }}</div>
+            <div class="track-artist" [class.blurred]="!revealed()">{{ t.artist || '—' }}</div>
           </div>
-        </div>
-
-        <!-- Year -->
-        <div class="year-row">
-          <span class="year-label">Year</span>
-          <span class="year-value" [class.blurred]="!revealed()">
-            {{ t.year ?? '?' }}
-          </span>
-        </div>
-
-        <!-- Reveal button -->
-        @if (!revealed()) {
-          <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
-        } @else {
-          <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
-        }
-
-        <!-- Streaming links (visible after reveal) -->
-        @if (revealed() && streamingLinks.length) {
-          <div class="streaming-links">
-            <span class="streaming-label">Listen on</span>
-            <div class="streaming-btns">
-              @for (link of streamingLinks; track link.key) {
-                <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
-                  link.name
-                }}</a>
-              }
+          <div class="year-row">
+            <span class="year-label">Year</span>
+            <span class="year-value" [class.blurred]="!revealed()">{{ t.year ?? '?' }}</span>
+          </div>
+          @if (!revealed()) {
+            <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
+          } @else {
+            <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
+          }
+          @if (revealed() && streamingLinks().length) {
+            <div class="streaming-links">
+              <span class="streaming-label">Listen on</span>
+              <div class="streaming-btns">
+                @for (link of streamingLinks(); track link.key) {
+                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{ link.name }}</a>
+                }
+              </div>
             </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
 
       <!-- YouTube blurred player -->
       @if (provider() === 'youtube') {
@@ -105,16 +123,20 @@
         </div>
       }
 
-      <!-- Player error -->
       @if (playerError()) {
         <div class="error-msg">{{ playerError() }}</div>
       }
 
       <!-- Actions -->
       <div class="actions">
-        <button class="btn btn-primary" (click)="scanNext()">SCAN NEXT CARD</button>
-        <button class="btn btn-ghost" (click)="endGame()">End game</button>
+        @if (isCustomMode()) {
+          <button class="btn btn-primary" (click)="nextCustomCard()">NEXT CARD →</button>
+          <button class="btn btn-ghost" (click)="endGame()">End game</button>
+        } @else {
+          <button class="btn btn-primary" (click)="scanNext()">SCAN NEXT CARD</button>
+          <button class="btn btn-ghost" (click)="endGame()">End game</button>
+        }
       </div>
     </div>
-  </div>
-}
+  }
+</div>
