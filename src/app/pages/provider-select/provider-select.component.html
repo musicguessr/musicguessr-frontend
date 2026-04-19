@@ -113,7 +113,11 @@
             [disabled]="!deckInput() || deckLoading()"
             (click)="loadCustomDeck()"
           >
-            @if (deckLoading()) { <span class="spinner"></span> } @else { Load }
+            @if (deckLoading()) {
+              <span class="spinner"></span>
+            } @else {
+              Load
+            }
           </button>
         </div>
         @if (deckError()) {

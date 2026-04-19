@@ -21,7 +21,7 @@ export type CustomDeckState = {
   deck: Deck;
   shuffleOrder: number[];
   currentIndex: number;
-}
+};
 
 const KEYS = {
   provider: 'oh_provider',
@@ -49,9 +49,15 @@ export class GameStateService {
 
   readonly hasAuth = computed(() => {
     const p = this.provider();
-    if (p === 'youtube') {return true;}
-    if (p === 'spotify') {return !!this.getSpotifyToken();}
-    if (p === 'apple') {return !!this.getAppleMusicToken();}
+    if (p === 'youtube') {
+      return true;
+    }
+    if (p === 'spotify') {
+      return !!this.getSpotifyToken();
+    }
+    if (p === 'apple') {
+      return !!this.getAppleMusicToken();
+    }
     return false;
   });
 
@@ -59,20 +65,26 @@ export class GameStateService {
 
   readonly currentCustomCard = computed((): DeckCard | null => {
     const state = this.customDeck();
-    if (!state) {return null;}
+    if (!state) {
+      return null;
+    }
     const idx = state.shuffleOrder[state.currentIndex];
     return state.deck.cards[idx] ?? null;
   });
 
   readonly customDeckProgress = computed(() => {
     const state = this.customDeck();
-    if (!state) {return null;}
+    if (!state) {
+      return null;
+    }
     return { current: state.currentIndex + 1, total: state.shuffleOrder.length };
   });
 
   readonly isCustomDeckFinished = computed(() => {
     const state = this.customDeck();
-    if (!state) {return false;}
+    if (!state) {
+      return false;
+    }
     return state.currentIndex >= state.shuffleOrder.length;
   });
 
@@ -104,25 +116,42 @@ export class GameStateService {
 
   setVideoBlur(v: VideoBlur): void {
     this.videoBlur.set(v);
-    try { this.storage?.setItem(KEYS.videoBlur, v); } catch { /* non-fatal */ }
+    try {
+      this.storage?.setItem(KEYS.videoBlur, v);
+    } catch {
+      /* non-fatal */
+    }
   }
 
   setYtVariants(v: boolean): void {
     this.ytVariants.set(v);
-    try { this.storage?.setItem(KEYS.ytVariants, String(v)); } catch { /* non-fatal */ }
+    try {
+      this.storage?.setItem(KEYS.ytVariants, String(v));
+    } catch {
+      /* non-fatal */
+    }
   }
 
   setProvider(p: Provider): void {
     this.provider.set(p);
     try {
-      if (p) {this.storage?.setItem(KEYS.provider, p);}
-      else {this.storage?.removeItem(KEYS.provider);}
-    } catch { /* non-fatal */ }
+      if (p) {
+        this.storage?.setItem(KEYS.provider, p);
+      } else {
+        this.storage?.removeItem(KEYS.provider);
+      }
+    } catch {
+      /* non-fatal */
+    }
   }
 
   lock(): void {
     this.locked.set(true);
-    try { this.storage?.setItem(KEYS.locked, 'true'); } catch { /* non-fatal */ }
+    try {
+      this.storage?.setItem(KEYS.locked, 'true');
+    } catch {
+      /* non-fatal */
+    }
   }
 
   unlock(): void {
@@ -140,7 +169,9 @@ export class GameStateService {
 
   nextCustomCard(): void {
     const state = this.customDeck();
-    if (!state) {return;}
+    if (!state) {
+      return;
+    }
     const next = { ...state, currentIndex: state.currentIndex + 1 };
     this.customDeck.set(next);
     this.persistCustomDeck(next);
@@ -148,7 +179,9 @@ export class GameStateService {
 
   restartCustomDeck(shuffleOrder: number[]): void {
     const state = this.customDeck();
-    if (!state) {return;}
+    if (!state) {
+      return;
+    }
     const next = { ...state, shuffleOrder, currentIndex: 0 };
     this.customDeck.set(next);
     this.persistCustomDeck(next);
@@ -185,13 +218,17 @@ export class GameStateService {
       this.storage?.setItem(KEYS.spotifyToken, token);
       this.storage?.setItem(KEYS.spotifyRefresh, refresh);
       this.storage?.setItem(KEYS.spotifyExpiry, String(expiry));
-    } catch { /* non-fatal — token lives in memory for this session */ }
+    } catch {
+      /* non-fatal — token lives in memory for this session */
+    }
   }
 
   getSpotifyToken(): string | null {
     const token = this.storage?.getItem(KEYS.spotifyToken) ?? null;
     const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry) || 0);
-    if (!token || Date.now() > expiry) {return null;}
+    if (!token || Date.now() > expiry) {
+      return null;
+    }
     return token;
   }
 
@@ -208,7 +245,11 @@ export class GameStateService {
   // --- Apple Music ---
 
   setAppleMusicToken(token: string): void {
-    try { this.storage?.setItem(KEYS.appleMusicToken, token); } catch { /* non-fatal */ }
+    try {
+      this.storage?.setItem(KEYS.appleMusicToken, token);
+    } catch {
+      /* non-fatal */
+    }
   }
 
   getAppleMusicToken(): string | null {

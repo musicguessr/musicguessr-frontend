@@ -6,8 +6,14 @@
 
     <!-- Primary meta -->
     <title>musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music</title>
-    <meta content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks." name="description" />
-    <meta content="hitster, music quiz, guess the year, hitster online, musicguessr, youtube music game, spotify music quiz, custom deck, music card game" name="keywords" />
+    <meta
+      content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks."
+      name="description"
+    />
+    <meta
+      content="hitster, music quiz, guess the year, hitster online, musicguessr, youtube music game, spotify music quiz, custom deck, music card game"
+      name="keywords"
+    />
     <meta content="musicguessr" name="author" />
     <meta content="index,follow" name="robots" />
     <link href="__SITE_URL__" rel="canonical" />
@@ -18,7 +24,7 @@
 
     <!-- Google Analytics 4 — injected only when GA_MEASUREMENT_ID env var is set -->
     <script>
-      (function() {
+      (function () {
         var id = '__GA_MEASUREMENT_ID__';
         if (!id) return;
         var s = document.createElement('script');
@@ -26,7 +32,9 @@
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
         document.head.appendChild(s);
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() {
+          dataLayer.push(arguments);
+        }
         window.gtag = gtag;
         gtag('js', new Date());
         gtag('config', id);
@@ -37,7 +45,10 @@
     <meta content="website" property="og:type" />
     <meta content="musicguessr" property="og:site_name" />
     <meta content="musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music" property="og:title" />
-    <meta content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks." property="og:description" />
+    <meta
+      content="Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create and share custom music quiz decks."
+      property="og:description"
+    />
     <meta content="__SITE_URL__" property="og:url" />
     <meta content="__SITE_URL__/assets/og-image.png" property="og:image" />
     <meta content="1200" property="og:image:width" />
@@ -47,7 +58,10 @@
     <!-- Twitter / X Cards -->
     <meta content="summary_large_image" name="twitter:card" />
     <meta content="musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music" name="twitter:title" />
-    <meta content="Play any Hitster card with YouTube, Spotify or Apple Music — no lock-in. Guess the year, create custom music quiz decks." name="twitter:description" />
+    <meta
+      content="Play any Hitster card with YouTube, Spotify or Apple Music — no lock-in. Guess the year, create custom music quiz decks."
+      name="twitter:description"
+    />
     <meta content="__SITE_URL__/assets/og-image.png" name="twitter:image" />
 
     <!-- PWA -->
@@ -59,36 +73,36 @@
 
     <!-- Structured data: WebApplication (Schema.org) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "musicguessr",
-      "url": "__SITE_URL__",
-      "description": "Play any Hitster card with YouTube, Spotify or Apple Music. Scan QR codes, guess the year, and create custom music quiz decks — no subscription lock-in.",
-      "applicationCategory": "GameApplication",
-      "operatingSystem": "Any",
-      "browserRequirements": "Requires JavaScript. Requires a modern browser with camera access for QR scanning.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "featureList": [
-        "YouTube playback — no account required",
-        "Spotify Web Playback SDK integration",
-        "Apple Music via MusicKit JS",
-        "QR code scanner for Hitster cards",
-        "Custom deck creator with YouTube playlist import",
-        "Shareable deck links with QR codes",
-        "Progressive Web App — installable on mobile"
-      ],
-      "screenshot": "__SITE_URL__/assets/og-image.png",
-      "creator": {
-        "@type": "Organization",
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
         "name": "musicguessr",
-        "url": "__SITE_URL__"
+        "url": "__SITE_URL__",
+        "description": "Play any Hitster card with YouTube, Spotify or Apple Music. Scan QR codes, guess the year, and create custom music quiz decks — no subscription lock-in.",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript. Requires a modern browser with camera access for QR scanning.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "YouTube playback — no account required",
+          "Spotify Web Playback SDK integration",
+          "Apple Music via MusicKit JS",
+          "QR code scanner for Hitster cards",
+          "Custom deck creator with YouTube playlist import",
+          "Shareable deck links with QR codes",
+          "Progressive Web App — installable on mobile"
+        ],
+        "screenshot": "__SITE_URL__/assets/og-image.png",
+        "creator": {
+          "@type": "Organization",
+          "name": "musicguessr",
+          "url": "__SITE_URL__"
+        }
       }
-    }
     </script>
 
     <!-- Fonts -->

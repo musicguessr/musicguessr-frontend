@@ -11,7 +11,7 @@ export type SeoOptions = {
   image?: string;
   url?: string;
   noindex?: boolean;
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {

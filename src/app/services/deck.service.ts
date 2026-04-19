@@ -9,20 +9,20 @@ export type DeckCard = {
   artist?: string;
   year?: number;
   artwork?: string;
-}
+};
 
 export type Deck = {
   id: string;
   created_at: string;
   expires_at: string;
   cards: DeckCard[];
-}
+};
 
 export type CreateDeckResponse = {
   id: string;
   share_url: string;
   expires_at: string;
-}
+};
 
 export type ValidateYtResponse = {
   valid: boolean;
@@ -32,20 +32,20 @@ export type ValidateYtResponse = {
   year?: number;
   artwork?: string;
   error?: string;
-}
+};
 
 export type CardInput = {
   yt_url: string;
   title?: string;
   artist?: string;
   year?: number;
-}
+};
 
 export type ImportPlaylistResponse = {
   playlist_id: string;
   videos: ValidateYtResponse[];
   total: number;
-}
+};
 
 const LOCAL_DECKS_KEY = 'mg_local_decks';
 
@@ -54,7 +54,7 @@ type LocalDeckEntry = {
   cardCount: number;
   expiresAt: string;
   savedAt: string;
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class DeckService {
@@ -97,9 +97,15 @@ export class DeckService {
 
   async getDeck(id: string): Promise<Deck> {
     const res = await fetch(`${this.apiUrl}/api/deck/${id}`);
-    if (res.status === 404) {throw new Error('Deck not found');}
-    if (res.status === 410) {throw new Error('Deck has expired');}
-    if (!res.ok) {throw new Error(`HTTP ${res.status}`);}
+    if (res.status === 404) {
+      throw new Error('Deck not found');
+    }
+    if (res.status === 410) {
+      throw new Error('Deck has expired');
+    }
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     return res.json();
   }
 
@@ -155,7 +161,9 @@ export class DeckService {
   getCachedDeck(id: string): Deck | null {
     try {
       const raw = localStorage.getItem(`mg_deck_${id}`);
-      if (!raw) {return null;}
+      if (!raw) {
+        return null;
+      }
       return JSON.parse(raw);
     } catch {
       return null;

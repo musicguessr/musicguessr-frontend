@@ -109,11 +109,7 @@
         <span class="ttl-label">Deck expires after</span>
         <div class="ttl-options">
           @for (opt of ttlOptions; track opt.value) {
-            <button
-              class="ttl-btn"
-              [class.active]="selectedTTL() === opt.value"
-              (click)="selectedTTL.set(opt.value)"
-            >
+            <button class="ttl-btn" [class.active]="selectedTTL() === opt.value" (click)="selectedTTL.set(opt.value)">
               {{ opt.label }}
             </button>
           }
@@ -124,11 +120,7 @@
         <p class="submit-error">{{ submitError() }}</p>
       }
 
-      <button
-        class="btn btn-primary submit-btn"
-        [disabled]="submitting() || cards().length === 0"
-        (click)="submit()"
-      >
+      <button class="btn btn-primary submit-btn" [disabled]="submitting() || cards().length === 0" (click)="submit()">
         @if (submitting()) {
           <span class="spinner"></span> Creating…
         } @else {

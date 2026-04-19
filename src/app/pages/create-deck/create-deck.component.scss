@@ -93,8 +93,12 @@
   padding: 0.75rem;
   transition: border-color 0.2s;
 
-  &.valid { border-color: #2d6a3f; }
-  &.invalid { border-color: #6a2d2d; }
+  &.valid {
+    border-color: #2d6a3f;
+  }
+  &.invalid {
+    border-color: #6a2d2d;
+  }
 }
 
 .card-num {
@@ -128,9 +132,16 @@
   padding: 0.5rem 0.75rem;
   outline: none;
 
-  &:focus { border-color: var(--accent); }
-  &.input-sm { font-size: 0.8rem; }
-  &.input-year { width: 80px; flex: none; }
+  &:focus {
+    border-color: var(--accent);
+  }
+  &.input-sm {
+    font-size: 0.8rem;
+  }
+  &.input-year {
+    width: 80px;
+    flex: none;
+  }
 }
 
 .meta-row {
@@ -157,8 +168,15 @@
   flex-shrink: 0;
 }
 
-.status-ok { color: #4caf50; font-weight: bold; }
-.status-err { color: #e53935; font-weight: bold; cursor: help; }
+.status-ok {
+  color: #4caf50;
+  font-weight: bold;
+}
+.status-err {
+  color: #e53935;
+  font-weight: bold;
+  cursor: help;
+}
 
 .field-error {
   font-size: 0.75rem;
@@ -176,7 +194,9 @@
   border-radius: 4px;
   align-self: flex-start;
 
-  &:hover { color: #e53935; }
+  &:hover {
+    color: #e53935;
+  }
 }
 
 .add-btn {
@@ -223,7 +243,9 @@
   margin-bottom: 0.75rem;
 }
 
-.submit-btn { width: 100%; }
+.submit-btn {
+  width: 100%;
+}
 
 /* Success */
 .success-view {
@@ -231,9 +253,19 @@
   padding-top: 2rem;
 }
 
-.success-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-.success-title { font-size: 1.5rem; margin: 0 0 0.25rem; }
-.success-sub { opacity: 0.55; font-size: 0.9rem; margin-bottom: 1.5rem; }
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+.success-title {
+  font-size: 1.5rem;
+  margin: 0 0 0.25rem;
+}
+.success-sub {
+  opacity: 0.55;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
 
 .share-box {
   display: flex;
@@ -291,5 +323,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

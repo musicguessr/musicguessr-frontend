@@ -68,7 +68,9 @@ export class DeckDetailComponent implements OnInit {
   }
 
   private renderQR(): void {
-    if (!this.qrCanvas?.nativeElement) {return;}
+    if (!this.qrCanvas?.nativeElement) {
+      return;
+    }
     this.qrCanvas.nativeElement.innerHTML = '';
     const qr = new QRCodeStyling({
       width: 180,
@@ -84,7 +86,9 @@ export class DeckDetailComponent implements OnInit {
 
   play(): void {
     const d = this.deck();
-    if (!d) {return;}
+    if (!d) {
+      return;
+    }
     const shuffleOrder = this.deckService.shuffle(d.cards.map((_, i) => i));
     this.state.startCustomDeck(d, shuffleOrder);
     this.state.setProvider('youtube');

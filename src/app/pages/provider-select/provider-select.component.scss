@@ -281,8 +281,12 @@
   padding: 0.6rem 0.85rem;
   outline: none;
 
-  &:focus { border-color: var(--accent); }
-  &::placeholder { color: #555; }
+  &:focus {
+    border-color: var(--accent);
+  }
+  &::placeholder {
+    color: #555;
+  }
 }
 
 .custom-deck-btn {
@@ -307,7 +311,11 @@
   color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
 
-  &:hover { color: var(--accent); }
+  &:hover {
+    color: var(--accent);
+  }
 }
 
-.link-sep { color: rgba(255, 255, 255, 0.2); }
+.link-sep {
+  color: rgba(255, 255, 255, 0.2);
+}

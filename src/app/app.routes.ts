@@ -49,18 +49,15 @@ export const routes: Routes = [
   },
   {
     path: 'create-deck',
-    loadComponent: () =>
-      import('./pages/create-deck/create-deck.component').then((m) => m.CreateDeckComponent),
+    loadComponent: () => import('./pages/create-deck/create-deck.component').then((m) => m.CreateDeckComponent),
   },
   {
     path: 'deck',
-    loadComponent: () =>
-      import('./pages/deck-list/deck-list.component').then((m) => m.DeckListComponent),
+    loadComponent: () => import('./pages/deck-list/deck-list.component').then((m) => m.DeckListComponent),
   },
   {
     path: 'deck/:id',
-    loadComponent: () =>
-      import('./pages/deck-detail/deck-detail.component').then((m) => m.DeckDetailComponent),
+    loadComponent: () => import('./pages/deck-detail/deck-detail.component').then((m) => m.DeckDetailComponent),
   },
   { path: '**', redirectTo: '' },
 ];

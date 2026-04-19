@@ -1,5 +1,4 @@
 <div class="page game-page">
-
   <!-- Finished screen (custom deck only) -->
   @if (isCustomMode() && isFinished()) {
     <div class="finished-screen">
@@ -100,7 +99,9 @@
               <span class="streaming-label">Listen on</span>
               <div class="streaming-btns">
                 @for (link of streamingLinks(); track link.key) {
-                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{ link.name }}</a>
+                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
+                    link.name
+                  }}</a>
                 }
               </div>
             </div>
