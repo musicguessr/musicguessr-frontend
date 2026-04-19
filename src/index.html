@@ -16,6 +16,23 @@
     <meta name="google-site-verification" content="__GOOGLE_VERIFICATION__" />
     <meta name="msvalidate.01" content="__BING_VERIFICATION__" />
 
+    <!-- Google Analytics 4 — injected only when GA_MEASUREMENT_ID env var is set -->
+    <script>
+      (function() {
+        var id = '__GA_MEASUREMENT_ID__';
+        if (!id) return;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', id);
+      })();
+    </script>
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="musicguessr" />

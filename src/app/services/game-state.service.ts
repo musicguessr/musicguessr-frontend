@@ -1,4 +1,5 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { DeckCard, Deck } from './deck.service';
 
 export type Provider = 'youtube' | 'spotify' | 'apple' | null;
@@ -36,6 +37,9 @@ const KEYS = {
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
+  private platformId = inject(PLATFORM_ID);
+  private storage: Storage | null = isPlatformBrowser(this.platformId) ? localStorage : null;
+
   readonly provider = signal<Provider>(this.loadProvider());
   readonly locked = signal<boolean>(this.loadLocked());
   readonly videoBlur = signal<VideoBlur>(this.loadVideoBlur());
@@ -73,25 +77,25 @@ export class GameStateService {
   });
 
   private loadProvider(): Provider {
-    return (localStorage.getItem(KEYS.provider) as Provider) || null;
+    return (this.storage?.getItem(KEYS.provider) as Provider) || null;
   }
 
   private loadLocked(): boolean {
-    return localStorage.getItem(KEYS.locked) === 'true';
+    return this.storage?.getItem(KEYS.locked) === 'true';
   }
 
   private loadVideoBlur(): VideoBlur {
-    return (localStorage.getItem(KEYS.videoBlur) as VideoBlur) || 'hidden';
+    return (this.storage?.getItem(KEYS.videoBlur) as VideoBlur) || 'hidden';
   }
 
   private loadYtVariants(): boolean {
-    const val = localStorage.getItem(KEYS.ytVariants);
+    const val = this.storage?.getItem(KEYS.ytVariants) ?? null;
     return val === null ? true : val === 'true';
   }
 
   private loadCustomDeck(): CustomDeckState | null {
     try {
-      const raw = localStorage.getItem(KEYS.customDeck);
+      const raw = this.storage?.getItem(KEYS.customDeck);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -100,30 +104,30 @@ export class GameStateService {
 
   setVideoBlur(v: VideoBlur): void {
     this.videoBlur.set(v);
-    try { localStorage.setItem(KEYS.videoBlur, v); } catch { /* non-fatal */ }
+    try { this.storage?.setItem(KEYS.videoBlur, v); } catch { /* non-fatal */ }
   }
 
   setYtVariants(v: boolean): void {
     this.ytVariants.set(v);
-    try { localStorage.setItem(KEYS.ytVariants, String(v)); } catch { /* non-fatal */ }
+    try { this.storage?.setItem(KEYS.ytVariants, String(v)); } catch { /* non-fatal */ }
   }
 
   setProvider(p: Provider): void {
     this.provider.set(p);
     try {
-      if (p) localStorage.setItem(KEYS.provider, p);
-      else localStorage.removeItem(KEYS.provider);
+      if (p) this.storage?.setItem(KEYS.provider, p);
+      else this.storage?.removeItem(KEYS.provider);
     } catch { /* non-fatal */ }
   }
 
   lock(): void {
     this.locked.set(true);
-    try { localStorage.setItem(KEYS.locked, 'true'); } catch { /* non-fatal */ }
+    try { this.storage?.setItem(KEYS.locked, 'true'); } catch { /* non-fatal */ }
   }
 
   unlock(): void {
     this.locked.set(false);
-    localStorage.removeItem(KEYS.locked);
+    this.storage?.removeItem(KEYS.locked);
   }
 
   // --- Custom deck ---
@@ -152,12 +156,12 @@ export class GameStateService {
 
   clearCustomDeck(): void {
     this.customDeck.set(null);
-    localStorage.removeItem(KEYS.customDeck);
+    this.storage?.removeItem(KEYS.customDeck);
   }
 
   private persistCustomDeck(state: CustomDeckState): void {
     try {
-      localStorage.setItem(KEYS.customDeck, JSON.stringify(state));
+      this.storage?.setItem(KEYS.customDeck, JSON.stringify(state));
     } catch {
       // localStorage full — non-fatal
     }
@@ -170,7 +174,7 @@ export class GameStateService {
     this.locked.set(false);
     this.currentTrack.set(null);
     this.customDeck.set(null);
-    Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
+    Object.values(KEYS).forEach((k) => this.storage?.removeItem(k));
   }
 
   // --- Spotify ---
@@ -178,40 +182,40 @@ export class GameStateService {
   setSpotifyToken(token: string, refresh: string, expiresIn: number): void {
     const expiry = Date.now() + expiresIn * 1000;
     try {
-      localStorage.setItem(KEYS.spotifyToken, token);
-      localStorage.setItem(KEYS.spotifyRefresh, refresh);
-      localStorage.setItem(KEYS.spotifyExpiry, String(expiry));
+      this.storage?.setItem(KEYS.spotifyToken, token);
+      this.storage?.setItem(KEYS.spotifyRefresh, refresh);
+      this.storage?.setItem(KEYS.spotifyExpiry, String(expiry));
     } catch { /* non-fatal — token lives in memory for this session */ }
   }
 
   getSpotifyToken(): string | null {
-    const token = localStorage.getItem(KEYS.spotifyToken);
-    const expiry = Number(localStorage.getItem(KEYS.spotifyExpiry) || 0);
+    const token = this.storage?.getItem(KEYS.spotifyToken) ?? null;
+    const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry) || 0);
     if (!token || Date.now() > expiry) return null;
     return token;
   }
 
   getSpotifyRefreshToken(): string | null {
-    return localStorage.getItem(KEYS.spotifyRefresh);
+    return this.storage?.getItem(KEYS.spotifyRefresh) ?? null;
   }
 
   clearSpotifyToken(): void {
-    localStorage.removeItem(KEYS.spotifyToken);
-    localStorage.removeItem(KEYS.spotifyRefresh);
-    localStorage.removeItem(KEYS.spotifyExpiry);
+    this.storage?.removeItem(KEYS.spotifyToken);
+    this.storage?.removeItem(KEYS.spotifyRefresh);
+    this.storage?.removeItem(KEYS.spotifyExpiry);
   }
 
   // --- Apple Music ---
 
   setAppleMusicToken(token: string): void {
-    try { localStorage.setItem(KEYS.appleMusicToken, token); } catch { /* non-fatal */ }
+    try { this.storage?.setItem(KEYS.appleMusicToken, token); } catch { /* non-fatal */ }
   }
 
   getAppleMusicToken(): string | null {
-    return localStorage.getItem(KEYS.appleMusicToken);
+    return this.storage?.getItem(KEYS.appleMusicToken) ?? null;
   }
 
   clearAppleMusicToken(): void {
-    localStorage.removeItem(KEYS.appleMusicToken);
+    this.storage?.removeItem(KEYS.appleMusicToken);
   }
 }
