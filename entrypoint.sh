@@ -29,7 +29,7 @@ echo "$(LOG_TS) [entrypoint] API_URL (raw)='${API_URL:-<unset>}'"
 echo "$(LOG_TS) [entrypoint] API_URL (normalized)='${API_URL_NORMALIZED}'"
 echo "$(LOG_TS) [entrypoint] SITE_URL (normalized)='${SITE_URL_NORMALIZED}'"
 echo "$(LOG_TS) [entrypoint] SPOTIFY_CLIENT_ID set='${SPOTIFY_CLIENT_ID:+yes}' APPLE_DEV_TOKEN set='${APPLE_DEV_TOKEN:+yes}'"
-echo "$(LOG_TS) [entrypoint] GOOGLE_SITE_VERIFICATION set='${GOOGLE_SITE_VERIFICATION:+yes}' BING_SITE_VERIFICATION set='${BING_SITE_VERIFICATION:+yes}'"
+echo "$(LOG_TS) [entrypoint] GOOGLE_SITE_VERIFICATION set='${GOOGLE_SITE_VERIFICATION:+yes}' BING_SITE_VERIFICATION set='${BING_SITE_VERIFICATION:+yes}' GA_MEASUREMENT_ID set='${GA_MEASUREMENT_ID:+yes}'"
 
 HTML=/usr/share/nginx/html
 
@@ -52,6 +52,7 @@ if [ -f "${INDEX}" ]; then
     -e "s|__SITE_URL__|${SITE_URL_NORMALIZED}|g" \
     -e "s|__GOOGLE_VERIFICATION__|${GOOGLE_SITE_VERIFICATION:-}|g" \
     -e "s|__BING_VERIFICATION__|${BING_SITE_VERIFICATION:-}|g" \
+    -e "s|__GA_MEASUREMENT_ID__|${GA_MEASUREMENT_ID:-}|g" \
     "${INDEX}"
 fi
 

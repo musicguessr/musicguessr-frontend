@@ -1,12 +1,12 @@
-import { ChangeDetectionStrategy, Component, signal, inject, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { DeckService, DeckTTL, ValidateYtResponse, CreateDeckResponse } from '../../services/deck.service';
+import { CreateDeckResponse, DeckService, DeckTTL, ValidateYtResponse } from '../../services/deck.service';
 import { SeoService } from '../../services/seo.service';
 import QRCodeStyling from 'qr-code-styling';
 
-interface CardRow {
+type CardRow = {
   ytUrl: string;
   title: string;
   artist: string;
@@ -16,7 +16,7 @@ interface CardRow {
   error: string | null;
   ytId: string | null;
   artwork: string | null;
-}
+};
 
 const TTL_LABELS: { value: DeckTTL; label: string }[] = [
   { value: '1week', label: '1 week' },
@@ -44,41 +44,58 @@ export class CreateDeckComponent implements OnInit {
   ngOnInit(): void {
     this.seo.set({
       title: 'Create Deck',
-      description: 'Build your own music quiz deck from YouTube videos or playlists. Share it with friends via a link or QR code.',
+      description:
+        'Build your own music quiz deck from YouTube videos or playlists. Share it with friends via a link or QR code.',
     });
   }
 
   readonly MAX_CARDS = 300;
   readonly ttlOptions = TTL_LABELS;
 
-  cards = signal<CardRow[]>([this.emptyCard()]);
-  selectedTTL = signal<DeckTTL>('3months');
-  submitting = signal(false);
-  submitError = signal<string | null>(null);
-  result = signal<CreateDeckResponse | null>(null);
+  readonly cards = signal<CardRow[]>([this.emptyCard()]);
+  readonly selectedTTL = signal<DeckTTL>('3months');
+  readonly submitting = signal(false);
+  readonly submitError = signal<string | null>(null);
+  readonly result = signal<CreateDeckResponse | null>(null);
 
   // Playlist import
   playlistUrl = '';
-  playlistImporting = signal(false);
-  playlistError = signal<string | null>(null);
+  readonly playlistImporting = signal(false);
+  readonly playlistError = signal<string | null>(null);
 
   private emptyCard(): CardRow {
-    return { ytUrl: '', title: '', artist: '', year: null, validating: false, valid: null, error: null, ytId: null, artwork: null };
+    return {
+      ytUrl: '',
+      title: '',
+      artist: '',
+      year: null,
+      validating: false,
+      valid: null,
+      error: null,
+      ytId: null,
+      artwork: null,
+    };
   }
 
   addCard(): void {
-    if (this.cards().length >= this.MAX_CARDS) return;
+    if (this.cards().length >= this.MAX_CARDS) {
+      return;
+    }
     this.cards.update((c) => [...c, this.emptyCard()]);
   }
 
   removeCard(i: number): void {
     this.cards.update((c) => c.filter((_, idx) => idx !== i));
-    if (this.cards().length === 0) this.cards.set([this.emptyCard()]);
+    if (this.cards().length === 0) {
+      this.cards.set([this.emptyCard()]);
+    }
   }
 
   async onUrlBlur(i: number): Promise<void> {
     const card = this.cards()[i];
-    if (!card.ytUrl.trim()) return;
+    if (!card.ytUrl.trim()) {
+      return;
+    }
 
     this.updateCard(i, { validating: true, valid: null, error: null });
     try {
@@ -108,7 +125,9 @@ export class CreateDeckComponent implements OnInit {
 
   async importPlaylist(): Promise<void> {
     const url = this.playlistUrl.trim();
-    if (!url) return;
+    if (!url) {
+      return;
+    }
 
     this.playlistImporting.set(true);
     this.playlistError.set(null);
@@ -174,10 +193,15 @@ export class CreateDeckComponent implements OnInit {
       );
       this.result.set(res);
       setTimeout(() => this.renderQR(res.share_url), 0);
-      this.deck.getDeck(res.id).then((full) => {
-        this.deck.cacheDeck(full);
-        this.deck.saveLocalDeckEntry(full);
-      }).catch(() => { /* non-fatal */ });
+      this.deck
+        .getDeck(res.id)
+        .then((full) => {
+          this.deck.cacheDeck(full);
+          this.deck.saveLocalDeckEntry(full);
+        })
+        .catch(() => {
+          /* non-fatal */
+        });
     } catch (e: any) {
       this.submitError.set(e.message ?? 'Failed to create deck');
     } finally {
@@ -186,7 +210,9 @@ export class CreateDeckComponent implements OnInit {
   }
 
   private renderQR(url: string): void {
-    if (!this.qrCanvas?.nativeElement) return;
+    if (!this.qrCanvas?.nativeElement) {
+      return;
+    }
     this.qrCanvas.nativeElement.innerHTML = '';
     const qr = new QRCodeStyling({
       width: 240,
@@ -203,12 +229,16 @@ export class CreateDeckComponent implements OnInit {
 
   copyLink(): void {
     const url = this.result()?.share_url;
-    if (url) navigator.clipboard.writeText(url);
+    if (url) {
+      navigator.clipboard.writeText(url);
+    }
   }
 
   playNow(): void {
     const id = this.result()?.id;
-    if (id) this.router.navigate(['/deck', id]);
+    if (id) {
+      this.router.navigate(['/deck', id]);
+    }
   }
 
   createAnother(): void {

@@ -17,7 +17,9 @@ export class YoutubePlayerService {
   private containerId = 'yt-player-container';
 
   loadAPI(): Promise<void> {
-    if (this.apiReady) return Promise.resolve();
+    if (this.apiReady) {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       window.onYouTubeIframeAPIReady = (): void => {
         this.apiReady = true;
@@ -38,12 +40,17 @@ export class YoutubePlayerService {
   // pre-creating the player ensures loadVideoById() in the tap handler is the
   // only async boundary that iOS sees.
   preloadPlayer(): Promise<void> {
-    if (this.player) return Promise.resolve();
+    if (this.player) {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       // setTimeout(0) ensures Angular change detection has rendered the container
       setTimeout(() => {
         const container = document.getElementById(this.containerId);
-        if (!container) { resolve(); return; }
+        if (!container) {
+          resolve();
+          return;
+        }
 
         this.player = new window.YT.Player(this.containerId, {
           width: '100%',
@@ -57,7 +64,7 @@ export class YoutubePlayerService {
             fs: 0,
           },
           events: {
-            onReady: () => resolve(),
+            onReady: (): void => resolve(),
             onStateChange: (e: any): void => {
               this.isPlaying.set(e.data === 1);
             },
@@ -114,7 +121,12 @@ export class YoutubePlayerService {
       },
       events: {
         onReady: (e: any): void => {
-          try { e.target.playVideo(); this.isPlaying.set(true); } catch { /* ignore */ }
+          try {
+            e.target.playVideo();
+            this.isPlaying.set(true);
+          } catch {
+            /* ignore */
+          }
         },
         onStateChange: (e: any): void => {
           this.isPlaying.set(e.data === 1);
@@ -145,7 +157,11 @@ export class YoutubePlayerService {
 
   unmute(): void {
     if (this.player && typeof this.player.unMute === 'function') {
-      try { this.player.unMute(); } catch { /* ignore */ }
+      try {
+        this.player.unMute();
+      } catch {
+        /* ignore */
+      }
     }
   }
 }

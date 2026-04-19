@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -16,9 +17,13 @@ export class ConfigService {
     appleDevToken: '',
   };
 
+  private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
 
   async load(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     try {
       const cfg = await firstValueFrom(this.http.get<AppConfig>('/config.json'));
       this.config = { ...this.config, ...cfg };

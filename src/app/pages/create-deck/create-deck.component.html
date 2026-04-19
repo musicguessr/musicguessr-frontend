@@ -61,7 +61,7 @@
 
       <div class="card-list">
         @for (card of cards(); track trackByIndex($index)) {
-          <div class="card-row" [class.valid]="card.valid === true" [class.invalid]="card.valid === false">
+          <div class="card-row" [class.invalid]="card.valid === false" [class.valid]="card.valid === true">
             <div class="card-num">{{ $index + 1 }}</div>
 
             <div class="card-fields">
@@ -89,14 +89,14 @@
               <div class="meta-row">
                 <input class="input input-sm" placeholder="Title" [(ngModel)]="card.title" />
                 <input class="input input-sm" placeholder="Artist" [(ngModel)]="card.artist" />
-                <input class="input input-sm input-year" type="number" placeholder="Year" [(ngModel)]="card.year" />
+                <input class="input input-sm input-year" placeholder="Year" type="number" [(ngModel)]="card.year" />
                 @if (card.artwork) {
-                  <img class="thumb" [src]="card.artwork" alt="" loading="lazy" />
+                  <img alt="" class="thumb" loading="lazy" [src]="card.artwork" />
                 }
               </div>
             </div>
 
-            <button class="btn-remove" (click)="removeCard($index)" title="Remove">×</button>
+            <button class="btn-remove" title="Remove" (click)="removeCard($index)">×</button>
           </div>
         }
       </div>
@@ -106,14 +106,10 @@
       }
 
       <div class="ttl-row">
-        <label class="ttl-label">Deck expires after</label>
+        <span class="ttl-label">Deck expires after</span>
         <div class="ttl-options">
           @for (opt of ttlOptions; track opt.value) {
-            <button
-              class="ttl-btn"
-              [class.active]="selectedTTL() === opt.value"
-              (click)="selectedTTL.set(opt.value)"
-            >
+            <button class="ttl-btn" [class.active]="selectedTTL() === opt.value" (click)="selectedTTL.set(opt.value)">
               {{ opt.label }}
             </button>
           }
@@ -124,11 +120,7 @@
         <p class="submit-error">{{ submitError() }}</p>
       }
 
-      <button
-        class="btn btn-primary submit-btn"
-        [disabled]="submitting() || cards().length === 0"
-        (click)="submit()"
-      >
+      <button class="btn btn-primary submit-btn" [disabled]="submitting() || cards().length === 0" (click)="submit()">
         @if (submitting()) {
           <span class="spinner"></span> Creating…
         } @else {

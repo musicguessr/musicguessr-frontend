@@ -1,5 +1,4 @@
 <div class="page game-page">
-
   <!-- Finished screen (custom deck only) -->
   @if (isCustomMode() && isFinished()) {
     <div class="finished-screen">
@@ -51,7 +50,7 @@
         <div class="card track-card">
           <div class="artwork-wrap" [class.blurred]="!revealed()">
             @if (card.artwork) {
-              <img alt="album art" class="artwork-img" [src]="card.artwork" loading="lazy" />
+              <img alt="album art" class="artwork-img" loading="lazy" [src]="card.artwork" />
             } @else {
               <div class="artwork-placeholder">🎵</div>
             }
@@ -77,7 +76,7 @@
         <div class="card track-card">
           <div class="artwork-wrap" [class.blurred]="!revealed()">
             @if (t.artwork_url) {
-              <img alt="album art" class="artwork-img" [src]="t.artwork_url" loading="lazy" />
+              <img alt="album art" class="artwork-img" loading="lazy" [src]="t.artwork_url" />
             } @else {
               <div class="artwork-placeholder">🎵</div>
             }
@@ -100,7 +99,9 @@
               <span class="streaming-label">Listen on</span>
               <div class="streaming-btns">
                 @for (link of streamingLinks(); track link.key) {
-                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{ link.name }}</a>
+                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
+                    link.name
+                  }}</a>
                 }
               </div>
             </div>

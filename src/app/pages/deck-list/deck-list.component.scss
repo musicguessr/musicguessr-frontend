@@ -34,7 +34,9 @@
   padding: 3rem 0;
   opacity: 0.6;
 
-  p { margin-bottom: 1.5rem; }
+  p {
+    margin-bottom: 1.5rem;
+  }
 }
 
 .deck-list {
@@ -56,8 +58,13 @@
   color: var(--fg);
   transition: border-color 0.15s;
 
-  &:hover { border-color: var(--accent); }
-  &.expired { opacity: 0.4; pointer-events: none; }
+  &:hover {
+    border-color: var(--accent);
+  }
+  &.expired {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 }
 
 .deck-item-info {

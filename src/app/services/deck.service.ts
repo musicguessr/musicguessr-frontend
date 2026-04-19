@@ -1,30 +1,30 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ConfigService } from './config.service';
 
 export type DeckTTL = '1week' | '1month' | '3months' | '6months' | '1year';
 
-export interface DeckCard {
+export type DeckCard = {
   yt_id: string;
   title?: string;
   artist?: string;
   year?: number;
   artwork?: string;
-}
+};
 
-export interface Deck {
+export type Deck = {
   id: string;
   created_at: string;
   expires_at: string;
   cards: DeckCard[];
-}
+};
 
-export interface CreateDeckResponse {
+export type CreateDeckResponse = {
   id: string;
   share_url: string;
   expires_at: string;
-}
+};
 
-export interface ValidateYtResponse {
+export type ValidateYtResponse = {
   valid: boolean;
   yt_id?: string;
   title?: string;
@@ -32,29 +32,29 @@ export interface ValidateYtResponse {
   year?: number;
   artwork?: string;
   error?: string;
-}
+};
 
-export interface CardInput {
+export type CardInput = {
   yt_url: string;
   title?: string;
   artist?: string;
   year?: number;
-}
+};
 
-export interface ImportPlaylistResponse {
+export type ImportPlaylistResponse = {
   playlist_id: string;
   videos: ValidateYtResponse[];
   total: number;
-}
+};
 
 const LOCAL_DECKS_KEY = 'mg_local_decks';
 
-interface LocalDeckEntry {
+type LocalDeckEntry = {
   id: string;
   cardCount: number;
   expiresAt: string;
   savedAt: string;
-}
+};
 
 @Injectable({ providedIn: 'root' })
 export class DeckService {
@@ -97,9 +97,15 @@ export class DeckService {
 
   async getDeck(id: string): Promise<Deck> {
     const res = await fetch(`${this.apiUrl}/api/deck/${id}`);
-    if (res.status === 404) throw new Error('Deck not found');
-    if (res.status === 410) throw new Error('Deck has expired');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (res.status === 404) {
+      throw new Error('Deck not found');
+    }
+    if (res.status === 410) {
+      throw new Error('Deck has expired');
+    }
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     return res.json();
   }
 
@@ -155,7 +161,9 @@ export class DeckService {
   getCachedDeck(id: string): Deck | null {
     try {
       const raw = localStorage.getItem(`mg_deck_${id}`);
-      if (!raw) return null;
+      if (!raw) {
+        return null;
+      }
       return JSON.parse(raw);
     } catch {
       return null;

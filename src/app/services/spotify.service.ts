@@ -100,7 +100,9 @@ export class SpotifyService {
 
   // Step 4: initialize Web Playback SDK
   initSDK(): Promise<void> {
-    if (this.player) return Promise.resolve();
+    if (this.player) {
+      return Promise.resolve();
+    }
 
     return new Promise((resolve, reject) => {
       const token = this.state.getSpotifyToken();
@@ -171,7 +173,9 @@ export class SpotifyService {
   // Play track by Spotify URI — must be called in click handler
   async play(spotifyId: string): Promise<void> {
     const token = this.state.getSpotifyToken();
-    if (!token || !this.deviceId) throw new Error('Spotify not ready');
+    if (!token || !this.deviceId) {
+      throw new Error('Spotify not ready');
+    }
 
     const resp = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
@@ -180,9 +184,15 @@ export class SpotifyService {
     });
 
     if (!resp.ok) {
-      if (resp.status === 401) throw new Error('Spotify session expired, please reconnect');
-      if (resp.status === 403) throw new Error('Spotify Premium required');
-      if (resp.status === 429) throw new Error('Too many requests, try again in a moment');
+      if (resp.status === 401) {
+        throw new Error('Spotify session expired, please reconnect');
+      }
+      if (resp.status === 403) {
+        throw new Error('Spotify Premium required');
+      }
+      if (resp.status === 429) {
+        throw new Error('Too many requests, try again in a moment');
+      }
       throw new Error(`Spotify error ${resp.status}`);
     }
 

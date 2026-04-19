@@ -73,11 +73,15 @@ The app loads runtime settings from `src/config.json`. This file is **never buil
 
 When running via Docker, `entrypoint.sh` generates `config.json` at container startup from environment variables. You do **not** need to modify `src/config.json` — just pass the variables to the container:
 
-| Variable            | Maps to           | Default                        |
-| ------------------- | ----------------- | ------------------------------ |
-| `API_URL`           | `apiUrl`          | `http://localhost:8080`        |
-| `SPOTIFY_CLIENT_ID` | `spotifyClientId` | _(empty — Spotify hidden)_     |
-| `APPLE_DEV_TOKEN`   | `appleDevToken`   | _(empty — Apple Music hidden)_ |
+| Variable                  | Maps to / Effect              | Default                        |
+| ------------------------- | ----------------------------- | ------------------------------ |
+| `API_URL`                 | `apiUrl`                      | `http://localhost:8080`        |
+| `SPOTIFY_CLIENT_ID`       | `spotifyClientId`             | _(empty — Spotify hidden)_     |
+| `APPLE_DEV_TOKEN`         | `appleDevToken`               | _(empty — Apple Music hidden)_ |
+| `SITE_URL`                | Canonical, OG, sitemap        | `https://example.com`          |
+| `GOOGLE_SITE_VERIFICATION`| `<meta name="google-site-verification">` | _(empty)_     |
+| `BING_SITE_VERIFICATION`  | `<meta name="msvalidate.01">` | _(empty)_                      |
+| `GA_MEASUREMENT_ID`       | Google Analytics 4 gtag.js    | _(empty — GA disabled)_        |
 
 **Example — run locally with Docker:**
 
@@ -177,7 +181,10 @@ console.log(token);
 |------|----------------|
 | `src/config.json` | Runtime settings (not built into bundle) |
 | `entrypoint.sh` | Generates `config.json` from env vars at container start |
+| `src/main.ts` | Browser bootstrap entry |
+| `src/main.server.ts` | Server bootstrap entry (prerendering) |
 | `src/app/app.config.ts` | APP_INITIALIZER loads `config.json` |
+| `src/app/app.config.server.ts` | Server-side providers: prerender routes `/` and `/create-deck` |
 | `src/app/app.routes.ts` | Routes: `/`, `/scan`, `/game`, `/callback`, `/create-deck`, `/deck`, `/deck/:id` |
 | `src/app/services/config.service.ts` | Reads `config.json` |
 | `src/app/services/game-state.service.ts` | All game state in `localStorage`, Angular signals, custom deck state |
@@ -202,7 +209,7 @@ console.log(token);
 npm run build
 ```
 
-Output goes to `dist/frontend/browser`. Serve from any static host (nginx, CDN). See `nginx/nginx.conf` for the included nginx config.
+Output goes to `dist/frontend/browser`. Prerendered HTML is generated for `/` and `/create-deck` at build time — the rest falls back to client-side rendering. Serve from any static host (nginx, CDN). See `nginx/nginx.conf` for the included nginx config.
 
 ---
 
