@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, ElementRef, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { DeckService, Deck } from '../../services/deck.service';
+import { Deck, DeckService } from '../../services/deck.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
 import QRCodeStyling from 'qr-code-styling';
@@ -68,7 +68,7 @@ export class DeckDetailComponent implements OnInit {
   }
 
   private renderQR(): void {
-    if (!this.qrCanvas?.nativeElement) return;
+    if (!this.qrCanvas?.nativeElement) {return;}
     this.qrCanvas.nativeElement.innerHTML = '';
     const qr = new QRCodeStyling({
       width: 180,
@@ -84,7 +84,7 @@ export class DeckDetailComponent implements OnInit {
 
   play(): void {
     const d = this.deck();
-    if (!d) return;
+    if (!d) {return;}
     const shuffleOrder = this.deckService.shuffle(d.cards.map((_, i) => i));
     this.state.startCustomDeck(d, shuffleOrder);
     this.state.setProvider('youtube');

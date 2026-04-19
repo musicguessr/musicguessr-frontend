@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { DeckCard, Deck } from './deck.service';
+import { Deck, DeckCard } from './deck.service';
 
 export type Provider = 'youtube' | 'spotify' | 'apple' | null;
 export type VideoBlur = 'hidden' | 'blurred' | 'visible';
@@ -16,7 +16,7 @@ export type TrackInfo = {
   links: Record<string, string>;
 };
 
-export interface CustomDeckState {
+export type CustomDeckState = {
   deckId: string;
   deck: Deck;
   shuffleOrder: number[];
@@ -49,9 +49,9 @@ export class GameStateService {
 
   readonly hasAuth = computed(() => {
     const p = this.provider();
-    if (p === 'youtube') return true;
-    if (p === 'spotify') return !!this.getSpotifyToken();
-    if (p === 'apple') return !!this.getAppleMusicToken();
+    if (p === 'youtube') {return true;}
+    if (p === 'spotify') {return !!this.getSpotifyToken();}
+    if (p === 'apple') {return !!this.getAppleMusicToken();}
     return false;
   });
 
@@ -59,20 +59,20 @@ export class GameStateService {
 
   readonly currentCustomCard = computed((): DeckCard | null => {
     const state = this.customDeck();
-    if (!state) return null;
+    if (!state) {return null;}
     const idx = state.shuffleOrder[state.currentIndex];
     return state.deck.cards[idx] ?? null;
   });
 
   readonly customDeckProgress = computed(() => {
     const state = this.customDeck();
-    if (!state) return null;
+    if (!state) {return null;}
     return { current: state.currentIndex + 1, total: state.shuffleOrder.length };
   });
 
   readonly isCustomDeckFinished = computed(() => {
     const state = this.customDeck();
-    if (!state) return false;
+    if (!state) {return false;}
     return state.currentIndex >= state.shuffleOrder.length;
   });
 
@@ -115,8 +115,8 @@ export class GameStateService {
   setProvider(p: Provider): void {
     this.provider.set(p);
     try {
-      if (p) this.storage?.setItem(KEYS.provider, p);
-      else this.storage?.removeItem(KEYS.provider);
+      if (p) {this.storage?.setItem(KEYS.provider, p);}
+      else {this.storage?.removeItem(KEYS.provider);}
     } catch { /* non-fatal */ }
   }
 
@@ -140,7 +140,7 @@ export class GameStateService {
 
   nextCustomCard(): void {
     const state = this.customDeck();
-    if (!state) return;
+    if (!state) {return;}
     const next = { ...state, currentIndex: state.currentIndex + 1 };
     this.customDeck.set(next);
     this.persistCustomDeck(next);
@@ -148,7 +148,7 @@ export class GameStateService {
 
   restartCustomDeck(shuffleOrder: number[]): void {
     const state = this.customDeck();
-    if (!state) return;
+    if (!state) {return;}
     const next = { ...state, shuffleOrder, currentIndex: 0 };
     this.customDeck.set(next);
     this.persistCustomDeck(next);
@@ -191,7 +191,7 @@ export class GameStateService {
   getSpotifyToken(): string | null {
     const token = this.storage?.getItem(KEYS.spotifyToken) ?? null;
     const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry) || 0);
-    if (!token || Date.now() > expiry) return null;
+    if (!token || Date.now() > expiry) {return null;}
     return token;
   }
 

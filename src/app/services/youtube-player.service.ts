@@ -17,7 +17,7 @@ export class YoutubePlayerService {
   private containerId = 'yt-player-container';
 
   loadAPI(): Promise<void> {
-    if (this.apiReady) return Promise.resolve();
+    if (this.apiReady) {return Promise.resolve();}
     return new Promise((resolve) => {
       window.onYouTubeIframeAPIReady = (): void => {
         this.apiReady = true;
@@ -38,7 +38,7 @@ export class YoutubePlayerService {
   // pre-creating the player ensures loadVideoById() in the tap handler is the
   // only async boundary that iOS sees.
   preloadPlayer(): Promise<void> {
-    if (this.player) return Promise.resolve();
+    if (this.player) {return Promise.resolve();}
     return new Promise((resolve) => {
       // setTimeout(0) ensures Angular change detection has rendered the container
       setTimeout(() => {
@@ -57,7 +57,7 @@ export class YoutubePlayerService {
             fs: 0,
           },
           events: {
-            onReady: () => resolve(),
+            onReady: (): void => resolve(),
             onStateChange: (e: any): void => {
               this.isPlaying.set(e.data === 1);
             },

@@ -51,7 +51,7 @@
             <div class="song-row">
               <span class="song-num">{{ i + 1 }}</span>
               @if (card.artwork) {
-                <img class="song-thumb" [src]="card.artwork" alt="" loading="lazy" />
+                <img alt="" class="song-thumb" loading="lazy" [src]="card.artwork" />
               } @else {
                 <div class="song-thumb-placeholder">♪</div>
               }

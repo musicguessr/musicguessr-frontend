@@ -5,7 +5,7 @@ const APP_NAME = 'musicguessr';
 const DEFAULT_DESCRIPTION =
   'Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create custom decks.';
 
-export interface SeoOptions {
+export type SeoOptions = {
   title?: string;
   description?: string;
   image?: string;

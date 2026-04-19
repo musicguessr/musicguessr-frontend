@@ -21,7 +21,7 @@ export class ConfigService {
   private http = inject(HttpClient);
 
   async load(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) {return;}
     try {
       const cfg = await firstValueFrom(this.http.get<AppConfig>('/config.json'));
       this.config = { ...this.config, ...cfg };

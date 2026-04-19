@@ -13,7 +13,7 @@
     } @else {
       <div class="deck-list">
         @for (entry of entries; track entry.id) {
-          <a class="deck-item" [routerLink]="['/deck', entry.id]" [class.expired]="isExpired(entry.expiresAt)">
+          <a class="deck-item" [class.expired]="isExpired(entry.expiresAt)" [routerLink]="['/deck', entry.id]">
             <div class="deck-item-info">
               <span class="deck-id">{{ entry.id }}</span>
               <span class="deck-meta">{{ entry.cardCount }} cards</span>

@@ -51,7 +51,7 @@
         <div class="card track-card">
           <div class="artwork-wrap" [class.blurred]="!revealed()">
             @if (card.artwork) {
-              <img alt="album art" class="artwork-img" [src]="card.artwork" loading="lazy" />
+              <img alt="album art" class="artwork-img" loading="lazy" [src]="card.artwork" />
             } @else {
               <div class="artwork-placeholder">🎵</div>
             }
@@ -77,7 +77,7 @@
         <div class="card track-card">
           <div class="artwork-wrap" [class.blurred]="!revealed()">
             @if (t.artwork_url) {
-              <img alt="album art" class="artwork-img" [src]="t.artwork_url" loading="lazy" />
+              <img alt="album art" class="artwork-img" loading="lazy" [src]="t.artwork_url" />
             } @else {
               <div class="artwork-placeholder">🎵</div>
             }

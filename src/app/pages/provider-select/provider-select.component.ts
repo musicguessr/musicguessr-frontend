@@ -167,7 +167,7 @@ export class ProviderSelectComponent implements OnInit {
 
   async loadCustomDeck(): Promise<void> {
     const raw = this.deckInput().trim();
-    if (!raw) return;
+    if (!raw) {return;}
 
     // Accept full URL or bare ID
     const id = raw.split('/').pop() ?? raw;
