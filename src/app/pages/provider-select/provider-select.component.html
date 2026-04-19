@@ -1,6 +1,6 @@
 <div class="page">
-  <div class="page-header">
-    <div class="logo">musicguessr</div>
+  <header class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
     <a aria-label="GitHub" class="gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
       <svg fill="currentColor" height="22" viewBox="0 0 16 16" width="22">
         <path
@@ -8,11 +8,10 @@
         />
       </svg>
     </a>
-  </div>
+  </header>
 
-  <div class="content">
-    @if (isLocked() && isAuthed) {
-      <!-- Locked state -->
+  @if (isLocked() && isAuthed) {
+    <div class="content">
       <div class="locked-card card">
         <div class="locked-icon">🔒</div>
         <p class="locked-label">Provider locked for this game</p>
@@ -25,10 +24,34 @@
         </button>
         <button class="btn btn-ghost mt-sm" (click)="changeProvider()">Change provider</button>
       </div>
-    } @else {
-      <!-- Select view -->
-      <h2 class="heading">Choose your music service</h2>
-      <p class="subheading">You can't change this mid-game</p>
+    </div>
+  } @else {
+    <section aria-label="Introduction" class="hero">
+      <h1 class="hero-title">Play <span class="hero-accent">Hitster</span><br />on any music service</h1>
+      <p class="hero-desc">
+        Scan QR codes from Hitster cards and hear the song instantly in your browser — on YouTube, Spotify, or Apple
+        Music. Free, no login required for YouTube.
+      </p>
+      <ol aria-label="How it works" class="steps">
+        <li class="step">
+          <span class="step-icon">📷</span>
+          <span class="step-label">Scan card</span>
+        </li>
+        <li class="step">
+          <span class="step-icon">🎵</span>
+          <span class="step-label">Hear song</span>
+        </li>
+        <li class="step">
+          <span class="step-icon">🤔</span>
+          <span class="step-label">Guess year</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="content">
+      <div class="section-divider">
+        <span>choose your music service</span>
+      </div>
 
       <div class="provider-list">
         @for (p of providers; track p.id) {
@@ -51,7 +74,6 @@
         }
       </div>
 
-      <!-- Video blur setting -->
       @if (selected() === 'youtube') {
         <div class="setting-group">
           <span class="setting-label">YouTube video visibility</span>
@@ -66,7 +88,6 @@
         </div>
       }
 
-      <!-- Variant fallback setting (YouTube only) -->
       @if (selected() === 'youtube') {
         <div class="setting-group">
           <div class="toggle-row" tabindex="0" (click)="toggleYtVariants()" (keydown.enter)="toggleYtVariants()">
@@ -96,7 +117,6 @@
         Spotify and Apple Music require your own subscription. YouTube works for everyone, no login needed.
       </p>
 
-      <!-- Custom deck section -->
       <div class="custom-deck-section">
         <div class="custom-deck-divider">
           <span>or play a custom deck</span>
@@ -129,6 +149,6 @@
           <a class="link-subtle" routerLink="/deck">My decks</a>
         </div>
       </div>
-    }
-  </div>
+    </div>
+  }
 </div>

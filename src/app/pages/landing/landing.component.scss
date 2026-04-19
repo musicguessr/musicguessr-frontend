@@ -1,0 +1,378 @@
+.landing {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 20px 0;
+}
+
+// ── Top bar ───────────────────────────────────────────────────────────────────
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 0;
+  gap: 16px;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.top-nav {
+  display: flex;
+  gap: 20px;
+
+  a {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+
+.hero {
+  padding: 48px 0 40px;
+  animation: slideUp 0.5s ease both;
+}
+
+.hero-eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 10vw, 4rem);
+  letter-spacing: 2px;
+  line-height: 0.95;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.hero-accent {
+  color: var(--accent);
+}
+
+.hero-desc {
+  font-size: 1rem;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 420px;
+  margin-bottom: 28px;
+}
+
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 320px;
+  margin-bottom: 16px;
+}
+
+.cta-main {
+  font-size: 1.1rem;
+}
+
+.cta-secondary {
+  font-size: 1rem;
+}
+
+.hero-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+
+.section {
+  padding: 40px 0;
+  border-top: 1px solid var(--border);
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+.section-sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 440px;
+}
+
+.link-more {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Steps ─────────────────────────────────────────────────────────────────────
+
+.steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step-item {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.step-num {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.step-body {
+  padding-top: 2px;
+}
+
+.step-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.step-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+// ── Providers ─────────────────────────────────────────────────────────────────
+
+.provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.provider-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+
+  &.provider-yt {
+    border-color: rgba(245, 197, 24, 0.3);
+    background: rgba(245, 197, 24, 0.04);
+  }
+}
+
+.provider-icon {
+  font-size: 1.6rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.provider-info {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  p {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+}
+
+.provider-badge {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+
+  &.free {
+    background: rgba(245, 197, 24, 0.15);
+    color: var(--accent);
+  }
+}
+
+// ── Why ───────────────────────────────────────────────────────────────────────
+
+.why-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.5;
+
+    strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+  }
+}
+
+.why-check {
+  color: var(--accent);
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+// ── Custom decks ──────────────────────────────────────────────────────────────
+
+.deck-feature-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.deck-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.df-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.deck-cta {
+  width: auto;
+  display: inline-flex;
+  padding: 12px 24px;
+  font-size: 1rem;
+}
+
+// ── FAQ preview ───────────────────────────────────────────────────────────────
+
+.faq-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.faq-item {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+
+  &:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  dt {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  dd {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+}
+
+// ── Footer CTA ────────────────────────────────────────────────────────────────
+
+.footer-cta {
+  padding: 48px 0 40px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.footer-cta-title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.footer-cta-sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.footer-cta .btn {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px 0 32px;
+  border-top: 1px solid var(--border);
+
+  a {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
+}

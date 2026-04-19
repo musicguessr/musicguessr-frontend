@@ -1,4 +1,4 @@
-<div class="page">
+<main class="page">
   <div class="page-header">
     <a class="logo" routerLink="/">musicguessr</a>
     <span class="heading-sub">Create Deck</span>
@@ -30,7 +30,11 @@
   } @else {
     <!-- Builder state -->
     <div class="content builder-view">
-      <p class="builder-sub">Add up to {{ MAX_CARDS }} YouTube tracks. Validate each one before submitting.</p>
+      <h1 class="builder-heading">Create a custom music quiz deck</h1>
+      <p class="builder-sub">
+        Add up to {{ MAX_CARDS }} YouTube tracks and share with friends via a link or QR code. Import an entire YouTube
+        playlist in one click.
+      </p>
 
       <!-- Playlist import -->
       <div class="playlist-import">
@@ -129,4 +133,4 @@
       </button>
     </div>
   }
-</div>
+</main>

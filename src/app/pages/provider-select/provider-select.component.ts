@@ -56,9 +56,10 @@ export class ProviderSelectComponent implements OnInit {
 
   ngOnInit(): void {
     this.seo.set({
-      title: 'Play Hitster Cards Online',
+      title: 'Play Hitster Cards on YouTube — Free, No Login',
       description:
-        'Choose YouTube, Spotify, or Apple Music to play Hitster cards in your browser. No subscription lock-in — guess the year, scan QR codes, enjoy the music quiz.',
+        'Scan QR codes from Hitster cards and play songs on YouTube, Spotify, or Apple Music. Free companion app for the Hitster card game — no Spotify required.',
+      noindex: true,
     });
     this.providers = [
       {
@@ -109,6 +110,7 @@ export class ProviderSelectComponent implements OnInit {
     if (!p) {
       return;
     }
+
     this.errorMsg.set(null);
     this.loading.set(true);
 

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="315" x2="1200" y2="315" stroke="#1a1a1a" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="630" stroke="#1a1a1a" stroke-width="1"/>
+
+  <!-- Accent bar -->
+  <rect x="100" y="180" width="8" height="120" rx="4" fill="#f5c518"/>
+
+  <!-- Main title -->
+  <text x="130" y="268" font-family="Arial Black, sans-serif" font-weight="900" font-size="96" fill="#f0f0f0" letter-spacing="4">MUSICGUESSR</text>
+
+  <!-- Tagline -->
+  <text x="130" y="330" font-family="Arial, sans-serif" font-size="32" fill="#666666">Play Hitster cards on YouTube, Spotify &amp; Apple Music</text>
+
+  <!-- Feature pills -->
+  <rect x="130" y="370" width="160" height="44" rx="22" fill="#141414" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="210" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#f5c518">▶ YouTube</text>
+
+  <rect x="308" y="370" width="160" height="44" rx="22" fill="#141414" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="388" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#aaaaaa">♫ Spotify</text>
+
+  <rect x="486" y="370" width="200" height="44" rx="22" fill="#141414" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="586" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#aaaaaa"> Apple Music</text>
+
+  <!-- Right side: visual -->
+  <text x="960" y="360" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="180" fill="#f5c518" opacity="0.15">?</text>
+  <text x="960" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#444444">guess the year</text>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="590" width="1200" height="40" fill="#0d0d0d"/>
+  <text x="600" y="616" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#444444">musicguessr.app · Free · Open source · No login for YouTube</text>
+</svg>

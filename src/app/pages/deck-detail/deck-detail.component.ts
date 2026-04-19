@@ -30,21 +30,21 @@ export class DeckDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.shareUrl.set(window.location.href);
+    this.shareUrl.set(typeof window !== 'undefined' ? window.location.href : '');
     this.seo.set({
-      title: `Deck ${id}`,
+      title: `Music Quiz Deck ${id}`,
       description: 'Play this custom music quiz deck — guess the year for each track. Shareable via link or QR code.',
-      url: window.location.href,
+      url: this.shareUrl(),
     });
     this.loadDeck(id);
   }
 
   private async loadDeck(id: string): Promise<void> {
-    // Try cache first so the page loads instantly offline
     const cached = this.deckService.getCachedDeck(id);
     if (cached && new Date(cached.expires_at) > new Date()) {
       this.deck.set(cached);
       this.loading.set(false);
+      this.applyDeckSeo(cached);
       setTimeout(() => this.renderQR(), 0);
       return;
     }
@@ -54,11 +54,7 @@ export class DeckDetailComponent implements OnInit {
       this.deckService.cacheDeck(deck);
       this.deckService.saveLocalDeckEntry(deck);
       this.deck.set(deck);
-      this.seo.set({
-        title: `Deck ${deck.id} — ${deck.cards.length} tracks`,
-        description: `Play this ${deck.cards.length}-track music quiz deck. Guess the year for each song. Share with friends via link or QR code.`,
-        url: window.location.href,
-      });
+      this.applyDeckSeo(deck);
       setTimeout(() => this.renderQR(), 0);
     } catch (e: any) {
       this.error.set(e.message ?? 'Failed to load deck');
@@ -103,5 +99,12 @@ export class DeckDetailComponent implements OnInit {
   isExpired(): boolean {
     const d = this.deck();
     return d ? new Date(d.expires_at) < new Date() : false;
+  }
+
+  private applyDeckSeo(deck: import('../../services/deck.service').Deck): void {
+    const artists = [...new Set(deck.cards.map((c) => c.artist).filter(Boolean))].slice(0, 4).join(', ');
+    const title = `Music Quiz Deck — ${deck.cards.length} tracks${artists ? ` (${artists}…)` : ''}`;
+    const description = `${deck.cards.length}-track music quiz deck. ${artists ? `Featuring ${artists} and more. ` : ''}Guess the release year for each song. Play free on musicguessr.`;
+    this.seo.set({ title, description, url: this.shareUrl() });
   }
 }

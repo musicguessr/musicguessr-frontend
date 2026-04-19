@@ -1,0 +1,33 @@
+<main class="page">
+  <div class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
+  </div>
+
+  <div class="content">
+    <h1 class="heading">Frequently Asked Questions</h1>
+    <p class="intro">Everything you need to know about playing Hitster online with YouTube, Spotify, or Apple Music.</p>
+
+    <dl class="faq-list">
+      @for (item of items(); track item.q; let i = $index) {
+        <div class="faq-item" [class.open]="item.open">
+          <dt>
+            <button class="faq-trigger" [attr.aria-expanded]="item.open" (click)="toggle(i)">
+              <span>{{ item.q }}</span>
+              <span class="faq-icon">{{ item.open ? '−' : '+' }}</span>
+            </button>
+          </dt>
+          @if (item.open) {
+            <dd class="faq-answer">{{ item.a }}</dd>
+          }
+        </div>
+      }
+    </dl>
+
+    <div class="faq-footer">
+      <p>Still have questions?</p>
+      <a class="btn btn-ghost faq-gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
+        Open an issue on GitHub
+      </a>
+    </div>
+  </div>
+</main>

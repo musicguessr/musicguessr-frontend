@@ -1,0 +1,184 @@
+<div class="landing">
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header class="top-bar">
+    <div class="logo">musicguessr</div>
+    <nav class="top-nav">
+      <a routerLink="/how-to-play">How to play</a>
+      <a routerLink="/faq">FAQ</a>
+      <a routerLink="/create-deck">Create deck</a>
+    </nav>
+  </header>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <section aria-label="Introduction" class="hero">
+    <div class="hero-eyebrow">Hitster companion app</div>
+    <h1 class="hero-title">Play Hitster<br /><span class="hero-accent">without Spotify</span></h1>
+    <p class="hero-desc">
+      Scan QR codes from any Hitster card and hear the song instantly — on YouTube, Spotify, or Apple Music. Free, open
+      source, no app download.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary cta-main" routerLink="/play">Start Playing Free →</a>
+      <a class="btn btn-ghost cta-secondary" routerLink="/how-to-play">How it works</a>
+    </div>
+    <p class="hero-note">YouTube works for everyone · No login required</p>
+  </section>
+
+  <!-- ── How it works ───────────────────────────────────────────────────────── -->
+  <section aria-label="How it works" class="section steps-section" id="how-it-works">
+    <h2 class="section-heading">How it works</h2>
+    <ol class="steps-list">
+      <li class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong class="step-title">Choose a music service</strong>
+          <p class="step-desc">Pick YouTube (free), Spotify, or Apple Music. You can't change mid-game.</p>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong class="step-title">Scan a Hitster card</strong>
+          <p class="step-desc">
+            Point your camera at the QR code on any Hitster card. The track is identified instantly.
+          </p>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong class="step-title">Tap to play</strong>
+          <p class="step-desc">Tap the overlay — the song starts playing in your browser. No app switching.</p>
+        </div>
+      </li>
+      <li class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong class="step-title">Guess the year</strong>
+          <p class="step-desc">Listen to the track, debate with your team, then tap to reveal the answer.</p>
+        </div>
+      </li>
+    </ol>
+    <a class="link-more" routerLink="/how-to-play">Full guide with screenshots →</a>
+  </section>
+
+  <!-- ── Music services ─────────────────────────────────────────────────────── -->
+  <section aria-label="Supported music services" class="section providers-section">
+    <h2 class="section-heading">Works with your music service</h2>
+    <div class="provider-cards">
+      <div class="provider-card provider-yt">
+        <span class="provider-icon">▶</span>
+        <div class="provider-info">
+          <strong>YouTube</strong>
+          <p>Free · No login · Works everywhere</p>
+        </div>
+        <span class="provider-badge free">Free</span>
+      </div>
+      <div class="provider-card">
+        <span class="provider-icon">♫</span>
+        <div class="provider-info">
+          <strong>Spotify</strong>
+          <p>Requires Premium subscription</p>
+        </div>
+      </div>
+      <div class="provider-card">
+        <span class="provider-icon"></span>
+        <div class="provider-info">
+          <strong>Apple Music</strong>
+          <p>Requires Apple Music subscription</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Why musicguessr ────────────────────────────────────────────────────── -->
+  <section aria-label="Why use musicguessr" class="section why-section">
+    <h2 class="section-heading">Why musicguessr?</h2>
+    <ul class="why-list">
+      <li>
+        <span class="why-check">✓</span><span>Play Hitster <strong>without a Spotify subscription</strong></span>
+      </li>
+      <li><span class="why-check">✓</span><span>No app download — runs directly in your browser</span></li>
+      <li><span class="why-check">✓</span><span>Works on iPhone, Android, and desktop</span></li>
+      <li>
+        <span class="why-check">✓</span
+        ><span>Create and share <strong>custom decks</strong> from any YouTube video</span>
+      </li>
+      <li><span class="why-check">✓</span><span>Import entire YouTube playlists as a deck in one click</span></li>
+      <li><span class="why-check">✓</span><span>Free and open source — no ads, no tracking</span></li>
+    </ul>
+  </section>
+
+  <!-- ── Custom decks ───────────────────────────────────────────────────────── -->
+  <section aria-label="Custom decks" class="section decks-section">
+    <h2 class="section-heading">Create your own music quiz</h2>
+    <p class="section-sub">
+      Build a custom Hitster-style deck from any YouTube videos or playlist. Share via a link or QR code — no account
+      needed.
+    </p>
+    <div class="deck-feature-row">
+      <div class="deck-feature">
+        <span class="df-icon">🎬</span>
+        <span>Add YouTube videos one by one</span>
+      </div>
+      <div class="deck-feature">
+        <span class="df-icon">📋</span>
+        <span>Import an entire YouTube playlist</span>
+      </div>
+      <div class="deck-feature">
+        <span class="df-icon">🔗</span>
+        <span>Share via link or QR code</span>
+      </div>
+      <div class="deck-feature">
+        <span class="df-icon">⏱</span>
+        <span>Decks expire after 1 week – 1 year</span>
+      </div>
+    </div>
+    <a class="btn btn-ghost deck-cta" routerLink="/create-deck">Create a deck →</a>
+  </section>
+
+  <!-- ── FAQ preview ────────────────────────────────────────────────────────── -->
+  <section aria-label="Common questions" class="section faq-preview-section">
+    <h2 class="section-heading">Common questions</h2>
+    <dl class="faq-preview-list">
+      <div class="faq-item">
+        <dt>Can I play Hitster without Spotify?</dt>
+        <dd>
+          Yes. Choose YouTube when starting a game — it's free and works with no login. Spotify and Apple Music are also
+          supported if you have a subscription.
+        </dd>
+      </div>
+      <div class="faq-item">
+        <dt>Does it work on iPhone?</dt>
+        <dd>
+          Yes. musicguessr is optimised for iOS Safari and Android Chrome. The camera scanner and YouTube player both
+          work on mobile.
+        </dd>
+      </div>
+      <div class="faq-item">
+        <dt>Do I need to download an app?</dt>
+        <dd>
+          No. It runs entirely in your browser. You can optionally install it as a PWA from your browser menu for quick
+          access.
+        </dd>
+      </div>
+    </dl>
+    <a class="link-more" routerLink="/faq">All frequently asked questions →</a>
+  </section>
+
+  <!-- ── Footer CTA ─────────────────────────────────────────────────────────── -->
+  <section aria-label="Get started" class="footer-cta">
+    <h2 class="footer-cta-title">Ready to play?</h2>
+    <p class="footer-cta-sub">Grab your Hitster cards and start in seconds.</p>
+    <a class="btn btn-primary" routerLink="/play">Start Playing Free →</a>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <a routerLink="/play">Play</a>
+    <a routerLink="/create-deck">Create Deck</a>
+    <a routerLink="/how-to-play">How to Play</a>
+    <a routerLink="/faq">FAQ</a>
+    <a href="https://github.com/musicguessr" rel="noopener" target="_blank">GitHub</a>
+  </footer>
+</div>

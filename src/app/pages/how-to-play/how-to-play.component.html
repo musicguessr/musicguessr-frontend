@@ -1,0 +1,191 @@
+<main class="page">
+  <div class="page-header">
+    <a class="logo" routerLink="/">musicguessr</a>
+  </div>
+
+  <div class="content">
+    <h1 class="heading">How to Play Hitster Online</h1>
+    <p class="intro">
+      musicguessr lets you play the Hitster card game in your browser — using YouTube, Spotify, or Apple Music instead
+      of being locked to one service. Here's how to get started.
+    </p>
+
+    <!-- ── Requirements ───────────────────────────────────────────────────── -->
+    <section aria-label="What you need" class="section">
+      <h2 class="section-title">What you need</h2>
+      <ul class="req-list">
+        <li>
+          <span class="req-icon">🃏</span><span>A physical <strong>Hitster card game</strong> set</span>
+        </li>
+        <li>
+          <span class="req-icon">📱</span><span>A smartphone or tablet with a <strong>camera</strong></span>
+        </li>
+        <li>
+          <span class="req-icon">▶</span>
+          <span>For YouTube: <strong>nothing</strong> — it's free with no login</span>
+        </li>
+        <li>
+          <span class="req-icon">♫</span><span>For Spotify: a <strong>Spotify Premium</strong> subscription</span>
+        </li>
+        <li>
+          <span class="req-icon"></span><span>For Apple Music: an <strong>Apple Music</strong> subscription</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ── Step by step ───────────────────────────────────────────────────── -->
+    <section aria-label="Step by step guide" class="section">
+      <h2 class="section-title">Step-by-step guide</h2>
+
+      <ol class="steps">
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <strong class="step-title">Open musicguessr in your browser</strong>
+          </div>
+          <p class="step-body">
+            Go to <strong>musicguessr.app</strong> in Safari, Chrome, or any modern browser. No download or installation
+            needed.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <strong class="step-title">Choose your music service</strong>
+          </div>
+          <p class="step-body">
+            Tap <strong>Start Playing</strong> and pick a provider. Choose <strong>YouTube</strong> for free play with
+            no login. Spotify and Apple Music require a subscription. Your choice is locked for the entire game session.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <strong class="step-title">Allow camera access</strong>
+          </div>
+          <p class="step-body">
+            When prompted, allow the browser to use your camera. This is needed to scan QR codes on Hitster cards.
+            musicguessr never stores photos or video.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">4</span>
+            <strong class="step-title">Scan a Hitster card</strong>
+          </div>
+          <p class="step-body">
+            Point your camera at the <strong>QR code</strong> printed on the back of any Hitster card. The scanner reads
+            it automatically — no button press needed. The track is identified within a second.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">5</span>
+            <strong class="step-title">Tap to play</strong>
+          </div>
+          <p class="step-body">
+            A "Tap to Play" overlay appears. Tap it — the song starts in your browser immediately. The card details
+            (title, artist, year, artwork) are blurred until you reveal them.
+          </p>
+          <p class="step-note">
+            <strong>iPhone tip:</strong> iOS Safari requires a direct tap to start audio. Always tap the overlay rather
+            than trying to play automatically.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">6</span>
+            <strong class="step-title">Listen and guess the year</strong>
+          </div>
+          <p class="step-body">
+            Let the song play and discuss with your group. When everyone has guessed, tap <strong>Tap to reveal</strong>
+            to unblur the card and see the release year.
+          </p>
+        </li>
+
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">7</span>
+            <strong class="step-title">Scan the next card</strong>
+          </div>
+          <p class="step-body">
+            Tap <strong>Scan next card</strong> to return to the scanner. Repeat for every card in your round. The
+            player who places the most cards correctly on the timeline wins.
+          </p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ── Custom decks ───────────────────────────────────────────────────── -->
+    <section aria-label="Custom decks" class="section">
+      <h2 class="section-title">Playing with custom decks</h2>
+      <p class="section-body">
+        Don't have Hitster cards? You can create your own music quiz deck from any YouTube videos or playlist.
+      </p>
+      <ol class="steps steps-sm">
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <strong class="step-title">Go to Create Deck</strong>
+          </div>
+          <p class="step-body">Tap <strong>Create a deck</strong> on the home page or navigate to /create-deck.</p>
+        </li>
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <strong class="step-title">Add YouTube videos or import a playlist</strong>
+          </div>
+          <p class="step-body">
+            Paste YouTube video URLs one by one, or paste a YouTube playlist URL to import all tracks at once (up to 300
+            videos).
+          </p>
+        </li>
+        <li class="step">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <strong class="step-title">Share and play</strong>
+          </div>
+          <p class="step-body">
+            After creating the deck, share the link or QR code with your friends. Anyone with the link can load and play
+            the deck — no account needed.
+          </p>
+        </li>
+      </ol>
+      <a class="btn btn-ghost create-cta" routerLink="/create-deck">Create a custom deck →</a>
+    </section>
+
+    <!-- ── Tips ───────────────────────────────────────────────────────────── -->
+    <section aria-label="Tips and troubleshooting" class="section">
+      <h2 class="section-title">Tips &amp; troubleshooting</h2>
+      <ul class="tips-list">
+        <li>
+          <strong>Camera not working?</strong> Make sure the browser has camera permission in your device settings
+          (Settings → Safari/Chrome → Camera).
+        </li>
+        <li>
+          <strong>Music not playing on iPhone?</strong> Always tap the "Tap to Play" overlay directly — iOS requires a
+          user tap to allow audio. If Spotify doesn't play in-browser, it will open in the Spotify app instead.
+        </li>
+        <li>
+          <strong>Wrong song matched?</strong> musicguessr uses YouTube search to find the track. Occasionally a cover
+          or live version may appear. You can use the "Fallback to remixes" option in settings.
+        </li>
+        <li>
+          <strong>QR code not scanning?</strong> Ensure good lighting and hold the card steady. The scanner works at
+          around 20–60 cm from the screen.
+        </li>
+      </ul>
+    </section>
+
+    <!-- ── CTA ───────────────────────────────────────────────────────────── -->
+    <div class="bottom-cta">
+      <a class="btn btn-primary" routerLink="/play">Start Playing →</a>
+      <a class="link-faq" routerLink="/faq">Still have questions? See FAQ</a>
+    </div>
+  </div>
+</main>
