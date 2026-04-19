@@ -29,6 +29,14 @@
   margin: 0 auto;
 }
 
+.builder-heading {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  letter-spacing: 1px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
 .builder-sub {
   font-size: 0.85rem;
   opacity: 0.55;

@@ -6,13 +6,23 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>__SITE_URL__/create-deck</loc>
+    <loc>__SITE_URL__/play</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>__SITE_URL__/how-to-play</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>__SITE_URL__/deck</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <loc>__SITE_URL__/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>__SITE_URL__/create-deck</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

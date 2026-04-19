@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
 
+    <!-- Favicon -->
+    <link
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>"
+      rel="icon"
+      type="image/svg+xml"
+    />
+
     <!-- Primary meta -->
     <title>musicguessr — Play Hitster cards with YouTube, Spotify & Apple Music</title>
     <meta
@@ -105,7 +112,99 @@
       }
     </script>
 
+    <!-- Structured data: HowTo (Schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to play Hitster online with YouTube",
+        "description": "Use musicguessr to play Hitster card game in your browser using YouTube — no Spotify required.",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Choose a music service",
+            "text": "Open musicguessr and select YouTube (free, no login), Spotify, or Apple Music as your playback provider."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Scan a Hitster card",
+            "text": "Point your camera at the QR code on any Hitster card. The app identifies the track instantly."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Tap to play",
+            "text": "Tap the play button. The song starts in your browser — no app switching needed."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Guess the year",
+            "text": "Listen to the track, guess the release year, then tap to reveal the answer and place the card on your timeline."
+          }
+        ],
+        "tool": [
+          { "@type": "HowToTool", "name": "Hitster card game" },
+          { "@type": "HowToTool", "name": "Smartphone with camera" }
+        ]
+      }
+    </script>
+
+    <!-- Structured data: FAQPage (Schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Can I play Hitster without Spotify?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. musicguessr lets you play Hitster cards using YouTube — completely free, no Spotify account or Premium subscription required. Just choose YouTube when starting the game."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does musicguessr work with Hitster cards?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Open musicguessr in your browser, select a music service, then scan the QR code on any Hitster card with your phone camera. The matching track plays automatically in your browser."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does musicguessr work on iPhone and Android?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. musicguessr is a Progressive Web App optimised for iOS Safari and Android Chrome. It works directly in the browser — no app download required. You can also install it on your home screen."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I create my own Hitster-style music quiz?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Use the Create Deck page to build a custom music quiz from YouTube videos or an entire YouTube playlist. Share it with friends via a link or QR code — no account needed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is musicguessr free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "musicguessr is completely free and open source. YouTube playback requires no subscription. Spotify playback requires a Spotify Premium account. Apple Music playback requires an Apple Music subscription."
+            }
+          }
+        ]
+      }
+    </script>
+
     <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="dns-prefetch" />
+    <link href="https://fonts.gstatic.com" rel="dns-prefetch" />
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect" />
     <link

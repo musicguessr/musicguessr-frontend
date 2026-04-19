@@ -6,8 +6,20 @@ import { GameStateService } from './services/game-state.service';
 export const routes: Routes = [
   {
     path: '',
+    loadComponent: () => import('./pages/landing/landing.component').then((m) => m.LandingComponent),
+  },
+  {
+    path: 'play',
     loadComponent: () =>
       import('./pages/provider-select/provider-select.component').then((m) => m.ProviderSelectComponent),
+  },
+  {
+    path: 'how-to-play',
+    loadComponent: () => import('./pages/how-to-play/how-to-play.component').then((m) => m.HowToPlayComponent),
+  },
+  {
+    path: 'faq',
+    loadComponent: () => import('./pages/faq/faq.component').then((m) => m.FaqComponent),
   },
   {
     path: 'scan',
@@ -17,7 +29,7 @@ export const routes: Routes = [
         const state = inject(GameStateService);
         const router = inject(Router);
         if (!state.provider()) {
-          router.navigate(['/']);
+          router.navigate(['/play']);
           return false;
         }
         return true;
@@ -32,7 +44,7 @@ export const routes: Routes = [
         const state = inject(GameStateService);
         const router = inject(Router);
         if (!state.provider()) {
-          router.navigate(['/']);
+          router.navigate(['/play']);
           return false;
         }
         if (!state.currentTrack() && !state.isCustomDeckMode()) {
