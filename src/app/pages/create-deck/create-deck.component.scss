@@ -1,7 +1,7 @@
 .page {
   min-height: 100dvh;
   background: var(--bg);
-  color: var(--fg);
+  color: var(--text);
   padding: 0 1rem 4rem;
 }
 
@@ -27,6 +27,10 @@
 .content {
   max-width: 640px;
   margin: 0 auto;
+
+  @media (min-width: 640px) {
+    max-width: 760px;
+  }
 }
 
 .builder-heading {
@@ -135,7 +139,7 @@
   background: #0d0d0d;
   border: 1px solid #2a2a2a;
   border-radius: 6px;
-  color: var(--fg);
+  color: var(--text);
   font-size: 0.85rem;
   padding: 0.5rem 0.75rem;
   outline: none;
@@ -233,7 +237,7 @@
 .ttl-btn {
   background: #141414;
   border: 1px solid #2a2a2a;
-  color: var(--fg);
+  color: var(--text);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
   font-size: 0.8rem;

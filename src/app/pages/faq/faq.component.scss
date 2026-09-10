@@ -3,6 +3,10 @@
   max-width: 560px;
   margin: 32px auto 0;
   padding-bottom: 48px;
+
+  @media (min-width: 640px) {
+    max-width: 720px;
+  }
 }
 
 .heading {

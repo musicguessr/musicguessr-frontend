@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Deck, DeckCard } from './deck.service';
 
@@ -6,8 +6,9 @@ export type Provider = 'youtube' | 'spotify' | 'apple' | null;
 export type VideoBlur = 'hidden' | 'blurred' | 'visible';
 
 export type TrackInfo = {
-  spotify_id: string;
-  spotify_url: string;
+  // Not guaranteed by the backend at runtime — a card may have no Spotify match.
+  spotify_id?: string;
+  spotify_url?: string;
   artist?: string;
   title?: string;
   year?: number;
@@ -33,6 +34,7 @@ const KEYS = {
   spotifyExpiry: 'oh_sp_expiry',
   appleMusicToken: 'oh_am_token',
   customDeck: 'oh_custom_deck',
+  currentTrack: 'oh_current_track',
 } as const;
 
 @Injectable({ providedIn: 'root' })
@@ -44,10 +46,18 @@ export class GameStateService {
   readonly locked = signal<boolean>(this.loadLocked());
   readonly videoBlur = signal<VideoBlur>(this.loadVideoBlur());
   readonly ytVariants = signal<boolean>(this.loadYtVariants());
-  readonly currentTrack = signal<TrackInfo | null>(null);
+  readonly currentTrack = signal<TrackInfo | null>(this.loadCurrentTrack());
   readonly customDeck = signal<CustomDeckState | null>(this.loadCustomDeck());
 
+  // Bumped whenever a Spotify/Apple token is written or cleared, so hasAuth()
+  // recomputes even when `provider` itself doesn't change (e.g. re-authenticating
+  // with the same provider is a no-op `signal.set()` under Object.is equality) —
+  // token presence otherwise lives in localStorage, invisible to Angular's
+  // reactivity graph.
+  private readonly authVersion = signal(0);
+
   readonly hasAuth = computed(() => {
+    this.authVersion();
     const p = this.provider();
     if (p === 'youtube') {
       return true;
@@ -60,6 +70,23 @@ export class GameStateService {
     }
     return false;
   });
+
+  constructor() {
+    // Persist currentTrack alongside provider/locked/customDeck so a refresh on
+    // /game doesn't drop the in-progress round while the provider stays locked.
+    effect(() => {
+      const track = this.currentTrack();
+      try {
+        if (track) {
+          this.storage?.setItem(KEYS.currentTrack, JSON.stringify(track));
+        } else {
+          this.storage?.removeItem(KEYS.currentTrack);
+        }
+      } catch {
+        /* non-fatal */
+      }
+    });
+  }
 
   readonly isCustomDeckMode = computed(() => !!this.customDeck());
 
@@ -108,7 +135,40 @@ export class GameStateService {
   private loadCustomDeck(): CustomDeckState | null {
     try {
       const raw = this.storage?.getItem(KEYS.customDeck);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        typeof parsed.deckId !== 'string' ||
+        !parsed.deck ||
+        !Array.isArray(parsed.deck.cards) ||
+        !Array.isArray(parsed.shuffleOrder) ||
+        typeof parsed.currentIndex !== 'number'
+      ) {
+        // Shape doesn't match CustomDeckState (stale schema / corrupted entry) —
+        // fall back cleanly instead of letting downstream computed()s throw.
+        return null;
+      }
+      return parsed as CustomDeckState;
+    } catch {
+      return null;
+    }
+  }
+
+  private loadCurrentTrack(): TrackInfo | null {
+    try {
+      const raw = this.storage?.getItem(KEYS.currentTrack);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || typeof parsed.links !== 'object') {
+        return null;
+      }
+      return parsed as TrackInfo;
     } catch {
       return null;
     }
@@ -221,12 +281,15 @@ export class GameStateService {
     } catch {
       /* non-fatal — token lives in memory for this session */
     }
+    this.authVersion.update((v) => v + 1);
   }
 
   getSpotifyToken(): string | null {
     const token = this.storage?.getItem(KEYS.spotifyToken) ?? null;
-    const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry) || 0);
-    if (!token || Date.now() > expiry) {
+    const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry));
+    // Number('NaN-ish'/missing) can be NaN — `Date.now() > NaN` is always false,
+    // which would make a malformed expiry look permanently valid.
+    if (!token || !Number.isFinite(expiry) || Date.now() > expiry) {
       return null;
     }
     return token;
@@ -240,6 +303,7 @@ export class GameStateService {
     this.storage?.removeItem(KEYS.spotifyToken);
     this.storage?.removeItem(KEYS.spotifyRefresh);
     this.storage?.removeItem(KEYS.spotifyExpiry);
+    this.authVersion.update((v) => v + 1);
   }
 
   // --- Apple Music ---
@@ -250,6 +314,7 @@ export class GameStateService {
     } catch {
       /* non-fatal */
     }
+    this.authVersion.update((v) => v + 1);
   }
 
   getAppleMusicToken(): string | null {
@@ -258,5 +323,6 @@ export class GameStateService {
 
   clearAppleMusicToken(): void {
     this.storage?.removeItem(KEYS.appleMusicToken);
+    this.authVersion.update((v) => v + 1);
   }
 }

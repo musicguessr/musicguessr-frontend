@@ -164,7 +164,19 @@ export class DeckService {
       if (!raw) {
         return null;
       }
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        typeof parsed.id !== 'string' ||
+        typeof parsed.expires_at !== 'string' ||
+        !Array.isArray(parsed.cards)
+      ) {
+        // Shape doesn't match Deck (stale schema / corrupted entry) — treat as a
+        // cache miss so the caller re-fetches instead of crashing downstream.
+        return null;
+      }
+      return parsed as Deck;
     } catch {
       return null;
     }

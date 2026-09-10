@@ -52,6 +52,10 @@ export class CreateDeckComponent implements OnInit {
   readonly MAX_CARDS = 300;
   readonly ttlOptions = TTL_LABELS;
 
+  // Monotonic per-row request counter — discards stale validateYt() responses
+  // when a row's URL is edited again before the in-flight request returns.
+  private urlValidationSeq: number[] = [];
+
   readonly cards = signal<CardRow[]>([this.emptyCard()]);
   readonly selectedTTL = signal<DeckTTL>('3months');
   readonly submitting = signal(false);
@@ -86,8 +90,10 @@ export class CreateDeckComponent implements OnInit {
 
   removeCard(i: number): void {
     this.cards.update((c) => c.filter((_, idx) => idx !== i));
+    this.urlValidationSeq.splice(i, 1);
     if (this.cards().length === 0) {
       this.cards.set([this.emptyCard()]);
+      this.urlValidationSeq = [];
     }
   }
 
@@ -97,9 +103,17 @@ export class CreateDeckComponent implements OnInit {
       return;
     }
 
+    const seq = (this.urlValidationSeq[i] ?? 0) + 1;
+    this.urlValidationSeq[i] = seq;
+
     this.updateCard(i, { validating: true, valid: null, error: null });
     try {
       const res: ValidateYtResponse = await this.deck.validateYt(card.ytUrl);
+      // Row was edited (and re-blurred) again while this request was in flight —
+      // discard this now-stale response instead of overwriting newer input.
+      if (this.urlValidationSeq[i] !== seq) {
+        return;
+      }
       if (res.valid) {
         this.updateCard(i, {
           validating: false,
@@ -115,6 +129,9 @@ export class CreateDeckComponent implements OnInit {
         this.updateCard(i, { validating: false, valid: false, error: res.error ?? 'Invalid video' });
       }
     } catch {
+      if (this.urlValidationSeq[i] !== seq) {
+        return;
+      }
       this.updateCard(i, { validating: false, valid: false, error: 'Validation failed' });
     }
   }
