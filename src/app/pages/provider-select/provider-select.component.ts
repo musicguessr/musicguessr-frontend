@@ -75,7 +75,7 @@ export class ProviderSelectComponent implements OnInit {
         icon: '♫',
         description: 'Requires Spotify Premium',
         available: !!this.config.spotifyClientId,
-        unavailableReason: 'Spotify not configured on this instance',
+        unavailableReason: 'Not available on this site',
       },
       {
         id: 'apple',
@@ -83,7 +83,7 @@ export class ProviderSelectComponent implements OnInit {
         icon: '',
         description: 'Requires Apple Music subscription',
         available: !!this.config.appleDevToken,
-        unavailableReason: 'Apple Music not configured on this instance',
+        unavailableReason: 'Not available on this site',
       },
     ];
 

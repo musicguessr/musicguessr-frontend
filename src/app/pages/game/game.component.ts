@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
@@ -47,6 +47,19 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     return this.track()?.youtube_video_id ?? null;
   });
+
+  constructor() {
+    // spotify.error()/apple.error() are set asynchronously by SDK listeners
+    // (e.g. authentication_error mid-session) — surface them into the UI's
+    // playerError, which nothing previously read these signals into.
+    effect(() => {
+      const p = this.provider();
+      const err = p === 'spotify' ? this.spotify.error() : p === 'apple' ? this.apple.error() : null;
+      if (err) {
+        this.playerError.set(err);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.seo.set({ title: 'Playing', noindex: true });
@@ -98,6 +111,9 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (p === 'spotify') {
+      // Clear any error left over from a previous card so a stale message
+      // doesn't leak into this one via the spotify.error() effect.
+      this.spotify.error.set(null);
       try {
         await this.spotify.initSDK();
         this.overlayReady.set(true);
@@ -109,6 +125,7 @@ export class GameComponent implements OnInit, OnDestroy {
     }
 
     if (p === 'apple') {
+      this.apple.error.set(null);
       try {
         await this.apple.init();
         // Pre-load the track queue so play() in the tap handler has no async work
@@ -128,30 +145,45 @@ export class GameComponent implements OnInit, OnDestroy {
 
   // Called synchronously inside click handler — required for iOS autoplay
   onOverlayTap(): void {
+    // Ignore taps before preparePlayer() has finished its attempt — otherwise
+    // the overlay hides with nothing having actually been played.
+    if (!this.overlayReady()) {
+      return;
+    }
+
     const p = this.provider();
     const ytId = this.effectiveYtId();
     const t = this.track();
 
     this.showOverlay.set(false);
 
-    if (p === 'youtube') {
-      if (ytId) {
-        this.ytPlayer.playVideo(ytId);
-        this.isPlaying.set(true);
-      } else if (this.overlayError()) {
-        // In custom mode there's no fallback link — error already shown in overlaySub.
-        // In standard mode, try to open a fallback streaming link.
-        if (!this.isCustomMode() && t) {
-          const link = this.getFallbackLink(t);
-          if (link) {
-            window.open(link, '_blank', 'noopener');
-          }
+    // A single fallback path shared by all three providers — previously only the
+    // YouTube branch checked overlayError() before playing, so a failed Spotify/
+    // Apple init would still call play() (and, for Apple, silently play the
+    // *previous* card's queue instead of showing an error or opening a link).
+    if (this.overlayError()) {
+      if (!this.isCustomMode() && t) {
+        const link = this.getFallbackLink(t);
+        if (link) {
+          window.open(link, '_blank', 'noopener');
         }
       }
       return;
     }
 
-    if (p === 'spotify' && t) {
+    if (p === 'youtube') {
+      if (ytId) {
+        this.ytPlayer.playVideo(ytId);
+        this.isPlaying.set(true);
+      }
+      return;
+    }
+
+    if (p === 'spotify') {
+      if (!t?.spotify_id) {
+        this.playerError.set('Track not available on Spotify');
+        return;
+      }
       this.spotify
         .play(t.spotify_id)
         .then(() => this.isPlaying.set(true))
@@ -230,7 +262,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private getFallbackLink(t: TrackInfo): string | null {
     const p = this.provider();
     if (p === 'spotify') {
-      return t.spotify_url;
+      return t.spotify_url ?? null;
     }
     if (p === 'apple') {
       return t.links?.['apple_music'] ?? null;

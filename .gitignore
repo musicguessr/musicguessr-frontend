@@ -239,6 +239,11 @@ dist
 .history
 .ionide
 
+### Go entrypoint helper ###
+# Compiled binary from `go build .` in docker/entrypoint — the Dockerfile
+# builds this itself, it's not a source artifact.
+docker/entrypoint/entrypoint
+
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db

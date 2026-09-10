@@ -6,7 +6,10 @@
   --accent: #f5c518;
   --accent-dark: #c49a10;
   --text: #f0f0f0;
-  --muted: #666;
+  // #666 measured 3.2-3.5:1 against --bg/--surface — below WCAG AA's 4.5:1 for
+  // normal text, and this token is used pervasively for body copy. #888 clears
+  // 4.5:1 against both while still reading as visually secondary to --text.
+  --muted: #888;
   --r: 14px;
   --font-display: 'Bebas Neue', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -114,6 +117,14 @@ select {
   max-width: 480px;
   margin: 0 auto;
   padding: 0 16px 32px;
+
+  // The app has no responsive breakpoints at all — on a desktop viewport this
+  // container (and every page built on it) stays pinned to mobile width,
+  // leaving most of the screen as unused black space either side.
+  @media (min-width: 640px) {
+    max-width: 640px;
+    padding: 0 24px 40px;
+  }
 }
 
 .page-header {

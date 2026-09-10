@@ -17,6 +17,7 @@ export class SpotifyService {
 
   private player: any = null;
   private deviceId: string | null = null;
+  private initPromise: Promise<void> | null = null;
 
   private config = inject(ConfigService);
   private state = inject(GameStateService);
@@ -103,76 +104,112 @@ export class SpotifyService {
     if (this.player) {
       return Promise.resolve();
     }
+    // Dedup concurrent callers instead of letting each overwrite
+    // window.onSpotifyWebPlaybackSDKReady and orphan the others' promises.
+    if (this.initPromise) {
+      return this.initPromise;
+    }
 
+    const promise = this.doInitSDK().finally(() => {
+      this.initPromise = null;
+    });
+    this.initPromise = promise;
+    return promise;
+  }
+
+  private doInitSDK(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const token = this.state.getSpotifyToken();
-      if (!token) {
-        reject(new Error('No Spotify token'));
-        return;
-      }
+      const setup = async (): Promise<void> => {
+        let token = this.state.getSpotifyToken();
+        if (!token) {
+          // Access token missing/expired — try a silent refresh before giving up.
+          const ok = await this.refreshToken();
+          token = ok ? this.state.getSpotifyToken() : null;
+        }
+        if (!token) {
+          reject(new Error('No Spotify token'));
+          return;
+        }
 
-      window.onSpotifyWebPlaybackSDKReady = (): void => {
-        this.player = new window.Spotify.Player({
-          name: 'musicguessr',
-          getOAuthToken: async (cb: (t: string) => void): Promise<void> => {
-            let t = this.state.getSpotifyToken();
-            if (!t) {
-              const ok = await this.refreshToken();
-              if (!ok) {
-                this.error.set('Session expired, please reconnect Spotify');
-                return;
+        window.onSpotifyWebPlaybackSDKReady = (): void => {
+          this.player = new window.Spotify.Player({
+            name: 'musicguessr',
+            getOAuthToken: async (cb: (t: string) => void): Promise<void> => {
+              let t = this.state.getSpotifyToken();
+              if (!t) {
+                const ok = await this.refreshToken();
+                if (!ok) {
+                  this.error.set('Session expired, please reconnect Spotify');
+                  // Must always call cb(), even on failure — otherwise the SDK's
+                  // internal auth promise hangs forever instead of surfacing an error.
+                  cb('');
+                  return;
+                }
+                t = this.state.getSpotifyToken();
               }
-              t = this.state.getSpotifyToken();
+              cb(t ?? '');
+            },
+            volume: 1.0,
+          });
+
+          this.player.addListener('ready', ({ device_id }: { device_id: string }) => {
+            this.deviceId = device_id;
+            this.isReady.set(true);
+            resolve();
+          });
+
+          this.player.addListener('not_ready', () => {
+            this.isReady.set(false);
+          });
+
+          this.player.addListener('player_state_changed', (state: any) => {
+            if (state) {
+              this.isPlaying.set(!state.paused);
             }
-            cb(t!);
-          },
-          volume: 1.0,
-        });
+          });
 
-        this.player.addListener('ready', ({ device_id }: { device_id: string }) => {
-          this.deviceId = device_id;
-          this.isReady.set(true);
-          resolve();
-        });
+          this.player.addListener('initialization_error', ({ message }: any) => {
+            // iOS Safari — Web Playback SDK not supported
+            this.error.set(`Spotify not supported on this browser: ${message}`);
+            // Don't leave a half-constructed player behind — otherwise the
+            // `if (this.player) return Promise.resolve()` guard above would
+            // treat this failed init as a permanent success.
+            this.player = null;
+            reject(new Error(message));
+          });
 
-        this.player.addListener('not_ready', () => {
-          this.isReady.set(false);
-        });
+          this.player.addListener('authentication_error', ({ message }: any) => {
+            this.error.set('Spotify authentication error');
+            this.player = null;
+            reject(new Error(message));
+          });
 
-        this.player.addListener('player_state_changed', (state: any) => {
-          if (state) {
-            this.isPlaying.set(!state.paused);
-          }
-        });
+          this.player.connect();
+        };
 
-        this.player.addListener('initialization_error', ({ message }: any) => {
-          // iOS Safari — Web Playback SDK not supported
-          this.error.set(`Spotify not supported on this browser: ${message}`);
-          reject(new Error(message));
-        });
-
-        this.player.addListener('authentication_error', ({ message }: any) => {
-          this.error.set('Spotify authentication error');
-          reject(new Error(message));
-        });
-
-        this.player.connect();
+        if (!document.getElementById('spotify-sdk-script')) {
+          const s = document.createElement('script');
+          s.id = 'spotify-sdk-script';
+          s.src = 'https://sdk.scdn.co/spotify-player.js';
+          document.head.appendChild(s);
+        } else if (window.Spotify) {
+          window.onSpotifyWebPlaybackSDKReady();
+        }
       };
 
-      if (!document.getElementById('spotify-sdk-script')) {
-        const s = document.createElement('script');
-        s.id = 'spotify-sdk-script';
-        s.src = 'https://sdk.scdn.co/spotify-player.js';
-        document.head.appendChild(s);
-      } else if (window.Spotify) {
-        window.onSpotifyWebPlaybackSDKReady();
-      }
+      setup();
     });
   }
 
   // Play track by Spotify URI — must be called in click handler
   async play(spotifyId: string): Promise<void> {
-    const token = this.state.getSpotifyToken();
+    let token = this.state.getSpotifyToken();
+    if (!token) {
+      // Access token expired between initSDK() and this tap — try a silent
+      // refresh instead of failing outright.
+      const ok = await this.refreshToken();
+      token = ok ? this.state.getSpotifyToken() : null;
+    }
     if (!token || !this.deviceId) {
       throw new Error('Spotify not ready');
     }
@@ -185,6 +222,9 @@ export class SpotifyService {
 
     if (!resp.ok) {
       if (resp.status === 401) {
+        // Token was rejected server-side (e.g. access revoked) — clear it so
+        // hasAuth()/getSpotifyToken() stop reporting a dead token as valid.
+        this.state.clearSpotifyToken();
         throw new Error('Spotify session expired, please reconnect');
       }
       if (resp.status === 403) {

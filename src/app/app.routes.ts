@@ -28,7 +28,10 @@ export const routes: Routes = [
       (): boolean => {
         const state = inject(GameStateService);
         const router = inject(Router);
-        if (!state.provider()) {
+        // `provider()` alone isn't enough — it can be set (persisted to
+        // localStorage) without a valid session, e.g. the user picked Spotify
+        // then abandoned the OAuth redirect. hasAuth() checks the actual token.
+        if (!state.provider() || !state.hasAuth()) {
           router.navigate(['/play']);
           return false;
         }
@@ -43,7 +46,7 @@ export const routes: Routes = [
       (): boolean => {
         const state = inject(GameStateService);
         const router = inject(Router);
-        if (!state.provider()) {
+        if (!state.provider() || !state.hasAuth()) {
           router.navigate(['/play']);
           return false;
         }

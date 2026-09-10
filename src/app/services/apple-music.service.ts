@@ -19,37 +19,70 @@ export class AppleMusicService {
   private config = inject(ConfigService);
   private state = inject(GameStateService);
 
+  private kitLoadPromise: Promise<void> | null = null;
+  private configurePromise: Promise<void> | null = null;
+
   private loadKit(): Promise<void> {
     if (window.MusicKit) {
       return Promise.resolve();
     }
-    return new Promise((resolve, reject) => {
+    // Dedup concurrent callers instead of appending a second <script> tag and
+    // racing two MusicKit.configure() calls.
+    if (this.kitLoadPromise) {
+      return this.kitLoadPromise;
+    }
+    const promise = new Promise<void>((resolve, reject) => {
       const s = document.createElement('script');
       s.src = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
       s.onload = (): void => resolve();
       s.onerror = (): void => reject(new Error('Failed to load MusicKit'));
       document.head.appendChild(s);
+    }).finally(() => {
+      this.kitLoadPromise = null;
     });
+    this.kitLoadPromise = promise;
+    return promise;
   }
 
   async init(): Promise<void> {
+    // Already configured — MusicKit.configure() shouldn't be re-run on every
+    // card scan/advance.
+    if (this.music) {
+      return;
+    }
+    if (this.configurePromise) {
+      return this.configurePromise;
+    }
+
     const devToken = this.config.appleDevToken;
     if (!devToken) {
       this.error.set('Apple developer token not configured');
       return;
     }
 
-    await this.loadKit();
+    const promise = (async (): Promise<void> => {
+      await this.loadKit();
 
-    this.music = await window.MusicKit.configure({
-      developerToken: devToken,
-      app: { name: 'musicguessr', build: '1.0.0' },
+      this.music = await window.MusicKit.configure({
+        developerToken: devToken,
+        app: { name: 'musicguessr', build: '1.0.0' },
+      });
+
+      const userToken = this.state.getAppleMusicToken();
+      // MusicKit's own authorization state is the source of truth — a token
+      // sitting in localStorage doesn't guarantee the SDK still considers the
+      // user authorized (access may have been revoked, or the token is stale).
+      const authorized = typeof this.music?.isAuthorized === 'boolean' ? this.music.isAuthorized : !!userToken;
+      if (userToken && authorized) {
+        this.isReady.set(true);
+      } else if (userToken && !authorized) {
+        this.state.clearAppleMusicToken();
+      }
+    })().finally(() => {
+      this.configurePromise = null;
     });
-
-    const userToken = this.state.getAppleMusicToken();
-    if (userToken) {
-      this.isReady.set(true);
-    }
+    this.configurePromise = promise;
+    return promise;
   }
 
   async authorize(): Promise<void> {

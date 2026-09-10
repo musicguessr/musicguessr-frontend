@@ -15,12 +15,20 @@ export class YoutubePlayerService {
   private player: any = null;
   private apiReady = false;
   private containerId = 'yt-player-container';
+  private apiLoadPromise: Promise<void> | null = null;
+  private preloadPromise: Promise<void> | null = null;
 
   loadAPI(): Promise<void> {
     if (this.apiReady) {
       return Promise.resolve();
     }
-    return new Promise((resolve) => {
+    // Dedup concurrent callers instead of letting each overwrite
+    // window.onYouTubeIframeAPIReady and orphan the others' promises.
+    if (this.apiLoadPromise) {
+      return this.apiLoadPromise;
+    }
+
+    const promise = new Promise<void>((resolve) => {
       window.onYouTubeIframeAPIReady = (): void => {
         this.apiReady = true;
         resolve();
@@ -30,8 +38,16 @@ export class YoutubePlayerService {
         s.id = 'yt-api-script';
         s.src = 'https://www.youtube.com/iframe_api';
         document.head.appendChild(s);
+      } else if (window.YT?.Player) {
+        // Script tag already present and finished loading in a previous call.
+        this.apiReady = true;
+        resolve();
       }
+    }).finally(() => {
+      this.apiLoadPromise = null;
     });
+    this.apiLoadPromise = promise;
+    return promise;
   }
 
   // Pre-creates the player (no video) so it's ready before the user taps.
@@ -43,11 +59,18 @@ export class YoutubePlayerService {
     if (this.player) {
       return Promise.resolve();
     }
-    return new Promise((resolve) => {
+    // Dedup concurrent callers — otherwise two preloadPlayer() calls before the
+    // first setTimeout(0) fires (e.g. a rapid double-tap on "NEXT CARD") can each
+    // construct a competing YT.Player against the same DOM container.
+    if (this.preloadPromise) {
+      return this.preloadPromise;
+    }
+
+    const promise = new Promise<void>((resolve) => {
       // setTimeout(0) ensures Angular change detection has rendered the container
       setTimeout(() => {
         const container = document.getElementById(this.containerId);
-        if (!container) {
+        if (!container || this.player) {
           resolve();
           return;
         }
@@ -76,7 +99,11 @@ export class YoutubePlayerService {
           },
         });
       }, 0);
+    }).finally(() => {
+      this.preloadPromise = null;
     });
+    this.preloadPromise = promise;
+    return promise;
   }
 
   // Must be called inside a click/touchend handler for iOS autoplay.
