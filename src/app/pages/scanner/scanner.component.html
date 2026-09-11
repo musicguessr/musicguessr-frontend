@@ -78,7 +78,12 @@
   </div>
 
   @if (error()) {
-    <div class="error-msg">{{ error() }}</div>
+    <div class="error-msg">
+      {{ error() }}
+      @if (lastScannedUrl()) {
+        <button class="retry-link" type="button" (click)="retryResolve()">Try again</button>
+      }
+    </div>
   }
 
   @if (!scanning() && !loading()) {

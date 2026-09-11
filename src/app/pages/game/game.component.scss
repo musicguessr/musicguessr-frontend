@@ -488,3 +488,16 @@ $actions-bar-space: 232px;
   font-size: 0.85rem;
   text-align: center;
 }
+
+.retry-link {
+  display: block;
+  margin: 8px auto 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}

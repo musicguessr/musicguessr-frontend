@@ -131,7 +131,12 @@
       }
 
       @if (playerError()) {
-        <div class="error-msg">{{ playerError() }}</div>
+        <div class="error-msg">
+          {{ playerError() }}
+          @if (provider() === 'spotify') {
+            <button class="retry-link" type="button" (click)="retryPlayback()">Try again</button>
+          }
+        </div>
       }
     </div>
 

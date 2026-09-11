@@ -41,7 +41,11 @@ export class SpotifyService {
       redirect_uri: this.redirectUri,
       code_challenge_method: 'S256',
       code_challenge: challenge,
-      scope: 'streaming user-read-email user-read-private user-modify-playback-state',
+      // user-read-playback-state is needed to list the user's Spotify Connect
+      // devices (see playViaConnect) — required on iOS Safari, where the Web
+      // Playback SDK can't initialize at all and playback has to be handed
+      // off to a device already running the real Spotify app.
+      scope: 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state',
     });
 
     window.location.href = `https://accounts.spotify.com/authorize?${params}`;
@@ -210,8 +214,18 @@ export class SpotifyService {
       const ok = await this.refreshToken();
       token = ok ? this.state.getSpotifyToken() : null;
     }
-    if (!token || !this.deviceId) {
+    if (!token) {
       throw new Error('Spotify not ready');
+    }
+
+    // No local Web Playback SDK device — this is the normal case on iOS
+    // Safari, where the SDK's initialization_error always fires (WebKit
+    // blocks the Web Audio API it needs). Rather than failing outright, hand
+    // playback off via Spotify Connect to a device already running the real
+    // Spotify app, so the user still doesn't have to leave the browser UI.
+    if (!this.deviceId) {
+      await this.playViaConnect(spotifyId, token);
+      return;
     }
 
     const resp = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
@@ -221,22 +235,65 @@ export class SpotifyService {
     });
 
     if (!resp.ok) {
-      if (resp.status === 401) {
-        // Token was rejected server-side (e.g. access revoked) — clear it so
-        // hasAuth()/getSpotifyToken() stop reporting a dead token as valid.
-        this.state.clearSpotifyToken();
-        throw new Error('Spotify session expired, please reconnect');
-      }
-      if (resp.status === 403) {
-        throw new Error('Spotify Premium required');
-      }
-      if (resp.status === 429) {
-        throw new Error('Too many requests, try again in a moment');
-      }
-      throw new Error(`Spotify error ${resp.status}`);
+      this.throwForStatus(resp.status);
     }
 
     this.isPlaying.set(true);
+  }
+
+  private async playViaConnect(spotifyId: string, token: string): Promise<void> {
+    const devices = await this.getDevices(token);
+    // Prefer whichever device Spotify itself reports as currently active —
+    // falls back to the first available one (e.g. app open but idle).
+    const target = devices.find((d) => d.is_active) ?? devices[0];
+    if (!target) {
+      throw new Error('Open the Spotify app on your phone, then tap play again.');
+    }
+
+    const resp = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${target.id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uris: [`spotify:track:${spotifyId}`] }),
+    });
+
+    if (!resp.ok) {
+      this.throwForStatus(resp.status);
+    }
+
+    this.isPlaying.set(true);
+  }
+
+  private async getDevices(token: string): Promise<{ id: string; is_active: boolean; name: string }[]> {
+    try {
+      const resp = await fetch('https://api.spotify.com/v1/me/player/devices', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) {
+        return [];
+      }
+      const data = await resp.json();
+      return data.devices ?? [];
+    } catch {
+      // Network hiccup listing devices shouldn't crash playback — treated
+      // the same as "no devices found" below.
+      return [];
+    }
+  }
+
+  private throwForStatus(status: number): never {
+    if (status === 401) {
+      // Token was rejected server-side (e.g. access revoked) — clear it so
+      // hasAuth()/getSpotifyToken() stop reporting a dead token as valid.
+      this.state.clearSpotifyToken();
+      throw new Error('Spotify session expired, please reconnect');
+    }
+    if (status === 403) {
+      throw new Error('Spotify Premium required');
+    }
+    if (status === 429) {
+      throw new Error('Too many requests, try again in a moment');
+    }
+    throw new Error(`Spotify error ${status}`);
   }
 
   stop(): void {

@@ -150,8 +150,18 @@ export class GameComponent implements OnInit, OnDestroy {
         await this.spotify.initSDK();
         this.overlayReady.set(true);
       } catch (e: any) {
-        this.overlayError.set(e.message || 'Spotify failed to initialize');
-        this.overlayReady.set(true);
+        const message: string = e?.message ?? '';
+        if (message.includes('not supported')) {
+          // Web Playback SDK unavailable — always the case on iOS Safari
+          // (WebKit blocks the Web Audio API it needs). Don't dead-end into
+          // overlayError's "open externally" path: let the tap go through
+          // normally, spotify.play() below falls back to Spotify Connect
+          // (handing playback to the user's phone app) instead.
+          this.overlayReady.set(true);
+        } else {
+          this.overlayError.set(message || 'Spotify failed to initialize');
+          this.overlayReady.set(true);
+        }
       }
       return;
     }
@@ -231,6 +241,22 @@ export class GameComponent implements OnInit, OnDestroy {
         .then(() => this.isPlaying.set(true))
         .catch((e: any) => this.playerError.set(e?.message ?? 'Apple Music playback failed'));
       return;
+    }
+  }
+
+  // Lets the user recover from a failed play attempt (e.g. Spotify Connect
+  // finding no active device because the app wasn't open yet) without
+  // re-scanning the card — the overlay only responds to the first tap, so
+  // this is the only way back into a provider's play() after that.
+  retryPlayback(): void {
+    const p = this.provider();
+    const t = this.track();
+    if (p === 'spotify' && t?.spotify_id) {
+      this.playerError.set(null);
+      this.spotify
+        .play(t.spotify_id)
+        .then(() => this.isPlaying.set(true))
+        .catch((e: any) => this.playerError.set(e?.message ?? 'Spotify playback failed'));
     }
   }
 

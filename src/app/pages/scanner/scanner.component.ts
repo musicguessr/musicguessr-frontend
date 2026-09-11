@@ -53,6 +53,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
   private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
+  // A signal (not a plain field) so the template can show/hide the "Try
+  // again" button — kept so a resolve failure (e.g. the backend being
+  // briefly unreachable) can be retried directly, without the only recovery
+  // path being to re-scan the physical card for what's often just a
+  // transient network blip.
+  readonly lastScannedUrl = signal<string | null>(null);
 
   ngOnInit(): void {
     this.seo.set({ title: 'Scan QR Code', noindex: true });
@@ -203,7 +209,15 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
+  retryResolve(): void {
+    const url = this.lastScannedUrl();
+    if (url) {
+      this.onQRFound(url);
+    }
+  }
+
   private async onQRFound(url: string): Promise<void> {
+    this.lastScannedUrl.set(url);
     this.loading.set(true);
     this.error.set(null);
     // A brand-new (uncached) card genuinely can take several seconds — the
