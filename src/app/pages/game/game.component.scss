@@ -4,6 +4,11 @@
   padding-bottom: 32px;
 }
 
+// Height reserved at the bottom of scrollable content so the last card
+// element (streaming links / YT player) never sits underneath the fixed
+// actions bar. Kept in sync with .actions-bar's own padding below.
+$actions-bar-space: 132px;
+
 // ── Finished screen (custom deck) ──
 .finished-screen {
   display: flex;
@@ -140,6 +145,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: $actions-bar-space;
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -407,10 +413,37 @@
 }
 
 // ── Actions ──
+// Pinned to the bottom of the viewport (not the end of the scrollable card
+// content) so the primary action is reachable with one thumb, on load,
+// with no scrolling — matches the .page container's own centering/width so
+// it lines up with the content above it on wider viewports.
+.actions-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 60%, rgba(10, 10, 10, 0));
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
 .actions {
+  width: 100%;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  @media (min-width: 640px) {
+    max-width: 640px;
+  }
 }
 
 .error-msg {

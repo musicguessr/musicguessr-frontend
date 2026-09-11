@@ -127,8 +127,12 @@
       @if (playerError()) {
         <div class="error-msg">{{ playerError() }}</div>
       }
+    </div>
 
-      <!-- Actions -->
+    <!-- Actions — fixed to the bottom of the viewport so the primary action
+         (scan next / next card) is always one thumb-tap away, without
+         needing to scroll past the card, streaming links and YT player. -->
+    <div class="actions-bar">
       <div class="actions">
         @if (isCustomMode()) {
           <button class="btn btn-primary" (click)="nextCustomCard()">NEXT CARD →</button>
