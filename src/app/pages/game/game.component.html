@@ -45,68 +45,88 @@
         </div>
       </div>
 
-      <!-- Custom deck card -->
-      @if (isCustomMode() && customCard(); as card) {
-        <div class="card track-card">
-          <div class="artwork-wrap" [class.blurred]="!revealed()">
-            @if (card.artwork) {
-              <img alt="album art" class="artwork-img" loading="lazy" [src]="card.artwork" />
-            } @else {
-              <div class="artwork-placeholder">🎵</div>
-            }
-          </div>
-          <div class="track-meta">
-            <div class="track-title" [class.blurred]="!revealed()">{{ card.title || '—' }}</div>
-            <div class="track-artist" [class.blurred]="!revealed()">{{ card.artist || '—' }}</div>
-          </div>
-          <div class="year-row">
-            <span class="year-label">Year</span>
-            <span class="year-value" [class.blurred]="!revealed()">{{ card.year ?? '?' }}</span>
-          </div>
-          @if (!revealed()) {
-            <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
-          } @else {
-            <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
-          }
-        </div>
-      }
-
-      <!-- Standard Hitster card -->
-      @if (!isCustomMode() && track(); as t) {
-        <div class="card track-card">
-          <div class="artwork-wrap" [class.blurred]="!revealed()">
-            @if (t.artwork_url) {
-              <img alt="album art" class="artwork-img" loading="lazy" [src]="t.artwork_url" />
-            } @else {
-              <div class="artwork-placeholder">🎵</div>
-            }
-          </div>
-          <div class="track-meta">
-            <div class="track-title" [class.blurred]="!revealed()">{{ t.title || '—' }}</div>
-            <div class="track-artist" [class.blurred]="!revealed()">{{ t.artist || '—' }}</div>
-          </div>
-          <div class="year-row">
-            <span class="year-label">Year</span>
-            <span class="year-value" [class.blurred]="!revealed()">{{ t.year ?? '?' }}</span>
-          </div>
-          @if (!revealed()) {
-            <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
-          } @else {
-            <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
-          }
-          @if (revealed() && streamingLinks().length) {
-            <div class="streaming-links">
-              <span class="streaming-label">Listen on</span>
-              <div class="streaming-btns">
-                @for (link of streamingLinks(); track link.key) {
-                  <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
-                    link.name
-                  }}</a>
-                }
-              </div>
+      <!-- Swipe-left-for-next wrapper — one shared element for both card
+           variants below, so the drag gesture logic (touch-only, see
+           onPointerDown) doesn't need to be duplicated per variant. -->
+      <div
+        #swipeCard
+        class="swipe-card-wrap"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerCancel($event)"
+      >
+        <!-- Custom deck card -->
+        @if (isCustomMode() && customCard(); as card) {
+          <div class="card track-card">
+            <div class="artwork-wrap" [class.blurred]="!revealed()">
+              @if (card.artwork) {
+                <img alt="album art" class="artwork-img" loading="lazy" [src]="card.artwork" />
+              } @else {
+                <div class="artwork-placeholder">🎵</div>
+              }
             </div>
-          }
-        </div>
+            <div class="track-meta">
+              <div class="track-title" [class.blurred]="!revealed()">{{ card.title || '—' }}</div>
+              <div class="track-artist" [class.blurred]="!revealed()">{{ card.artist || '—' }}</div>
+            </div>
+            <div class="year-row">
+              <span class="year-label">Year</span>
+              <span class="year-value" [class.blurred]="!revealed()">{{ card.year ?? '?' }}</span>
+            </div>
+            @if (!revealed()) {
+              <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
+            } @else {
+              <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
+            }
+          </div>
+        }
+
+        <!-- Standard Hitster card -->
+        @if (!isCustomMode() && track(); as t) {
+          <div class="card track-card">
+            <div class="artwork-wrap" [class.blurred]="!revealed()">
+              @if (t.artwork_url) {
+                <img alt="album art" class="artwork-img" loading="lazy" [src]="t.artwork_url" />
+              } @else {
+                <div class="artwork-placeholder">🎵</div>
+              }
+            </div>
+            <div class="track-meta">
+              <div class="track-title" [class.blurred]="!revealed()">{{ t.title || '—' }}</div>
+              <div class="track-artist" [class.blurred]="!revealed()">{{ t.artist || '—' }}</div>
+            </div>
+            <div class="year-row">
+              <span class="year-label">Year</span>
+              <span class="year-value" [class.blurred]="!revealed()">{{ t.year ?? '?' }}</span>
+            </div>
+            @if (!revealed()) {
+              <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
+            } @else {
+              <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
+            }
+            @if (revealed() && streamingLinks().length) {
+              <div class="streaming-links">
+                <span class="streaming-label">Listen on</span>
+                <div class="streaming-btns">
+                  @for (link of streamingLinks(); track link.key) {
+                    <a
+                      class="stream-btn stream-btn--{{ link.key }}"
+                      rel="noopener"
+                      target="_blank"
+                      [href]="link.url"
+                      >{{ link.name }}</a
+                    >
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (isTouchDevice && ((isCustomMode() && customCard()) || (!isCustomMode() && track()))) {
+        <p class="swipe-hint">← Swipe card to skip to the next one</p>
       }
 
       <!-- YouTube blurred player -->

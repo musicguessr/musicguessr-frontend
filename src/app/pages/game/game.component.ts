@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
@@ -17,6 +28,14 @@ import { SeoService } from '../../services/seo.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameComponent implements OnInit, OnDestroy {
+  @ViewChild('swipeCard') private swipeCardRef?: ElementRef<HTMLDivElement>;
+
+  // Touch-only devices (phones/tablets) get the swipe-to-skip gesture — real
+  // mice don't produce 'touch' PointerEvents, so a desktop with a
+  // touchscreen still only triggers it when actually touched, not clicked.
+  // Checked once (not reactive): a device doesn't switch input class mid-session.
+  readonly isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
   private router = inject(Router);
   private state = inject(GameStateService);
   private ytPlayer = inject(YoutubePlayerService);
@@ -312,4 +331,124 @@ export class GameComponent implements OnInit, OnDestroy {
     ];
     return order.filter(([key]) => !!t.links[key]).map(([key, name]) => ({ key, name, url: t.links[key] }));
   });
+
+  // --- Swipe-left-to-skip gesture ---
+  //
+  // Drag tracking manipulates the card's DOM style directly (not via Angular
+  // bindings/signals) so a high-frequency pointermove stream doesn't trigger
+  // a change-detection cycle per event — this only ever runs from event
+  // handlers, never during render, so it's safe outside Angular's zone too.
+  private readonly SWIPE_THRESHOLD_PX = 80;
+  private readonly MAX_ROTATE_DEG = 10;
+
+  private activePointerId: number | null = null;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragCurrentX = 0;
+  private dragAxis: 'horizontal' | 'vertical' | null = null;
+
+  onPointerDown(e: PointerEvent): void {
+    if (e.pointerType !== 'touch' || this.activePointerId !== null) {
+      return;
+    }
+    this.activePointerId = e.pointerId;
+    this.dragStartX = e.clientX;
+    this.dragStartY = e.clientY;
+    this.dragCurrentX = 0;
+    this.dragAxis = null;
+  }
+
+  onPointerMove(e: PointerEvent): void {
+    if (e.pointerId !== this.activePointerId) {
+      return;
+    }
+    const dx = e.clientX - this.dragStartX;
+    const dy = e.clientY - this.dragStartY;
+
+    if (this.dragAxis === null) {
+      // Below the intent threshold — a real swipe vs. finger jitter/tap.
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        return;
+      }
+      this.dragAxis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+      if (this.dragAxis === 'horizontal') {
+        const el = this.swipeCardRef?.nativeElement;
+        el?.setPointerCapture(e.pointerId);
+        el?.classList.add('dragging');
+      }
+    }
+
+    if (this.dragAxis !== 'horizontal') {
+      return; // vertical intent — let the page scroll natively, don't interfere
+    }
+
+    e.preventDefault();
+    // Only leftward movement is visually tracked — swipe-right is a no-op
+    // by design (a single, unambiguous "skip" direction).
+    this.dragCurrentX = Math.min(0, dx);
+    this.applyDragStyle(this.dragCurrentX);
+  }
+
+  onPointerUp(e: PointerEvent): void {
+    if (e.pointerId !== this.activePointerId) {
+      return;
+    }
+    this.activePointerId = null;
+    this.swipeCardRef?.nativeElement.classList.remove('dragging');
+
+    if (this.dragAxis === 'horizontal') {
+      if (this.dragCurrentX <= -this.SWIPE_THRESHOLD_PX) {
+        this.flyOutAndAdvance();
+      } else {
+        this.snapBack();
+      }
+    }
+    this.dragAxis = null;
+  }
+
+  onPointerCancel(e: PointerEvent): void {
+    this.onPointerUp(e);
+  }
+
+  private applyDragStyle(dx: number): void {
+    const el = this.swipeCardRef?.nativeElement;
+    if (!el) {
+      return;
+    }
+    const rotate = Math.max(-this.MAX_ROTATE_DEG, dx / 12);
+    el.style.transform = `translateX(${dx}px) rotate(${rotate}deg)`;
+    el.style.opacity = `${1 - Math.min(0.6, Math.abs(dx) / 300)}`;
+  }
+
+  private snapBack(): void {
+    const el = this.swipeCardRef?.nativeElement;
+    if (!el) {
+      return;
+    }
+    el.classList.add('snapping');
+    el.style.transform = '';
+    el.style.opacity = '';
+    setTimeout(() => el.classList.remove('snapping'), 250);
+  }
+
+  private flyOutAndAdvance(): void {
+    const el = this.swipeCardRef?.nativeElement;
+    if (el) {
+      el.classList.add('flying-left');
+      el.style.transform = `translateX(-140%) rotate(-${this.MAX_ROTATE_DEG}deg)`;
+      el.style.opacity = '0';
+    }
+    setTimeout(() => {
+      if (this.isCustomMode()) {
+        this.nextCustomCard();
+      } else {
+        this.scanNext();
+      }
+      if (el) {
+        el.classList.remove('flying-left');
+        el.style.transform = '';
+        el.style.opacity = '';
+      }
+    }, 260);
+  }
 }

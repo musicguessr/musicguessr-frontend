@@ -182,6 +182,38 @@ $actions-bar-space: 132px;
   background: var(--accent);
 }
 
+// ── Swipe-left-to-skip ──
+.swipe-card-wrap {
+  // pan-y: the browser keeps handling native vertical scroll/panning: our
+  // pointermove handler only preventDefault()s once it has decided a given
+  // gesture is horizontal, so vertical scrolling elsewhere on the page is
+  // never affected by this element existing.
+  touch-action: pan-y;
+  will-change: transform, opacity;
+  user-select: none;
+
+  &.dragging {
+    transition: none;
+  }
+  &.snapping {
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s;
+  }
+  &.flying-left {
+    transition:
+      transform 0.25s ease-in,
+      opacity 0.25s ease-in;
+  }
+}
+
+.swipe-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: -4px;
+}
+
 // ── Track card ──
 .track-card {
   display: flex;
