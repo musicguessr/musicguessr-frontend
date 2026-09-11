@@ -37,6 +37,11 @@ export class FaqComponent implements OnInit {
       open: false,
     },
     {
+      q: 'Why is the year or artist sometimes wrong?',
+      a: "Track details come from a handful of public music databases, plus Spotify's own catalog when available. For older or less common recordings — TV and film themes especially — those databases sometimes only have a re-recorded cover version indexed rather than the original, which can show up as the wrong year or artist. We're sorry when that happens — it's a real limitation of the third-party data we rely on, not something we can guarantee against for every card, though we keep working to reduce it. If you spot one, an issue on GitHub with the card's details genuinely helps us investigate.",
+      open: false,
+    },
+    {
       q: 'Can I create my own Hitster-style music quiz?',
       a: 'Yes. Use the Create Deck page to build a custom music quiz from YouTube videos or an entire YouTube playlist. Share it with friends via a link or QR code — no account needed.',
       open: false,

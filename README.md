@@ -73,15 +73,15 @@ The app loads runtime settings from `src/config.json`. This file is **never buil
 
 When running via Docker, `entrypoint.sh` generates `config.json` at container startup from environment variables. You do **not** need to modify `src/config.json` — just pass the variables to the container:
 
-| Variable                  | Maps to / Effect              | Default                        |
-| ------------------------- | ----------------------------- | ------------------------------ |
-| `API_URL`                 | `apiUrl`                      | `http://localhost:8080`        |
-| `SPOTIFY_CLIENT_ID`       | `spotifyClientId`             | _(empty — Spotify hidden)_     |
-| `APPLE_DEV_TOKEN`         | `appleDevToken`               | _(empty — Apple Music hidden)_ |
-| `SITE_URL`                | Canonical, OG, sitemap        | `https://example.com`          |
-| `GOOGLE_SITE_VERIFICATION`| `<meta name="google-site-verification">` | _(empty)_     |
-| `BING_SITE_VERIFICATION`  | `<meta name="msvalidate.01">` | _(empty)_                      |
-| `GA_MEASUREMENT_ID`       | Google Analytics 4 gtag.js    | _(empty — GA disabled)_        |
+| Variable                   | Maps to / Effect                         | Default                        |
+| -------------------------- | ---------------------------------------- | ------------------------------ |
+| `API_URL`                  | `apiUrl`                                 | `http://localhost:8080`        |
+| `SPOTIFY_CLIENT_ID`        | `spotifyClientId`                        | _(empty — Spotify hidden)_     |
+| `APPLE_DEV_TOKEN`          | `appleDevToken`                          | _(empty — Apple Music hidden)_ |
+| `SITE_URL`                 | Canonical, OG, sitemap                   | `https://example.com`          |
+| `GOOGLE_SITE_VERIFICATION` | `<meta name="google-site-verification">` | _(empty)_                      |
+| `BING_SITE_VERIFICATION`   | `<meta name="msvalidate.01">`            | _(empty)_                      |
+| `GA_MEASUREMENT_ID`        | Google Analytics 4 gtag.js               | _(empty — GA disabled)_        |
 
 **Example — run locally with Docker:**
 
@@ -177,29 +177,29 @@ console.log(token);
 
 ### Project layout
 
-| Path | Responsibility |
-|------|----------------|
-| `src/config.json` | Runtime settings (not built into bundle) |
-| `entrypoint.sh` | Generates `config.json` from env vars at container start |
-| `src/main.ts` | Browser bootstrap entry |
-| `src/main.server.ts` | Server bootstrap entry (prerendering) |
-| `src/app/app.config.ts` | APP_INITIALIZER loads `config.json` |
-| `src/app/app.config.server.ts` | Server-side providers: prerender routes `/` and `/create-deck` |
-| `src/app/app.routes.ts` | Routes: `/`, `/scan`, `/game`, `/callback`, `/create-deck`, `/deck`, `/deck/:id` |
-| `src/app/services/config.service.ts` | Reads `config.json` |
-| `src/app/services/game-state.service.ts` | All game state in `localStorage`, Angular signals, custom deck state |
-| `src/app/services/deck.service.ts` | Custom deck API calls, localStorage deck registry and cache |
-| `src/app/services/spotify.service.ts` | PKCE OAuth + Web Playback SDK |
-| `src/app/services/apple-music.service.ts` | MusicKit JS |
-| `src/app/services/youtube-player.service.ts` | YouTube IFrame API |
-| `src/app/services/hitster.service.ts` | Calls `GET /api/resolve?url=…` on the backend |
-| `src/app/pages/provider-select/` | Step 1: choose provider, OAuth if needed, custom deck entry |
-| `src/app/pages/scanner/` | Step 2: jsQR camera scanner |
-| `src/app/pages/game/` | Step 3: TAP TO PLAY → music + blurred card (standard and custom deck modes) |
-| `src/app/pages/callback/` | Spotify OAuth redirect handler |
-| `src/app/pages/create-deck/` | Custom deck builder — add YouTube URLs, validate, set TTL, generate QR |
-| `src/app/pages/deck-list/` | `/deck` — list of locally saved decks |
-| `src/app/pages/deck-detail/` | `/deck/:id` — deck info, song list, QR code, Play button |
+| Path                                         | Responsibility                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/config.json`                            | Runtime settings (not built into bundle)                                         |
+| `entrypoint.sh`                              | Generates `config.json` from env vars at container start                         |
+| `src/main.ts`                                | Browser bootstrap entry                                                          |
+| `src/main.server.ts`                         | Server bootstrap entry (prerendering)                                            |
+| `src/app/app.config.ts`                      | APP_INITIALIZER loads `config.json`                                              |
+| `src/app/app.config.server.ts`               | Server-side providers: prerender routes `/` and `/create-deck`                   |
+| `src/app/app.routes.ts`                      | Routes: `/`, `/scan`, `/game`, `/callback`, `/create-deck`, `/deck`, `/deck/:id` |
+| `src/app/services/config.service.ts`         | Reads `config.json`                                                              |
+| `src/app/services/game-state.service.ts`     | All game state in `localStorage`, Angular signals, custom deck state             |
+| `src/app/services/deck.service.ts`           | Custom deck API calls, localStorage deck registry and cache                      |
+| `src/app/services/spotify.service.ts`        | PKCE OAuth + Web Playback SDK                                                    |
+| `src/app/services/apple-music.service.ts`    | MusicKit JS                                                                      |
+| `src/app/services/youtube-player.service.ts` | YouTube IFrame API                                                               |
+| `src/app/services/hitster.service.ts`        | Calls `GET /api/resolve?url=…` on the backend                                    |
+| `src/app/pages/provider-select/`             | Step 1: choose provider, OAuth if needed, custom deck entry                      |
+| `src/app/pages/scanner/`                     | Step 2: jsQR camera scanner                                                      |
+| `src/app/pages/game/`                        | Step 3: TAP TO PLAY → music + blurred card (standard and custom deck modes)      |
+| `src/app/pages/callback/`                    | Spotify OAuth redirect handler                                                   |
+| `src/app/pages/create-deck/`                 | Custom deck builder — add YouTube URLs, validate, set TTL, generate QR           |
+| `src/app/pages/deck-list/`                   | `/deck` — list of locally saved decks                                            |
+| `src/app/pages/deck-detail/`                 | `/deck/:id` — deck info, song list, QR code, Play button                         |
 
 ---
 
@@ -236,6 +236,14 @@ Example GitHub Actions deploy step (requires `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH
         -p 80:8080 \
         ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:latest
 ```
+
+---
+
+### Known limitation: track metadata accuracy
+
+Track title, artist, year, and artwork all come from the [backend](https://github.com/musicguessr/musicguessr-backend)'s `/api/resolve`, which cross-references several public music databases (and, when configured, Spotify's own catalog directly). For older or less common recordings — TV and film themes especially — those databases sometimes only have a re-recorded cover indexed rather than the original, which can surface as the wrong year or artist on a card. The backend README's "Metadata accuracy & known limitations" section has the full explanation and what's already been done to reduce it.
+
+We're sorry when this happens — it's a real gap in the third-party data we rely on, not something this app can fully guarantee against. The in-app FAQ and How to Play pages both mention this; if you hit a specific wrong card, an issue on the relevant repo helps us investigate.
 
 ---
 
