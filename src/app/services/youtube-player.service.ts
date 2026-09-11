@@ -11,6 +11,7 @@ declare global {
 export class YoutubePlayerService {
   readonly isPlaying = signal(false);
   readonly videoId = signal<string | null>(null);
+  readonly error = signal<string | null>(null);
 
   private player: any = null;
   private apiReady = false;
@@ -94,6 +95,7 @@ export class YoutubePlayerService {
             onError: (e: any): void => {
               console.error('YouTube player error:', e.data);
               this.isPlaying.set(false);
+              this.error.set(this.describeError(e?.data));
               resolve();
             },
           },
@@ -110,6 +112,9 @@ export class YoutubePlayerService {
   // With a pre-loaded player, loadVideoById() is synchronous from iOS's perspective.
   playVideo(videoId: string): void {
     this.videoId.set(videoId);
+    // Clear any error left over from a previous card so a stale message
+    // doesn't leak into this one.
+    this.error.set(null);
 
     if (this.player) {
       this.player.loadVideoById(videoId);
@@ -161,9 +166,26 @@ export class YoutubePlayerService {
         onError: (e: any): void => {
           console.error('YouTube player error:', e.data);
           this.isPlaying.set(false);
+          this.error.set(this.describeError(e?.data));
         },
       },
     });
+  }
+
+  private describeError(code: number | undefined): string {
+    switch (code) {
+      case 2:
+        return 'Invalid YouTube video';
+      case 5:
+        return 'This video cannot be played in the HTML5 player';
+      case 100:
+        return 'Video not found or has been removed';
+      case 101:
+      case 150:
+        return 'Video owner does not allow embedded playback';
+      default:
+        return 'YouTube playback failed';
+    }
   }
 
   stop(): void {
@@ -180,6 +202,7 @@ export class YoutubePlayerService {
     }
     this.isPlaying.set(false);
     this.videoId.set(null);
+    this.error.set(null);
   }
 
   unmute(): void {

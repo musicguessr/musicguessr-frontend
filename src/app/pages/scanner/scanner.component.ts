@@ -99,6 +99,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.scanning.set(true);
       this.timer = setInterval(() => this.scan(), SCAN_INTERVAL);
     } catch {
+      // getUserMedia may have already granted a stream before a later step
+      // (e.g. video.play() rejecting) threw — release it here, otherwise the
+      // camera stays on with no indicator that it's ever stopped, and the
+      // next startScanner() call overwrites this.stream, orphaning it.
+      this.stopScanner();
       this.error.set('Camera access denied. Please allow camera permissions.');
     }
   }

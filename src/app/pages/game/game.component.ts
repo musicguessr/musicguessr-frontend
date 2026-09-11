@@ -69,12 +69,20 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    // spotify.error()/apple.error() are set asynchronously by SDK listeners
-    // (e.g. authentication_error mid-session) — surface them into the UI's
-    // playerError, which nothing previously read these signals into.
+    // spotify.error()/apple.error()/ytPlayer.error() are set asynchronously by
+    // SDK/player listeners (e.g. authentication_error mid-session, or a YouTube
+    // video becoming unembeddable) — surface them into the UI's playerError,
+    // which nothing previously read these signals into.
     effect(() => {
       const p = this.provider();
-      const err = p === 'spotify' ? this.spotify.error() : p === 'apple' ? this.apple.error() : null;
+      const err =
+        p === 'spotify'
+          ? this.spotify.error()
+          : p === 'apple'
+            ? this.apple.error()
+            : p === 'youtube'
+              ? this.ytPlayer.error()
+              : null;
       if (err) {
         this.playerError.set(err);
       }
@@ -105,6 +113,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (p === 'apple') {
       this.apple.stop();
     }
+    this.swipeGesture.destroy();
   }
 
   private async preparePlayer(): Promise<void> {
@@ -112,6 +121,9 @@ export class GameComponent implements OnInit, OnDestroy {
     const ytId = this.effectiveYtId();
 
     if (p === 'youtube') {
+      // Clear any error left over from a previous card so a stale message
+      // doesn't leak into this one via the ytPlayer.error() effect.
+      this.ytPlayer.error.set(null);
       if (ytId) {
         try {
           await this.ytPlayer.loadAPI();

@@ -16,6 +16,8 @@ export class CardSwipeGesture {
   private dragStartY = 0;
   private dragCurrentX = 0;
   private dragAxis: 'horizontal' | 'vertical' | null = null;
+  private snapBackTimer: ReturnType<typeof setTimeout> | null = null;
+  private flyOutTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * @param getElement Returns the card element to drag, or undefined if not
@@ -109,7 +111,13 @@ export class CardSwipeGesture {
     el.classList.add('snapping');
     el.style.transform = '';
     el.style.opacity = '';
-    setTimeout(() => el.classList.remove('snapping'), 250);
+    if (this.snapBackTimer !== null) {
+      clearTimeout(this.snapBackTimer);
+    }
+    this.snapBackTimer = setTimeout(() => {
+      el.classList.remove('snapping');
+      this.snapBackTimer = null;
+    }, 250);
   }
 
   private flyOutAndAdvance(): void {
@@ -119,7 +127,11 @@ export class CardSwipeGesture {
       el.style.transform = `translateX(-140%) rotate(-${this.MAX_ROTATE_DEG}deg)`;
       el.style.opacity = '0';
     }
-    setTimeout(() => {
+    if (this.flyOutTimer !== null) {
+      clearTimeout(this.flyOutTimer);
+    }
+    this.flyOutTimer = setTimeout(() => {
+      this.flyOutTimer = null;
       this.onSwipeLeft();
       if (el) {
         el.classList.remove('flying-left');
@@ -127,5 +139,24 @@ export class CardSwipeGesture {
         el.style.opacity = '';
       }
     }, 260);
+  }
+
+  /**
+   * Cancels any pending snap-back/fly-out timer. Must be called from the
+   * host component's ngOnDestroy — otherwise a swipe started just before
+   * navigating away (e.g. the user swipes, then taps "End game" before the
+   * 260ms fly-out animation finishes) fires onSwipeLeft() after the
+   * component is already gone, double-advancing the deck or navigating a
+   * second time.
+   */
+  destroy(): void {
+    if (this.snapBackTimer !== null) {
+      clearTimeout(this.snapBackTimer);
+      this.snapBackTimer = null;
+    }
+    if (this.flyOutTimer !== null) {
+      clearTimeout(this.flyOutTimer);
+      this.flyOutTimer = null;
+    }
   }
 }
