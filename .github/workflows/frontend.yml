@@ -4,18 +4,22 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'e2e/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig*.json'
       - 'jest.config.js'
+      - 'playwright.config.ts'
       - '.github/workflows/frontend.yml'
   pull_request:
     paths:
       - 'src/**'
+      - 'e2e/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig*.json'
       - 'jest.config.js'
+      - 'playwright.config.ts'
       - '.github/workflows/frontend.yml'
 
 jobs:
@@ -70,3 +74,27 @@ jobs:
           grep -q 'ng-server-context="ssg"' dist/frontend/browser/index.html
           test -f dist/frontend/browser/create-deck/index.html
           grep -q 'ng-server-context="ssg"' dist/frontend/browser/create-deck/index.html
+
+  e2e:
+    name: E2E Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run e2e smoke tests
+        run: npm run e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
