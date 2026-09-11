@@ -198,6 +198,21 @@ describe('GameStateService', () => {
       expect(service.isCustomDeckFinished()).toBe(true);
     });
 
+    it('previousCustomCard() rewinds the index', () => {
+      service.startCustomDeck(mockDeck, [0, 1, 2]);
+      service.nextCustomCard();
+      service.nextCustomCard();
+      service.previousCustomCard();
+      expect(service.customDeck()?.currentIndex).toBe(1);
+      expect(service.currentCustomCard()?.yt_id).toBe('vid2');
+    });
+
+    it('previousCustomCard() does not go below index 0', () => {
+      service.startCustomDeck(mockDeck, [0, 1, 2]);
+      service.previousCustomCard();
+      expect(service.customDeck()?.currentIndex).toBe(0);
+    });
+
     it('restartCustomDeck() resets index and applies new shuffle order', () => {
       service.startCustomDeck(mockDeck, [0, 1, 2]);
       service.nextCustomCard();

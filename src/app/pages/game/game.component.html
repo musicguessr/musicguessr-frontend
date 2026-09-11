@@ -51,6 +51,7 @@
       <div
         #swipeCard
         class="swipe-card-wrap"
+        [class.hint-nudge]="showSwipeHint()"
         (pointercancel)="onPointerCancel($event)"
         (pointerdown)="onPointerDown($event)"
         (pointermove)="onPointerMove($event)"
@@ -139,6 +140,13 @@
         </div>
       }
     </div>
+
+    @if (showUndoToast()) {
+      <div class="undo-toast">
+        <span>Card skipped</span>
+        <button class="undo-toast-btn" type="button" (click)="undoSwipe()">Undo</button>
+      </div>
+    }
 
     <!-- Actions — fixed to the bottom of the viewport so reveal/hide and the
          primary action (scan next / next card) are always one thumb-tap

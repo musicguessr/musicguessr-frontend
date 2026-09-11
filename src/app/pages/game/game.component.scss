@@ -209,6 +209,36 @@ $actions-bar-space: 232px;
       transform 0.25s ease-in,
       opacity 0.25s ease-in;
   }
+
+  // One-time "this card is swipeable" teach — see maybeShowSwipeHint() in
+  // game.component.ts. A brief nudge left-and-back reads as an affordance
+  // far more reliably than the static text hint alone; players otherwise
+  // routinely never discover the gesture exists.
+  &.hint-nudge {
+    animation: swipeHintNudge 0.9s ease-in-out;
+  }
+}
+
+@keyframes swipeHintNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-28px);
+  }
+  55% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-card-wrap.hint-nudge {
+    animation: none;
+  }
 }
 
 .swipe-hint {
@@ -434,6 +464,52 @@ $actions-bar-space: 232px;
       height: 100% !important;
       border: none;
     }
+  }
+}
+
+// ── Undo toast ──
+// Floats just above .actions-bar (reuses its own space reservation) rather
+// than inline in the scrollable content, so it's visible immediately after
+// a swipe regardless of scroll position — see undo-toast.ts.
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(#{$actions-bar-space} + 12px);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 0.85rem;
+  color: var(--text);
+  animation: undoToastIn 0.2s ease;
+  transform: translateX(-50%);
+}
+
+.undo-toast-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+@keyframes undoToastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 

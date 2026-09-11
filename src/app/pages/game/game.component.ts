@@ -19,6 +19,9 @@ import { AppleMusicService } from '../../services/apple-music.service';
 import { DeckService } from '../../services/deck.service';
 import { SeoService } from '../../services/seo.service';
 import { CardSwipeGesture } from './card-swipe-gesture';
+import { SwipeHint } from './swipe-hint';
+import { UndoToast } from './undo-toast';
+import { preparePlayerFor } from './prepare-player';
 
 @Component({
   selector: 'app-game',
@@ -54,6 +57,12 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly overlayError = signal<string | null>(null);
   readonly playerError = signal<string | null>(null);
   readonly isPlaying = signal(false);
+
+  private readonly swipeHint = new SwipeHint();
+  readonly showSwipeHint = this.swipeHint.visible;
+
+  private readonly undoToast = new UndoToast();
+  readonly showUndoToast = this.undoToast.visible;
 
   // Custom deck mode
   readonly isCustomMode = this.state.isCustomDeckMode;
@@ -114,75 +123,17 @@ export class GameComponent implements OnInit, OnDestroy {
       this.apple.stop();
     }
     this.swipeGesture.destroy();
+    this.undoToast.destroy();
   }
 
   private async preparePlayer(): Promise<void> {
-    const p = this.provider();
-    const ytId = this.effectiveYtId();
-
-    if (p === 'youtube') {
-      // Clear any error left over from a previous card so a stale message
-      // doesn't leak into this one via the ytPlayer.error() effect.
-      this.ytPlayer.error.set(null);
-      if (ytId) {
-        try {
-          await this.ytPlayer.loadAPI();
-          // Pre-create the player so loadVideoById() in the tap handler is
-          // called on a ready player — required for iOS Safari autoplay.
-          await this.ytPlayer.preloadPlayer();
-          this.overlayReady.set(true);
-        } catch {
-          this.overlayError.set('Failed to load YouTube player');
-          this.overlayReady.set(true);
-        }
-      } else {
-        this.overlayError.set('No YouTube video available for this card');
-        this.overlayReady.set(true);
-      }
-      return;
-    }
-
-    if (p === 'spotify') {
-      // Clear any error left over from a previous card so a stale message
-      // doesn't leak into this one via the spotify.error() effect.
-      this.spotify.error.set(null);
-      try {
-        await this.spotify.initSDK();
-        this.overlayReady.set(true);
-      } catch (e: any) {
-        const message: string = e?.message ?? '';
-        if (message.includes('not supported')) {
-          // Web Playback SDK unavailable — always the case on iOS Safari
-          // (WebKit blocks the Web Audio API it needs). Don't dead-end into
-          // overlayError's "open externally" path: let the tap go through
-          // normally, spotify.play() below falls back to Spotify Connect
-          // (handing playback to the user's phone app) instead.
-          this.overlayReady.set(true);
-        } else {
-          this.overlayError.set(message || 'Spotify failed to initialize');
-          this.overlayReady.set(true);
-        }
-      }
-      return;
-    }
-
-    if (p === 'apple') {
-      this.apple.error.set(null);
-      try {
-        await this.apple.init();
-        // Pre-load the track queue so play() in the tap handler has no async work
-        // before music.play() — required for iOS Safari autoplay (C2 fix).
-        const t = this.track();
-        if (t?.artist && t?.title) {
-          await this.apple.preloadTrack(t.artist, t.title);
-        }
-        this.overlayReady.set(true);
-      } catch (e: any) {
-        this.overlayError.set(e.message || 'Apple Music failed to initialize');
-        this.overlayReady.set(true);
-      }
-      return;
-    }
+    const result = await preparePlayerFor(this.provider(), this.effectiveYtId(), this.track(), {
+      ytPlayer: this.ytPlayer,
+      spotify: this.spotify,
+      apple: this.apple,
+    });
+    this.overlayReady.set(result.ready);
+    this.overlayError.set(result.error);
   }
 
   // Called synchronously inside click handler — required for iOS autoplay
@@ -198,6 +149,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const t = this.track();
 
     this.showOverlay.set(false);
+    this.swipeHint.maybeShow(this.isTouchDevice);
 
     // A single fallback path shared by all three providers — previously only the
     // YouTube branch checked overlayError() before playing, so a failed Spotify/
@@ -270,12 +222,7 @@ export class GameComponent implements OnInit, OnDestroy {
   nextCustomCard(): void {
     this.ytPlayer.destroy();
     this.state.nextCustomCard();
-    this.revealed.set(false);
-    this.showOverlay.set(true);
-    this.overlayReady.set(false);
-    this.overlayError.set(null);
-    this.playerError.set(null);
-    this.isPlaying.set(false);
+    this.resetPlayerUiState();
 
     if (!this.state.isCustomDeckFinished()) {
       this.preparePlayer();
@@ -289,13 +236,20 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     const shuffleOrder = this.deckService.shuffle(deck.cards.map((_, i) => i));
     this.state.restartCustomDeck(shuffleOrder);
+    this.resetPlayerUiState();
+    this.preparePlayer();
+  }
+
+  // Shared by nextCustomCard/restartCustomDeck/undoSwipe — each advances or
+  // rewinds state.customDeck() differently, but all three then need the
+  // overlay/player signals back to "fresh card, not yet played" the same way.
+  private resetPlayerUiState(): void {
     this.revealed.set(false);
     this.showOverlay.set(true);
     this.overlayReady.set(false);
     this.overlayError.set(null);
     this.playerError.set(null);
     this.isPlaying.set(false);
-    this.preparePlayer();
   }
 
   scanNext(): void {
@@ -307,6 +261,13 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   endGame(): void {
+    // The single most destructive one-tap action in the app (clears the
+    // whole session, provider lock included) sitting right next to the
+    // routine "next card" buttons — a party game's phone gets passed
+    // around, so a stray tap here is a real, not hypothetical, risk.
+    if (!confirm('End the game and go back to the home screen?')) {
+      return;
+    }
     this.ytPlayer.destroy();
     this.spotify.stop();
     this.apple.stop();
@@ -377,8 +338,31 @@ export class GameComponent implements OnInit, OnDestroy {
   // since isCustomMode() can only be read once the component's inputs are set.
   private readonly swipeGesture = new CardSwipeGesture(
     () => this.swipeCardRef?.nativeElement,
-    () => (this.isCustomMode() ? this.nextCustomCard() : this.scanNext()),
+    () => this.onSwipeComplete(),
   );
+
+  // Only custom-deck mode gets an undo: scanNext() (standard Hitster mode)
+  // just re-opens the camera with nothing destroyed — the physical card
+  // already scanned stays fully revealed/known, so an accidental swipe
+  // there costs a re-scan at worst. nextCustomCard() actually advances past
+  // a deck-list index with no physical card to fall back on, which is the
+  // case an accidental fast swipe gesture can genuinely lose your place in.
+  private onSwipeComplete(): void {
+    if (this.isCustomMode()) {
+      this.nextCustomCard();
+      this.undoToast.show();
+    } else {
+      this.scanNext();
+    }
+  }
+
+  undoSwipe(): void {
+    this.undoToast.dismiss();
+    this.ytPlayer.destroy();
+    this.state.previousCustomCard();
+    this.resetPlayerUiState();
+    this.preparePlayer();
+  }
 
   onPointerDown(e: PointerEvent): void {
     this.swipeGesture.onPointerDown(e);

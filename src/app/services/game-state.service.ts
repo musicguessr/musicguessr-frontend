@@ -237,6 +237,20 @@ export class GameStateService {
     this.persistCustomDeck(next);
   }
 
+  // Reverts nextCustomCard() — backs the swipe-to-skip gesture's undo
+  // affordance, since a swipe (unlike the physical-card Hitster flow) can
+  // move past a card the player didn't mean to skip, with nothing external
+  // (a real card) marking where they actually were.
+  previousCustomCard(): void {
+    const state = this.customDeck();
+    if (!state || state.currentIndex <= 0) {
+      return;
+    }
+    const prev = { ...state, currentIndex: state.currentIndex - 1 };
+    this.customDeck.set(prev);
+    this.persistCustomDeck(prev);
+  }
+
   restartCustomDeck(shuffleOrder: number[]): void {
     const state = this.customDeck();
     if (!state) {
