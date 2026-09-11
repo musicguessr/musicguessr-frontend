@@ -53,8 +53,16 @@
           [class.on]="torchOn()"
           (click)="toggleTorch()"
         >
-          <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20">
-            <path d="M7 2v6l-2 3v9a2 2 0 002 2h6a2 2 0 002-2v-9l-2-3V2H7zm2 2h4v3.6l2 3V20H7v-9.4l2-3V4z" />
+          <!-- Bolt/lightning glyph — same shape iOS's own Control Center
+               flashlight toggle uses, drawn as a plain polygon (straight
+               line segments only) rather than a path with arcs/curves,
+               which is much harder to get subtly wrong. An earlier
+               hand-drawn path here had a self-intersecting geometry bug
+               that rendered as a broken sliver instead of a flashlight on
+               real devices (only caught via a live-device screenshot, not
+               the headless test render). -->
+          <svg fill="currentColor" height="18" viewBox="0 0 24 24" width="18">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
         </button>
       }
