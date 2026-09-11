@@ -74,11 +74,6 @@
               <span class="year-label">Year</span>
               <span class="year-value" [class.blurred]="!revealed()">{{ card.year ?? '?' }}</span>
             </div>
-            @if (!revealed()) {
-              <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
-            } @else {
-              <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
-            }
           </div>
         }
 
@@ -100,11 +95,6 @@
               <span class="year-label">Year</span>
               <span class="year-value" [class.blurred]="!revealed()">{{ t.year ?? '?' }}</span>
             </div>
-            @if (!revealed()) {
-              <button class="reveal-btn" (click)="reveal()">Tap to reveal</button>
-            } @else {
-              <button class="reveal-btn revealed" (click)="hide()">Tap to hide</button>
-            }
             @if (revealed() && streamingLinks().length) {
               <div class="streaming-links">
                 <span class="streaming-label">Listen on</span>
@@ -145,11 +135,17 @@
       }
     </div>
 
-    <!-- Actions — fixed to the bottom of the viewport so the primary action
-         (scan next / next card) is always one thumb-tap away, without
-         needing to scroll past the card, streaming links and YT player. -->
+    <!-- Actions — fixed to the bottom of the viewport so reveal/hide and the
+         primary action (scan next / next card) are always one thumb-tap
+         away, without needing to scroll past the card, streaming links and
+         YT player. -->
     <div class="actions-bar">
       <div class="actions">
+        @if (!revealed()) {
+          <button class="btn btn-secondary" (click)="reveal()">TAP TO REVEAL</button>
+        } @else {
+          <button class="btn btn-secondary revealed" (click)="hide()">TAP TO HIDE</button>
+        }
         @if (isCustomMode()) {
           <button class="btn btn-primary" (click)="nextCustomCard()">NEXT CARD →</button>
           <button class="btn btn-ghost" (click)="endGame()">End game</button>

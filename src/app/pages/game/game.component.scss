@@ -6,8 +6,9 @@
 
 // Height reserved at the bottom of scrollable content so the last card
 // element (streaming links / YT player) never sits underneath the fixed
-// actions bar. Kept in sync with .actions-bar's own padding below.
-$actions-bar-space: 132px;
+// actions bar. Kept in sync with .actions-bar's own padding below — the bar
+// now holds 3 stacked buttons (reveal/hide, next card, end game).
+$actions-bar-space: 196px;
 
 // ── Finished screen (custom deck) ──
 .finished-screen {
@@ -295,30 +296,6 @@ $actions-bar-space: 132px;
   transition: filter 0.4s;
 }
 
-.reveal-btn {
-  width: 100%;
-  padding: 14px;
-  background: var(--surface2);
-  border: none;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-
-  &:active {
-    background: var(--border);
-  }
-
-  &.revealed {
-    color: var(--accent);
-  }
-}
-
 // ── Streaming links ──
 .streaming-links {
   display: flex;
@@ -475,6 +452,15 @@ $actions-bar-space: 132px;
 
   @media (min-width: 640px) {
     max-width: 640px;
+  }
+
+  // Reveal/hide toggle uses the shared .btn-secondary look, with an accent
+  // border/text once revealed — a visual cue that state has changed, kept
+  // apart from .btn-primary's fill so it doesn't compete with the actual
+  // primary action (next card) directly below it.
+  .btn-secondary.revealed {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 }
 
