@@ -1,5 +1,4 @@
 /
-/play
 /how-to-play
 /faq
 /create-deck

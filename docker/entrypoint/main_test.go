@@ -90,6 +90,39 @@ func TestPatchPlaceholders_ReplacesAndIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestFindIndexHTMLFiles(t *testing.T) {
+	dir := t.TempDir()
+	paths := []string{
+		"index.html",
+		filepath.Join("how-to-play", "index.html"),
+		filepath.Join("faq", "index.html"),
+		filepath.Join("deck", "123", "index.html"), // hypothetical nested route
+		filepath.Join("assets", "not-index.html"),
+	}
+	for _, p := range paths {
+		full := filepath.Join(dir, p)
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte("<html></html>"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	got, err := findIndexHTMLFiles(dir)
+	if err != nil {
+		t.Fatalf("findIndexHTMLFiles: %v", err)
+	}
+	if len(got) != 4 {
+		t.Fatalf("expected 4 index.html files, got %d: %v", len(got), got)
+	}
+	for _, p := range got {
+		if filepath.Base(p) != "index.html" {
+			t.Errorf("unexpected non-index.html file returned: %s", p)
+		}
+	}
+}
+
 func TestMakeNginxTempDirs(t *testing.T) {
 	dir := t.TempDir()
 	orig := nginxTempDirs

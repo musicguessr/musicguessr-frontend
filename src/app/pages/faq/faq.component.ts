@@ -77,6 +77,21 @@ export class FaqComponent implements OnInit {
         { name: 'musicguessr', path: '/' },
         { name: 'FAQ', path: '/faq' },
       ],
+      // Generated from the same `items` list rendered on the page (rather than
+      // a separately hand-maintained copy) so the structured data can never
+      // drift out of sync with what's actually visible — Google requires
+      // FAQPage markup to match on-page content.
+      structuredData: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: this.items().map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: { '@type': 'Answer', text: item.a },
+          })),
+        },
+      ],
     });
   }
 

@@ -12,6 +12,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -74,8 +75,23 @@ func main() {
 		"__BING_VERIFICATION__":   bingVerification,
 		"__GA_MEASUREMENT_ID__":   gaMeasurementID,
 	}
-	if err := patchPlaceholders(filepath.Join(htmlDir, "index.html"), replacements); err != nil {
-		log.Fatalf("[entrypoint] failed to patch index.html: %v", err)
+	// Every prerendered route (angular.json/app.config.server.ts:
+	// '', 'create-deck', 'how-to-play', 'faq' at last count) gets its own
+	// index.html under a route subdirectory (e.g. how-to-play/index.html),
+	// not just the top-level one — SeoService also emits __SITE_URL__
+	// placeholders into those (canonical link, og:url, JSON-LD) since
+	// document.location.origin resolves to Angular's internal prerender
+	// placeholder host, not the real domain, at build time. Patching only
+	// the root index.html would leave every other prerendered page's
+	// canonical/og:url stuck on that fake host forever.
+	htmlFiles, err := findIndexHTMLFiles(htmlDir)
+	if err != nil {
+		log.Fatalf("[entrypoint] failed to list prerendered HTML files: %v", err)
+	}
+	for _, path := range htmlFiles {
+		if err := patchPlaceholders(path, replacements); err != nil {
+			log.Fatalf("[entrypoint] failed to patch %s: %v", path, err)
+		}
 	}
 	for _, name := range []string{"robots.txt", "sitemap.xml"} {
 		if err := patchPlaceholders(filepath.Join(htmlDir, name), map[string]string{"__SITE_URL__": siteURL}); err != nil {
@@ -113,6 +129,26 @@ func normalizeSiteURL(raw string) string {
 		return strings.TrimRight(raw, "/")
 	}
 	return "https://" + strings.TrimRight(raw, "/")
+}
+
+// findIndexHTMLFiles returns the path to every index.html file under dir
+// (the root shell plus one per prerendered route subdirectory), so
+// patchPlaceholders can be applied to all of them.
+func findIndexHTMLFiles(dir string) ([]string, error) {
+	var files []string
+	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && d.Name() == "index.html" {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }
 
 func makeNginxTempDirs() error {
