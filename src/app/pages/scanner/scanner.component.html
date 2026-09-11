@@ -44,6 +44,22 @@
         <div class="scan-corner br"></div>
       </div>
       <p class="scan-hint">Hold card QR code steady inside the frame</p>
+
+      @if (torchSupported()) {
+        <button
+          class="torch-btn"
+          [class.on]="torchOn()"
+          type="button"
+          aria-label="Toggle flashlight"
+          (click)="toggleTorch()"
+        >
+          <svg fill="currentColor" height="20" viewBox="0 0 24 24" width="20">
+            <path
+              d="M7 2v6l-2 3v9a2 2 0 002 2h6a2 2 0 002-2v-9l-2-3V2H7zm2 2h4v3.6l2 3V20H7v-9.4l2-3V4z"
+            />
+          </svg>
+        </button>
+      }
     }
 
     <!-- Loading -->
