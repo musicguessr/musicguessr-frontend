@@ -51,10 +51,10 @@
       <div
         #swipeCard
         class="swipe-card-wrap"
+        (pointercancel)="onPointerCancel($event)"
         (pointerdown)="onPointerDown($event)"
         (pointermove)="onPointerMove($event)"
         (pointerup)="onPointerUp($event)"
-        (pointercancel)="onPointerCancel($event)"
       >
         <!-- Custom deck card -->
         @if (isCustomMode() && customCard(); as card) {
@@ -110,13 +110,9 @@
                 <span class="streaming-label">Listen on</span>
                 <div class="streaming-btns">
                   @for (link of streamingLinks(); track link.key) {
-                    <a
-                      class="stream-btn stream-btn--{{ link.key }}"
-                      rel="noopener"
-                      target="_blank"
-                      [href]="link.url"
-                      >{{ link.name }}</a
-                    >
+                    <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
+                      link.name
+                    }}</a>
                   }
                 </div>
               </div>
