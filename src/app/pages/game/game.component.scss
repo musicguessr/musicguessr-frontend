@@ -6,9 +6,12 @@
 
 // Height reserved at the bottom of scrollable content so the last card
 // element (streaming links / YT player) never sits underneath the fixed
-// actions bar. Kept in sync with .actions-bar's own padding below — the bar
-// now holds 3 stacked buttons (reveal/hide, next card, end game).
-$actions-bar-space: 196px;
+// actions bar. Kept in sync with .actions-bar's own real rendered height —
+// verified via computed layout at 375×667 (3 stacked buttons + gaps +
+// padding measures ~223px there); this needs to stay ahead of that, not
+// just roughly close, since undershooting silently clips content instead
+// of erroring.
+$actions-bar-space: 232px;
 
 // ── Finished screen (custom deck) ──
 .finished-screen {
@@ -225,6 +228,19 @@ $actions-bar-space: 196px;
 .artwork-wrap {
   width: 100%;
   aspect-ratio: 1;
+  // On a short viewport (older/smaller phones, or any phone in this size
+  // class) a full-width square artwork alone can consume most of the
+  // viewport height — the fixed bottom actions-bar alone measures ~223px on
+  // a 375×667 screen (3 stacked buttons + gaps + padding), leaving only
+  // ~444px for everything above it. Verified via computed layout that
+  // without this cap, the year value ends up entirely behind the bar on
+  // load, with no visual cue that scrolling would reveal it. Capping both
+  // axes to the same vh value keeps it square (aspect-ratio still governs)
+  // while leaving room for the title/artist line and the year row beneath
+  // it to actually fit above the bar.
+  max-width: 34vh;
+  max-height: 34vh;
+  margin: 0 auto;
   overflow: hidden;
   background: var(--surface2);
   transition:

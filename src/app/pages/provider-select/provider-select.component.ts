@@ -80,7 +80,7 @@ export class ProviderSelectComponent implements OnInit {
       {
         id: 'apple',
         label: 'Apple Music',
-        icon: '',
+        icon: '♪',
         description: 'Requires Apple Music subscription',
         available: !!this.config.appleDevToken,
         unavailableReason: 'Not available on this site',

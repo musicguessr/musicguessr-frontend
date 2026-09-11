@@ -28,6 +28,11 @@
   letter-spacing: 2px;
   color: var(--accent);
   flex-shrink: 0;
+
+  @media (max-width: 400px) {
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+  }
 }
 
 .top-nav {
@@ -39,10 +44,23 @@
     color: var(--muted);
     text-decoration: none;
     letter-spacing: 0.3px;
+    white-space: nowrap;
     transition: color 0.15s;
 
     &:hover {
       color: var(--text);
+    }
+  }
+
+  // Below ~400px the logo + all 3 links no longer fit on one line at the
+  // default size — without this, individual link labels ("How to play",
+  // "Create deck") wrap mid-phrase onto two lines instead of the row
+  // shrinking, which reads as broken rather than compact.
+  @media (max-width: 400px) {
+    gap: 10px;
+
+    a {
+      font-size: 0.7rem;
     }
   }
 }
