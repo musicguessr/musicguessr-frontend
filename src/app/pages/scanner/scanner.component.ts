@@ -37,6 +37,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   readonly scanning = signal(false);
   readonly loading = signal(false);
+  readonly loadingMessage = signal('Looking up track…');
   readonly error = signal<string | null>(null);
   readonly provider = this.state.provider;
 
@@ -51,6 +52,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private timer: ReturnType<typeof setInterval> | null = null;
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
+  private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
     this.seo.set({ title: 'Scan QR Code', noindex: true });
@@ -60,6 +62,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopScanner();
+    this.clearLoadingMessageTimers();
   }
 
   async startScanner(): Promise<void> {
@@ -203,6 +206,18 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private async onQRFound(url: string): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    // A brand-new (uncached) card genuinely can take several seconds — the
+    // backend fans out to multiple metadata providers and runs a live
+    // YouTube search. A single static "Looking up track…" for the whole
+    // wait reads as stuck/frozen past a couple of seconds; these keep
+    // confirming something is still happening without over-promising a
+    // specific duration. Cards scanned again are cached server-side and
+    // resolve near-instantly, so this path is the uncommon, worst case one.
+    this.loadingMessage.set('Looking up track…');
+    this.loadingMessageTimers = [
+      setTimeout(() => this.loadingMessage.set('Checking a few sources for the best match…'), 2500),
+      setTimeout(() => this.loadingMessage.set('Still going — new cards can take a few seconds…'), 6000),
+    ];
     try {
       const track = await this.hitster.resolve(url, this.state.ytVariants());
       this.state.clearCustomDeck();
@@ -212,7 +227,13 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.error.set(e.message || 'Failed to resolve track');
     } finally {
       this.loading.set(false);
+      this.clearLoadingMessageTimers();
     }
+  }
+
+  private clearLoadingMessageTimers(): void {
+    this.loadingMessageTimers.forEach(clearTimeout);
+    this.loadingMessageTimers = [];
   }
 
   goBack(): void {

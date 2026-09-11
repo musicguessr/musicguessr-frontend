@@ -64,7 +64,7 @@
     @if (loading()) {
       <div class="scanner-loading">
         <span class="spinner large"></span>
-        <p>Looking up track…</p>
+        <p>{{ loadingMessage() }}</p>
       </div>
     }
   </div>
