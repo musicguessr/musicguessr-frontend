@@ -14,10 +14,26 @@ import jsQR from 'jsqr';
 import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
+import { ClientErrorReporterService } from '../../services/client-error-reporter.service';
+
+declare global {
+  interface Window {
+    // Shape Detection API — not yet in TS's DOM lib, and only implemented by
+    // Chromium. Declared the same way window.YT/window.Spotify are elsewhere
+    // in this codebase for other browser-only globals.
+    BarcodeDetector?: {
+      new (options: { formats: string[] }): {
+        detect(source: CanvasImageSource): Promise<{ rawValue: string }[]>;
+      };
+      getSupportedFormats(): Promise<string[]>;
+    };
+  }
+}
 
 const QR_PATTERN = /hitstergame\.com\/[^/]+\/([a-zA-Z0-9]+)\/(\d+)/;
 const SCAN_INTERVAL = 250;
 const MAX_DIMENSION = 600;
+const SCAN_STUCK_MS = 10_000;
 
 @Component({
   selector: 'app-scanner',
@@ -34,6 +50,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private hitster = inject(HitsterService);
   private state = inject(GameStateService);
   private seo = inject(SeoService);
+  private errorReporter = inject(ClientErrorReporterService);
 
   readonly scanning = signal(false);
   readonly loading = signal(false);
@@ -50,9 +67,31 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private stream: MediaStream | null = null;
   private videoTrack: MediaStreamTrack | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
+  // One-shot report if scanning is still running after SCAN_STUCK_MS with
+  // nothing found — camera permission was granted and frames are flowing
+  // (we're never in this state otherwise), so a QR genuinely in frame that
+  // never decodes points at the detector itself failing silently, which is
+  // exactly what happens on browsers that poison canvas pixel readback for
+  // anti-fingerprinting (see the BarcodeDetector comment above). Gives us
+  // real signal on that instead of only ever hearing about it via a
+  // GitHub issue with no diagnostic information attached.
+  private scanStuckTimer: ReturnType<typeof setTimeout> | null = null;
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
   private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
+  // Native QR detection (Chromium only) reads straight from the <video>
+  // element — no canvas pixel readback involved at all. Preferred over the
+  // jsQR/canvas fallback below whenever available: some hardened/privacy
+  // browsers (e.g. GrapheneOS Vanadium, Firefox forks with resistFingerprinting-
+  // style protections) deliberately poison or block canvas.getImageData() as
+  // an anti-fingerprinting measure, which silently breaks jsQR decoding while
+  // the camera preview itself keeps working fine — reported as "camera works
+  // but QR is never recognized" (see github.com/musicguessr/musicguessr-frontend/issues/7).
+  private barcodeDetector: InstanceType<NonNullable<Window['BarcodeDetector']>> | null = null;
+  // Guards against overlapping detect() calls — unlike jsQR's synchronous
+  // decode, BarcodeDetector.detect() is async and its latency isn't
+  // guaranteed to stay under SCAN_INTERVAL.
+  private detecting = false;
   // A signal (not a plain field) so the template can show/hide the "Try
   // again" button — kept so a resolve failure (e.g. the backend being
   // briefly unreachable) can be retried directly, without the only recovery
@@ -64,6 +103,26 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.seo.set({ title: 'Scan QR Code', noindex: true });
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
+    void this.setupBarcodeDetector();
+  }
+
+  // Capability doesn't change mid-session, so this only needs to run once
+  // (not per startScanner() call) — a no-op quietly leaves barcodeDetector
+  // null and scan() falls back to jsQR.
+  private async setupBarcodeDetector(): Promise<void> {
+    const BarcodeDetectorCtor = window.BarcodeDetector;
+    if (!BarcodeDetectorCtor) {
+      return;
+    }
+    try {
+      const formats = await BarcodeDetectorCtor.getSupportedFormats();
+      if (formats.includes('qr_code')) {
+        this.barcodeDetector = new BarcodeDetectorCtor({ formats: ['qr_code'] });
+      }
+    } catch {
+      // Present but throws (e.g. blocked by a permissions policy) — jsQR
+      // fallback covers this the same as "not supported at all".
+    }
   }
 
   ngOnDestroy(): void {
@@ -107,6 +166,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
       this.scanning.set(true);
       this.timer = setInterval(() => this.scan(), SCAN_INTERVAL);
+      this.scanStuckTimer = setTimeout(() => this.reportScanStuck(), SCAN_STUCK_MS);
     } catch {
       // getUserMedia may have already granted a stream before a later step
       // (e.g. video.play() rejecting) threw — release it here, otherwise the
@@ -170,6 +230,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
       clearInterval(this.timer);
       this.timer = null;
     }
+    if (this.scanStuckTimer) {
+      clearTimeout(this.scanStuckTimer);
+      this.scanStuckTimer = null;
+    }
     if (this.stream) {
       // Torch turns off on its own once the track stops, but there's no
       // event for that — the signal reset above keeps UI state honest
@@ -180,12 +244,59 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.videoTrack = null;
   }
 
+  private reportScanStuck(): void {
+    if (!this.scanning()) {
+      return;
+    }
+    const detector = this.barcodeDetector ? 'BarcodeDetector' : 'jsQR';
+    this.errorReporter.report({
+      message: `QR not detected after ${SCAN_STUCK_MS / 1000}s of active scanning (detector=${detector})`,
+      context: 'scanner-timeout',
+    });
+  }
+
   private scan(): void {
     const video = this.videoRef.nativeElement;
     if (video.readyState < 2) {
       return;
     }
 
+    if (this.barcodeDetector) {
+      this.scanWithBarcodeDetector(video);
+      return;
+    }
+
+    this.scanWithJsQR(video);
+  }
+
+  private scanWithBarcodeDetector(video: HTMLVideoElement): void {
+    if (this.detecting || !this.barcodeDetector) {
+      return;
+    }
+    this.detecting = true;
+    this.barcodeDetector
+      .detect(video)
+      .then((codes) => {
+        this.detecting = false;
+        // detect() is async and may resolve after stopScanner() already ran
+        // (e.g. component destroyed, or the timer's next tick already found
+        // a match via a still-in-flight earlier call) — don't act on a stale
+        // result.
+        if (!this.scanning()) {
+          return;
+        }
+        const match = codes.find((c) => QR_PATTERN.test(c.rawValue));
+        if (match) {
+          this.stopScanner();
+          this.onQRFound(match.rawValue);
+        }
+      })
+      .catch(() => {
+        this.detecting = false;
+      });
+  }
+
+  private scanWithJsQR(video: HTMLVideoElement): void {
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     if (!vw || !vh) {
