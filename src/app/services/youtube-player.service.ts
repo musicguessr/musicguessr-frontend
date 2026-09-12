@@ -25,11 +25,19 @@ export class YoutubePlayerService {
   readonly error = signal<string | null>(null);
 
   private reporter = inject(ClientErrorReporterService);
+  // Set by the caller (see prepare-player.ts) right before loadAPI()/
+  // preloadPlayer() so reportBlocked() can tie its report back to the
+  // /api/resolve call this card came from.
+  private currentRequestId: string | null = null;
   private player: any = null;
   private apiReady = false;
   private containerId = 'yt-player-container';
   private apiLoadPromise: Promise<void> | null = null;
   private preloadPromise: Promise<void> | null = null;
+
+  setRequestId(id: string | null): void {
+    this.currentRequestId = id;
+  }
 
   loadAPI(): Promise<void> {
     if (this.apiReady) {
@@ -235,6 +243,7 @@ export class YoutubePlayerService {
     this.reporter.report({
       message: `YouTube ${where}`,
       context: 'youtube-player-blocked',
+      requestId: this.currentRequestId ?? undefined,
     });
   }
 

@@ -565,6 +565,14 @@ $actions-bar-space: 232px;
   text-align: center;
 }
 
+.request-id {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+  user-select: all;
+}
+
 .retry-link {
   display: block;
   margin: 8px auto 0;

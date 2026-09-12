@@ -1,0 +1,121 @@
+name: Bug report
+description: Something isn't working — scanning, playback, or anything else in the app.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this — the more detail here, the faster we can actually find and fix it.
+
+        **A note on privacy:** please don't attach photos of physical Hitster cards. We only need the *deck/language and card number* printed on the card (plain facts, not the card's artwork) — see the field below. Nothing else here is sensitive; device/browser info and the request ID are just debugging breadcrumbs.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, in your own words.
+      placeholder: e.g. "Scanned a card, camera worked fine, but it never recognized the QR code."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, in order, right before this happened?
+      placeholder: |
+        1. Open musicguessr.app
+        2. Choose YouTube as the provider
+        3. Scan a card
+        4. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen instead?
+    validations:
+      required: false
+
+  - type: input
+    id: request-id
+    attributes:
+      label: Request ID (if you have one)
+      description: >
+        If the app showed an error message on the game screen, it usually includes a line like
+        "Reporting a bug? Include this ID: ...". Paste it here — it lets us jump straight to the
+        matching server-side logs instead of searching by approximate time.
+      placeholder: e.g. 3f2a1b9c8d7e6f50
+    validations:
+      required: false
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Music provider you had selected
+      options:
+        - YouTube
+        - Spotify
+        - Apple Music
+        - Not sure / not applicable
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: e.g. Google Pixel 9, iPhone 15, Samsung Galaxy S23, desktop PC
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system (and version, if known)
+      placeholder: e.g. Android 15, GrapheneOS, iOS 18.1, Windows 11, macOS 15
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser (and version, if known)
+      description: >
+        If you're using a privacy-focused browser (Firefox with strict tracking protection, Brave, IronFox,
+        Vanadium, etc.) please mention that specifically — some of these block things this app relies on
+        (embedded YouTube playback, camera pixel access) as an anti-fingerprinting measure, which looks like
+        a bug in the app but is actually the browser intentionally blocking something.
+      placeholder: e.g. Chrome 128, Safari 18, Firefox 130, Vanadium (GrapheneOS)
+    validations:
+      required: false
+
+  - type: input
+    id: deck
+    attributes:
+      label: Hitster deck/edition and language (if this is about a specific card)
+      description: >
+        The language and deck SKU from the card's QR code URL, e.g. "de" and the number after it —
+        not a photo of the card, just these two identifiers plus the card number below.
+      placeholder: e.g. DE standard edition
+    validations:
+      required: false
+
+  - type: input
+    id: card-number
+    attributes:
+      label: Card number(s) affected (if applicable)
+      placeholder: e.g. 42, 87, 103
+    validations:
+      required: false
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console errors / screenshots (optional)
+      description: >
+        If you know how to open devtools (F12 or right-click → Inspect) and see red errors in the Console
+        tab, pasting them here helps a lot. Screenshots can be dragged directly into this box.
+    validations:
+      required: false

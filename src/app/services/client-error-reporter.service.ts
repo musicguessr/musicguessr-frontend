@@ -5,6 +5,10 @@ export type ClientErrorReport = {
   message: string;
   stack?: string;
   context?: string;
+  // The /api/resolve request_id this report relates to, if any (e.g. a
+  // YouTube-blocked report for the card that request resolved) — lets a
+  // maintainer grep straight to that request's own backend log line.
+  requestId?: string;
 };
 
 // A no-cost stand-in for a real error-tracking service: without this, a
@@ -22,10 +26,12 @@ export class ClientErrorReporterService {
   // "SCAN CARD" again right as a scanner timeout fires).
   report(payload: ClientErrorReport): void {
     try {
+      const { requestId, ...rest } = payload;
       const body = JSON.stringify({
-        ...payload,
+        ...rest,
         url: typeof location !== 'undefined' ? location.href : undefined,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        request_id: requestId,
       });
       fetch(`${this.config.apiUrl}/api/client-error`, {
         method: 'POST',

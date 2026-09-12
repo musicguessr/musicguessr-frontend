@@ -15,6 +15,10 @@ export type TrackInfo = {
   artwork_url?: string;
   youtube_video_id?: string;
   links: Record<string, string>;
+  // Opaque per-request ID the backend generates for every /api/resolve call
+  // (see internal/requestid) — surfaced so an error report about this card
+  // can be tied straight back to that request's own server-side log line.
+  request_id?: string;
 };
 
 export type CustomDeckState = {

@@ -31,6 +31,9 @@
       </div>
       <p class="play-label">{{ overlayLabel() }}</p>
       <p class="play-sub">{{ overlaySub() }}</p>
+      @if (overlayError() && track()?.request_id; as reqId) {
+        <p class="request-id">Reporting a bug? Include this ID: {{ reqId }}</p>
+      }
     </div>
 
     <!-- Game content -->
@@ -136,6 +139,9 @@
           {{ playerError() }}
           @if (provider() === 'spotify') {
             <button class="retry-link" type="button" (click)="retryPlayback()">Try again</button>
+          }
+          @if (track()?.request_id; as reqId) {
+            <p class="request-id">Reporting a bug? Include this ID: {{ reqId }}</p>
           }
         </div>
       }
