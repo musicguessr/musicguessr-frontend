@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { ClientErrorReporterService } from './client-error-reporter.service';
 
 declare global {
   interface Window {
@@ -23,6 +24,7 @@ export class YoutubePlayerService {
   readonly videoId = signal<string | null>(null);
   readonly error = signal<string | null>(null);
 
+  private reporter = inject(ClientErrorReporterService);
   private player: any = null;
   private apiReady = false;
   private containerId = 'yt-player-container';
@@ -41,7 +43,12 @@ export class YoutubePlayerService {
 
     const promise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('YouTube player script did not load — it may be blocked by a browser extension'));
+        this.reportBlocked('iframe_api script timed out');
+        reject(
+          new Error(
+            'YouTube player script did not load — it may be blocked by a browser extension or DNS-level ad blocker',
+          ),
+        );
       }, API_LOAD_TIMEOUT_MS);
 
       window.onYouTubeIframeAPIReady = (): void => {
@@ -57,7 +64,12 @@ export class YoutubePlayerService {
         // a blocker rejects the request outright instead of just hanging it.
         s.onerror = (): void => {
           clearTimeout(timeout);
-          reject(new Error('YouTube player script failed to load — it may be blocked by a browser extension'));
+          this.reportBlocked('iframe_api script onerror');
+          reject(
+            new Error(
+              'YouTube player script failed to load — it may be blocked by a browser extension or DNS-level ad blocker',
+            ),
+          );
         };
         document.head.appendChild(s);
       } else if (window.YT?.Player) {
@@ -96,7 +108,10 @@ export class YoutubePlayerService {
       // which would otherwise leave onReady/onError never firing and this
       // promise — and the TAP TO PLAY overlay — stuck forever.
       const timeout = setTimeout(() => {
-        this.error.set('YouTube player failed to load — it may be blocked by a browser extension');
+        this.reportBlocked('player embed timed out');
+        this.error.set(
+          'YouTube player failed to load — it may be blocked by a browser extension or DNS-level ad blocker',
+        );
         resolve();
       }, API_LOAD_TIMEOUT_MS);
 
@@ -206,6 +221,20 @@ export class YoutubePlayerService {
           this.error.set(this.describeError(e?.data));
         },
       },
+    });
+  }
+
+  // Reports specifically to distinguish "the YouTube domains themselves are
+  // network/DNS-blocked" (common on privacy-hardened browsers and de-Googled
+  // setups — not a missing API, since this is plain web JS/iframe embedding
+  // with no native Android/Google Play Services dependency at all) from any
+  // other client failure, so this failure mode is actually visible to us
+  // instead of only ever surfacing as a "LOADING… forever" report with no
+  // further detail.
+  private reportBlocked(where: string): void {
+    this.reporter.report({
+      message: `YouTube ${where}`,
+      context: 'youtube-player-blocked',
     });
   }
 
