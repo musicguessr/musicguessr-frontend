@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
+import { ClientErrorReporterService } from './client-error-reporter.service';
 
 declare global {
   interface Window {
@@ -18,9 +19,22 @@ export class SpotifyService {
   private player: any = null;
   private deviceId: string | null = null;
   private initPromise: Promise<void> | null = null;
+  private currentRequestId: string | null = null;
 
   private config = inject(ConfigService);
   private state = inject(GameStateService);
+  private reporter = inject(ClientErrorReporterService);
+
+  // Set from prepare-player.ts right before initSDK()/play() so any report
+  // below can be correlated with this card's /api/resolve backend log line
+  // (same pattern as YoutubePlayerService.setRequestId).
+  setRequestId(id: string | null): void {
+    this.currentRequestId = id;
+  }
+
+  private reportIssue(message: string, context: string): void {
+    this.reporter.report({ message, context, requestId: this.currentRequestId ?? undefined });
+  }
 
   get clientId(): string {
     return this.config.spotifyClientId;
@@ -173,8 +187,14 @@ export class SpotifyService {
           });
 
           this.player.addListener('initialization_error', ({ message }: any) => {
-            // iOS Safari — Web Playback SDK not supported
+            // iOS Safari — Web Playback SDK not supported (WebKit blocks the
+            // Web Audio API it needs). Expected there, so log it as info-level
+            // context rather than a surprising failure — prepareSpotify()
+            // treats this specific message as non-fatal and falls back to
+            // Spotify Connect, but we still want a trace of how often this
+            // path is actually hit and on which browsers.
             this.error.set(`Spotify not supported on this browser: ${message}`);
+            this.reportIssue(`Spotify Web Playback SDK initialization_error: ${message}`, 'spotify-init-unsupported');
             // Don't leave a half-constructed player behind — otherwise the
             // `if (this.player) return Promise.resolve()` guard above would
             // treat this failed init as a permanent success.
@@ -184,6 +204,7 @@ export class SpotifyService {
 
           this.player.addListener('authentication_error', ({ message }: any) => {
             this.error.set('Spotify authentication error');
+            this.reportIssue(`Spotify Web Playback SDK authentication_error: ${message}`, 'spotify-auth-error');
             this.player = null;
             reject(new Error(message));
           });
@@ -247,6 +268,7 @@ export class SpotifyService {
     // falls back to the first available one (e.g. app open but idle).
     const target = devices.find((d) => d.is_active) ?? devices[0];
     if (!target) {
+      this.reportIssue(`Spotify Connect found no devices (${devices.length} total)`, 'spotify-connect-no-device');
       throw new Error('Open the Spotify app on your phone, then tap play again.');
     }
 
@@ -257,6 +279,7 @@ export class SpotifyService {
     });
 
     if (!resp.ok) {
+      this.reportIssue(`Spotify Connect play failed: HTTP ${resp.status}`, 'spotify-connect-play-failed');
       this.throwForStatus(resp.status);
     }
 

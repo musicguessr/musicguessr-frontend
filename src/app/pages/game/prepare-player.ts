@@ -29,7 +29,7 @@ export async function preparePlayerFor(
     return prepareYoutube(ytPlayer, ytId, track);
   }
   if (provider === 'spotify') {
-    return prepareSpotify(spotify);
+    return prepareSpotify(spotify, track);
   }
   if (provider === 'apple') {
     return prepareApple(apple, track);
@@ -63,8 +63,9 @@ async function prepareYoutube(
   }
 }
 
-async function prepareSpotify(spotify: SpotifyService): Promise<PreparePlayerResult> {
+async function prepareSpotify(spotify: SpotifyService, track: TrackInfo | null): Promise<PreparePlayerResult> {
   spotify.error.set(null);
+  spotify.setRequestId(track?.request_id ?? null);
   try {
     await spotify.initSDK();
     return { ready: true, error: null };
