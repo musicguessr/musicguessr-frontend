@@ -293,18 +293,25 @@ export class YoutubePlayerService {
     }
   }
 
+  // stop()/destroy() typeof-check their methods for the same reason
+  // playVideo() does: a YT.Player can exist without its command methods
+  // attached (see preloadPlayer's timeout comment). Today the timeout path
+  // nulls this.player first so these are unreachable with a half-built
+  // instance, but that's one refactor away from regressing into the same
+  // production crash — and both run during teardown, where throwing breaks
+  // navigation away from a page that already failed.
   stop(): void {
-    if (this.player) {
+    if (typeof this.player?.stopVideo === 'function') {
       this.player.stopVideo();
-      this.isPlaying.set(false);
     }
+    this.isPlaying.set(false);
   }
 
   destroy(): void {
-    if (this.player) {
+    if (typeof this.player?.destroy === 'function') {
       this.player.destroy();
-      this.player = null;
     }
+    this.player = null;
     this.isPlaying.set(false);
     this.videoId.set(null);
     this.error.set(null);

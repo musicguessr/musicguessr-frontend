@@ -15,6 +15,7 @@ import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
 import { ClientErrorReporterService } from '../../services/client-error-reporter.service';
+import { isHitsterCardUrl } from './hitster-url';
 
 declare global {
   interface Window {
@@ -30,7 +31,6 @@ declare global {
   }
 }
 
-const QR_PATTERN = /hitstergame\.com\/[^/]+\/([a-zA-Z0-9]+)\/(\d+)/;
 const SCAN_INTERVAL = 250;
 const MAX_DIMENSION = 600;
 const SCAN_STUCK_MS = 10_000;
@@ -285,7 +285,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
         if (!this.scanning()) {
           return;
         }
-        const match = codes.find((c) => QR_PATTERN.test(c.rawValue));
+        const match = codes.find((c) => isHitsterCardUrl(c.rawValue));
         if (match) {
           this.stopScanner();
           this.onQRFound(match.rawValue);
@@ -314,7 +314,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     const imageData = this.ctx.getImageData(0, 0, w, h);
     const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
 
-    if (code && QR_PATTERN.test(code.data)) {
+    if (code && isHitsterCardUrl(code.data)) {
       this.stopScanner();
       this.onQRFound(code.data);
     }

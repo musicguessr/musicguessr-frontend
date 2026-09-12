@@ -11,8 +11,18 @@ type AppConfig = {
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
+  // apiUrl defaults to same-origin (callers build "${apiUrl}/api/..."), not
+  // localhost: this value only ever applies when /config.json fails to load,
+  // and in that situation a localhost default is wrong everywhere it
+  // matters. On musicguessr.app it points the browser at the user's own
+  // machine and is blocked as mixed content besides, turning one failed
+  // config fetch into "nothing works" with only a console warning. Deployed
+  // setups serve the API on the same origin anyway, so same-origin is the
+  // default most likely to still work. Local dev is unaffected — it reads
+  // the real http://localhost:8080 from src/config.json, which is served as
+  // a static asset (see angular.json).
   private config: AppConfig = {
-    apiUrl: 'http://localhost:8080',
+    apiUrl: '',
     spotifyClientId: '',
     appleDevToken: '',
   };

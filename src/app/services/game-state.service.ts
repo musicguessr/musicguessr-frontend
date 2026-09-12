@@ -28,6 +28,38 @@ export type CustomDeckState = {
   currentIndex: number;
 };
 
+const DEFAULT_VIDEO_BLUR: VideoBlur = 'hidden';
+const DEFAULT_YT_VARIANTS = true;
+
+// Resolves localStorage defensively. Two distinct things can go wrong, and
+// both are real on the privacy-hardened browsers this app is played on:
+//
+//  1. Reading `localStorage` at all can throw SecurityError when site data
+//     is blocked (Chrome with cookies blocked, Firefox forks with
+//     dom.storage disabled). This is a *property access*, so it throws
+//     before any try/catch around getItem/setItem could help.
+//  2. It can exist and still throw on use (historically Safari private
+//     mode), so presence alone isn't proof it works.
+//
+// Either one thrown from this service's field initializers would abort
+// construction of a providedIn:'root' service during bootstrap — a blank
+// page, and one GlobalErrorHandler can't report because it isn't running
+// yet. Probing once here means the rest of the app just sees storage as
+// unavailable and keeps working in memory for the session.
+function resolveStorage(platformId: object): Storage | null {
+  if (!isPlatformBrowser(platformId)) {
+    return null;
+  }
+  try {
+    const probeKey = '__oh_storage_probe__';
+    localStorage.setItem(probeKey, '1');
+    localStorage.removeItem(probeKey);
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
 const KEYS = {
   provider: 'oh_provider',
   locked: 'oh_locked',
@@ -44,7 +76,36 @@ const KEYS = {
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
   private platformId = inject(PLATFORM_ID);
-  private storage: Storage | null = isPlatformBrowser(this.platformId) ? localStorage : null;
+  private storage: Storage | null = resolveStorage(this.platformId);
+
+  // Every storage access goes through these three. Beyond keeping the
+  // try/catch in one place, they matter because storage can start working
+  // and then stop mid-session (quota exhausted, permissions revoked in a
+  // background tab) — a throw from any single call must never escape into
+  // a caller that has no way to handle it.
+  private read(key: string): string | null {
+    try {
+      return this.storage?.getItem(key) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private write(key: string, value: string): void {
+    try {
+      this.storage?.setItem(key, value);
+    } catch {
+      /* non-fatal — state stays in memory for this session */
+    }
+  }
+
+  private remove(key: string): void {
+    try {
+      this.storage?.removeItem(key);
+    } catch {
+      /* non-fatal */
+    }
+  }
 
   readonly provider = signal<Provider>(this.loadProvider());
   readonly locked = signal<boolean>(this.loadLocked());
@@ -80,14 +141,10 @@ export class GameStateService {
     // /game doesn't drop the in-progress round while the provider stays locked.
     effect(() => {
       const track = this.currentTrack();
-      try {
-        if (track) {
-          this.storage?.setItem(KEYS.currentTrack, JSON.stringify(track));
-        } else {
-          this.storage?.removeItem(KEYS.currentTrack);
-        }
-      } catch {
-        /* non-fatal */
+      if (track) {
+        this.write(KEYS.currentTrack, JSON.stringify(track));
+      } else {
+        this.remove(KEYS.currentTrack);
       }
     });
   }
@@ -120,25 +177,25 @@ export class GameStateService {
   });
 
   private loadProvider(): Provider {
-    return (this.storage?.getItem(KEYS.provider) as Provider) || null;
+    return (this.read(KEYS.provider) as Provider) || null;
   }
 
   private loadLocked(): boolean {
-    return this.storage?.getItem(KEYS.locked) === 'true';
+    return this.read(KEYS.locked) === 'true';
   }
 
   private loadVideoBlur(): VideoBlur {
-    return (this.storage?.getItem(KEYS.videoBlur) as VideoBlur) || 'hidden';
+    return (this.read(KEYS.videoBlur) as VideoBlur) || DEFAULT_VIDEO_BLUR;
   }
 
   private loadYtVariants(): boolean {
-    const val = this.storage?.getItem(KEYS.ytVariants) ?? null;
-    return val === null ? true : val === 'true';
+    const val = this.read(KEYS.ytVariants);
+    return val === null ? DEFAULT_YT_VARIANTS : val === 'true';
   }
 
   private loadCustomDeck(): CustomDeckState | null {
     try {
-      const raw = this.storage?.getItem(KEYS.customDeck);
+      const raw = this.read(KEYS.customDeck);
       if (!raw) {
         return null;
       }
@@ -164,7 +221,7 @@ export class GameStateService {
 
   private loadCurrentTrack(): TrackInfo | null {
     try {
-      const raw = this.storage?.getItem(KEYS.currentTrack);
+      const raw = this.read(KEYS.currentTrack);
       if (!raw) {
         return null;
       }
@@ -180,47 +237,31 @@ export class GameStateService {
 
   setVideoBlur(v: VideoBlur): void {
     this.videoBlur.set(v);
-    try {
-      this.storage?.setItem(KEYS.videoBlur, v);
-    } catch {
-      /* non-fatal */
-    }
+    this.write(KEYS.videoBlur, v);
   }
 
   setYtVariants(v: boolean): void {
     this.ytVariants.set(v);
-    try {
-      this.storage?.setItem(KEYS.ytVariants, String(v));
-    } catch {
-      /* non-fatal */
-    }
+    this.write(KEYS.ytVariants, String(v));
   }
 
   setProvider(p: Provider): void {
     this.provider.set(p);
-    try {
-      if (p) {
-        this.storage?.setItem(KEYS.provider, p);
-      } else {
-        this.storage?.removeItem(KEYS.provider);
-      }
-    } catch {
-      /* non-fatal */
+    if (p) {
+      this.write(KEYS.provider, p);
+    } else {
+      this.remove(KEYS.provider);
     }
   }
 
   lock(): void {
     this.locked.set(true);
-    try {
-      this.storage?.setItem(KEYS.locked, 'true');
-    } catch {
-      /* non-fatal */
-    }
+    this.write(KEYS.locked, 'true');
   }
 
   unlock(): void {
     this.locked.set(false);
-    this.storage?.removeItem(KEYS.locked);
+    this.remove(KEYS.locked);
   }
 
   // --- Custom deck ---
@@ -267,15 +308,11 @@ export class GameStateService {
 
   clearCustomDeck(): void {
     this.customDeck.set(null);
-    this.storage?.removeItem(KEYS.customDeck);
+    this.remove(KEYS.customDeck);
   }
 
   private persistCustomDeck(state: CustomDeckState): void {
-    try {
-      this.storage?.setItem(KEYS.customDeck, JSON.stringify(state));
-    } catch {
-      // localStorage full — non-fatal
-    }
+    this.write(KEYS.customDeck, JSON.stringify(state));
   }
 
   // --- Reset ---
@@ -285,26 +322,27 @@ export class GameStateService {
     this.locked.set(false);
     this.currentTrack.set(null);
     this.customDeck.set(null);
-    Object.values(KEYS).forEach((k) => this.storage?.removeItem(k));
+    // Preferences are cleared from storage below, so the in-memory signals
+    // have to go back to the same defaults a fresh load would pick — leaving
+    // them as-is made reset() produce a state no reload could reproduce.
+    this.videoBlur.set(DEFAULT_VIDEO_BLUR);
+    this.ytVariants.set(DEFAULT_YT_VARIANTS);
+    Object.values(KEYS).forEach((k) => this.remove(k));
   }
 
   // --- Spotify ---
 
   setSpotifyToken(token: string, refresh: string, expiresIn: number): void {
     const expiry = Date.now() + expiresIn * 1000;
-    try {
-      this.storage?.setItem(KEYS.spotifyToken, token);
-      this.storage?.setItem(KEYS.spotifyRefresh, refresh);
-      this.storage?.setItem(KEYS.spotifyExpiry, String(expiry));
-    } catch {
-      /* non-fatal — token lives in memory for this session */
-    }
+    this.write(KEYS.spotifyToken, token);
+    this.write(KEYS.spotifyRefresh, refresh);
+    this.write(KEYS.spotifyExpiry, String(expiry));
     this.authVersion.update((v) => v + 1);
   }
 
   getSpotifyToken(): string | null {
-    const token = this.storage?.getItem(KEYS.spotifyToken) ?? null;
-    const expiry = Number(this.storage?.getItem(KEYS.spotifyExpiry));
+    const token = this.read(KEYS.spotifyToken);
+    const expiry = Number(this.read(KEYS.spotifyExpiry));
     // Number('NaN-ish'/missing) can be NaN — `Date.now() > NaN` is always false,
     // which would make a malformed expiry look permanently valid.
     if (!token || !Number.isFinite(expiry) || Date.now() > expiry) {
@@ -314,33 +352,29 @@ export class GameStateService {
   }
 
   getSpotifyRefreshToken(): string | null {
-    return this.storage?.getItem(KEYS.spotifyRefresh) ?? null;
+    return this.read(KEYS.spotifyRefresh);
   }
 
   clearSpotifyToken(): void {
-    this.storage?.removeItem(KEYS.spotifyToken);
-    this.storage?.removeItem(KEYS.spotifyRefresh);
-    this.storage?.removeItem(KEYS.spotifyExpiry);
+    this.remove(KEYS.spotifyToken);
+    this.remove(KEYS.spotifyRefresh);
+    this.remove(KEYS.spotifyExpiry);
     this.authVersion.update((v) => v + 1);
   }
 
   // --- Apple Music ---
 
   setAppleMusicToken(token: string): void {
-    try {
-      this.storage?.setItem(KEYS.appleMusicToken, token);
-    } catch {
-      /* non-fatal */
-    }
+    this.write(KEYS.appleMusicToken, token);
     this.authVersion.update((v) => v + 1);
   }
 
   getAppleMusicToken(): string | null {
-    return this.storage?.getItem(KEYS.appleMusicToken) ?? null;
+    return this.read(KEYS.appleMusicToken);
   }
 
   clearAppleMusicToken(): void {
-    this.storage?.removeItem(KEYS.appleMusicToken);
+    this.remove(KEYS.appleMusicToken);
     this.authVersion.update((v) => v + 1);
   }
 }

@@ -25,7 +25,8 @@ describe('ConfigService', () => {
     afterEach(() => httpMock.verify());
 
     it('returns default apiUrl before load()', () => {
-      expect(service.apiUrl).toBe('http://localhost:8080');
+      // Same-origin, not localhost — see the default's comment in ConfigService.
+      expect(service.apiUrl).toBe('');
     });
 
     it('returns empty spotifyClientId by default', () => {
@@ -49,7 +50,10 @@ describe('ConfigService', () => {
       req.flush(null, { status: 404, statusText: 'Not Found' });
       await promise;
 
-      expect(service.apiUrl).toBe('http://localhost:8080');
+      // A failed config fetch must leave the app talking to its own origin.
+      // The previous localhost default turned this into "nothing works" on a
+      // deployed site: wrong host, and blocked as mixed content over HTTPS.
+      expect(service.apiUrl).toBe('');
     });
 
     it('load() merges partial config with defaults', async () => {
@@ -85,7 +89,8 @@ describe('ConfigService', () => {
     });
 
     it('returns default values on server', () => {
-      expect(service.apiUrl).toBe('http://localhost:8080');
+      // Same-origin, not localhost — see the default's comment in ConfigService.
+      expect(service.apiUrl).toBe('');
     });
   });
 });

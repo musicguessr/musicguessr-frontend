@@ -249,5 +249,68 @@ describe('GameStateService', () => {
       expect(localStorage.getItem('oh_provider')).toBeNull();
       expect(localStorage.getItem('oh_sp_token')).toBeNull();
     });
+
+    it('restores preference signals to their defaults', () => {
+      service.setVideoBlur('visible');
+      service.setYtVariants(false);
+      service.reset();
+
+      // reset() wipes the stored preferences, so the in-memory signals have
+      // to match what a fresh load would produce — otherwise the app sits in
+      // a state no reload can reproduce.
+      expect(service.videoBlur()).toBe('hidden');
+      expect(service.ytVariants()).toBe(true);
+    });
+  });
+});
+
+// Privacy-hardened browsers can block site data outright, which makes
+// `localStorage` throw on *property access* — before any try/catch around
+// getItem could run. This service is providedIn:'root' and reads storage in
+// its field initializers, so an unguarded throw there aborts bootstrap
+// entirely (blank page, and GlobalErrorHandler isn't up yet to report it).
+describe('GameStateService with unavailable localStorage', () => {
+  let original: PropertyDescriptor | undefined;
+
+  beforeEach(() => {
+    original = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new DOMException('access denied', 'SecurityError');
+      },
+    });
+  });
+
+  afterEach(() => {
+    if (original) {
+      Object.defineProperty(window, 'localStorage', original);
+    }
+  });
+
+  it('constructs without throwing', () => {
+    TestBed.configureTestingModule({
+      providers: [GameStateService, { provide: PLATFORM_ID, useValue: 'browser' }],
+    });
+    expect(() => TestBed.inject(GameStateService)).not.toThrow();
+  });
+
+  it('falls back to in-memory state that still drives the game', () => {
+    TestBed.configureTestingModule({
+      providers: [GameStateService, { provide: PLATFORM_ID, useValue: 'browser' }],
+    });
+    const svc = TestBed.inject(GameStateService);
+
+    expect(svc.provider()).toBeNull();
+    expect(svc.videoBlur()).toBe('hidden');
+
+    // Writes must not throw either, and the signals must still update — the
+    // session just won't survive a reload.
+    expect(() => svc.setProvider('youtube')).not.toThrow();
+    expect(svc.provider()).toBe('youtube');
+    expect(() => svc.lock()).not.toThrow();
+    expect(svc.locked()).toBe(true);
+    expect(() => svc.setSpotifyToken('tok', 'ref', 3600)).not.toThrow();
+    expect(() => svc.reset()).not.toThrow();
   });
 });
