@@ -28,6 +28,17 @@ const API_LOAD_TIMEOUT_MS = 8000;
 // strict privacy improvement for every user, not just a workaround.
 const YT_PLAYER_HOST = 'https://www.youtube-nocookie.com';
 
+// Shared across all three failure points below so the wording a user
+// actually sees is consistent regardless of which one fired — confirmed
+// (via real device testing, both youtube.com and the nocookie domain above)
+// to come from strict browser/network-level blocking of Google's video
+// domains, not an app bug. Leads with the actionable part (what tapping
+// does) rather than the diagnostic detail, which still gets attached
+// separately as the request ID/context on the error report for anyone who
+// wants to dig further — see the FAQ entry on this.
+const YOUTUBE_BLOCKED_MESSAGE =
+  'YouTube appears to be blocked by your browser or network settings — tap to open this track in YouTube Music instead.';
+
 @Injectable({ providedIn: 'root' })
 export class YoutubePlayerService {
   readonly isPlaying = signal(false);
@@ -62,11 +73,7 @@ export class YoutubePlayerService {
     const promise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.reportBlocked('iframe_api script timed out');
-        reject(
-          new Error(
-            'YouTube player script did not load — it may be blocked by a browser extension or DNS-level ad blocker',
-          ),
-        );
+        reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
       }, API_LOAD_TIMEOUT_MS);
 
       window.onYouTubeIframeAPIReady = (): void => {
@@ -83,11 +90,7 @@ export class YoutubePlayerService {
         s.onerror = (): void => {
           clearTimeout(timeout);
           this.reportBlocked('iframe_api script onerror');
-          reject(
-            new Error(
-              'YouTube player script failed to load — it may be blocked by a browser extension or DNS-level ad blocker',
-            ),
-          );
+          reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
         };
         document.head.appendChild(s);
       } else if (window.YT?.Player) {
@@ -140,9 +143,7 @@ export class YoutubePlayerService {
       const timeout = setTimeout(() => {
         this.reportBlocked('player embed timed out');
         this.player = null;
-        reject(
-          new Error('YouTube player failed to load — it may be blocked by a browser extension or DNS-level ad blocker'),
-        );
+        reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
       }, API_LOAD_TIMEOUT_MS);
 
       // setTimeout(0) ensures Angular change detection has rendered the container

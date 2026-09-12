@@ -42,6 +42,11 @@ export class FaqComponent implements OnInit {
       open: false,
     },
     {
+      q: "YouTube says it's blocked — what does that mean?",
+      a: "Some browsers (especially privacy-focused ones like Firefox forks with strict tracking protection, or a device using a filtering DNS provider) block YouTube's own domains outright as part of their ad/tracker blocking — this is a deliberate choice by your browser or network, not something musicguessr can override, and we wouldn't want to bypass it even if we could. When this happens, tapping the overlay opens the track in YouTube Music instead so you can still play it. If you'd rather have it play directly in the app, try relaxing your browser's tracking protection for musicguessr.app specifically, or use Spotify/Apple Music instead if you have one.",
+      open: false,
+    },
+    {
       q: 'Can I create my own Hitster-style music quiz?',
       a: 'Yes. Use the Create Deck page to build a custom music quiz from YouTube videos or an entire YouTube playlist. Share it with friends via a link or QR code — no account needed.',
       open: false,
