@@ -7,6 +7,16 @@ declare global {
   }
 }
 
+// Some browsers ship built-in tracker/ad blocking that silently drops the
+// request for youtube.com/iframe_api (privacy-hardened Firefox forks in
+// particular) — without a hard timeout, window.onYouTubeIframeAPIReady
+// simply never fires and loadAPI()'s promise hangs forever, which is what a
+// user sees as the TAP TO PLAY overlay stuck on "LOADING…" indefinitely
+// (musicguessr-frontend#7). 8s is generous for a real network fetch of a
+// tiny script; anything slower than that is functionally "blocked" from
+// the user's perspective either way.
+const API_LOAD_TIMEOUT_MS = 8000;
+
 @Injectable({ providedIn: 'root' })
 export class YoutubePlayerService {
   readonly isPlaying = signal(false);
@@ -29,8 +39,13 @@ export class YoutubePlayerService {
       return this.apiLoadPromise;
     }
 
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('YouTube player script did not load — it may be blocked by a browser extension'));
+      }, API_LOAD_TIMEOUT_MS);
+
       window.onYouTubeIframeAPIReady = (): void => {
+        clearTimeout(timeout);
         this.apiReady = true;
         resolve();
       };
@@ -38,9 +53,16 @@ export class YoutubePlayerService {
         const s = document.createElement('script');
         s.id = 'yt-api-script';
         s.src = 'https://www.youtube.com/iframe_api';
+        // Fires immediately (rather than waiting out the full timeout) when
+        // a blocker rejects the request outright instead of just hanging it.
+        s.onerror = (): void => {
+          clearTimeout(timeout);
+          reject(new Error('YouTube player script failed to load — it may be blocked by a browser extension'));
+        };
         document.head.appendChild(s);
       } else if (window.YT?.Player) {
         // Script tag already present and finished loading in a previous call.
+        clearTimeout(timeout);
         this.apiReady = true;
         resolve();
       }
@@ -68,10 +90,21 @@ export class YoutubePlayerService {
     }
 
     const promise = new Promise<void>((resolve) => {
+      // Belt-and-braces alongside loadAPI()'s own timeout: even once the API
+      // script has loaded, the actual player iframe (youtube.com/embed/…)
+      // can itself be blocked by the same class of tracker/ad blocker,
+      // which would otherwise leave onReady/onError never firing and this
+      // promise — and the TAP TO PLAY overlay — stuck forever.
+      const timeout = setTimeout(() => {
+        this.error.set('YouTube player failed to load — it may be blocked by a browser extension');
+        resolve();
+      }, API_LOAD_TIMEOUT_MS);
+
       // setTimeout(0) ensures Angular change detection has rendered the container
       setTimeout(() => {
         const container = document.getElementById(this.containerId);
         if (!container || this.player) {
+          clearTimeout(timeout);
           resolve();
           return;
         }
@@ -88,11 +121,15 @@ export class YoutubePlayerService {
             fs: 0,
           },
           events: {
-            onReady: (): void => resolve(),
+            onReady: (): void => {
+              clearTimeout(timeout);
+              resolve();
+            },
             onStateChange: (e: any): void => {
               this.isPlaying.set(e.data === 1);
             },
             onError: (e: any): void => {
+              clearTimeout(timeout);
               console.error('YouTube player error:', e.data);
               this.isPlaying.set(false);
               this.error.set(this.describeError(e?.data));

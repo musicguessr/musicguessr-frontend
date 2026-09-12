@@ -37,8 +37,11 @@ export async function preparePlayerFor(
       // called on a ready player — required for iOS Safari autoplay.
       await ytPlayer.preloadPlayer();
       return { ready: true, error: null };
-    } catch {
-      return { ready: true, error: 'Failed to load YouTube player' };
+    } catch (e: any) {
+      // loadAPI() now surfaces a specific, actionable message (e.g. "may be
+      // blocked by a browser extension") rather than always this generic
+      // fallback — see its own comment for why that timeout exists.
+      return { ready: true, error: e?.message || 'Failed to load YouTube player' };
     }
   }
 
