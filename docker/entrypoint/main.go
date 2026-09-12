@@ -10,6 +10,8 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -88,15 +90,26 @@ func main() {
 	if err != nil {
 		log.Fatalf("[entrypoint] failed to list prerendered HTML files: %v", err)
 	}
+	patched := make([]string, 0, len(htmlFiles)+2)
 	for _, path := range htmlFiles {
 		if err := patchPlaceholders(path, replacements); err != nil {
 			log.Fatalf("[entrypoint] failed to patch %s: %v", path, err)
 		}
+		patched = append(patched, path)
 	}
 	for _, name := range []string{"robots.txt", "sitemap.xml"} {
-		if err := patchPlaceholders(filepath.Join(htmlDir, name), map[string]string{"__SITE_URL__": siteURL}); err != nil {
+		path := filepath.Join(htmlDir, name)
+		if err := patchPlaceholders(path, map[string]string{"__SITE_URL__": siteURL}); err != nil {
 			log.Fatalf("[entrypoint] failed to patch %s: %v", name, err)
 		}
+		patched = append(patched, path)
+	}
+
+	// Must run after every patch above: the service worker verifies each file
+	// it fetches against a build-time hash, and we just changed those files
+	// out from under it.
+	if err := rehashServiceWorkerManifest(patched); err != nil {
+		log.Fatalf("[entrypoint] failed to update ngsw.json: %v", err)
 	}
 
 	execNginx()
@@ -198,6 +211,99 @@ func patchPlaceholders(path string, replacements map[string]string) error {
 	}
 	logf("patched %s", path)
 	return os.WriteFile(path, []byte(content), 0o644)
+}
+
+// rehashServiceWorkerManifest rewrites ngsw.json's hashTable entries for the
+// files this entrypoint patched at runtime.
+//
+// Angular's service worker records a SHA1 of every asset at build time and
+// verifies each one it fetches against that hash. Because we rewrite
+// index.html (and each prerendered route's copy) here — injecting SITE_URL,
+// the verification tokens and the analytics id — every one of those files
+// stops matching its recorded hash the moment the container starts. The
+// worker then treats the whole app version as corrupt and refuses to serve
+// it, which is worse than having no worker at all: the PWA would appear to
+// install and then permanently fail to update.
+//
+// Recomputing from disk is correct rather than a workaround, because the
+// files on disk are what the build produced plus exactly the substitutions
+// we just made. The hash keeps doing its real job — catching a response
+// mangled in transit between nginx and the browser.
+//
+// A build without a service worker (ng build --configuration development)
+// has no ngsw.json; that's not an error, just nothing to do.
+func rehashServiceWorkerManifest(patchedFiles []string) error {
+	manifestPath := filepath.Join(htmlDir, "ngsw.json")
+	data, err := os.ReadFile(manifestPath)
+	if os.IsNotExist(err) {
+		logf("no ngsw.json present, skipping service worker rehash")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	// Decoded into a generic map so unknown//future fields survive the
+	// round-trip untouched — only hashTable is ours to edit.
+	var manifest map[string]any
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		return fmt.Errorf("parse ngsw.json: %w", err)
+	}
+	hashTable, ok := manifest["hashTable"].(map[string]any)
+	if !ok {
+		return fmt.Errorf("ngsw.json has no hashTable object")
+	}
+
+	updated := 0
+	for _, path := range patchedFiles {
+		key, err := manifestKey(path)
+		if err != nil {
+			return err
+		}
+		if _, tracked := hashTable[key]; !tracked {
+			// Patched but not part of any asset group (robots.txt and
+			// sitemap.xml aren't) — nothing to keep in sync.
+			continue
+		}
+		sum, err := sha1File(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return err
+		}
+		hashTable[key] = sum
+		updated++
+	}
+
+	out, err := json.Marshal(manifest)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(manifestPath, out, 0o644); err != nil {
+		return err
+	}
+	logf("updated %d hash(es) in ngsw.json", updated)
+	return nil
+}
+
+// manifestKey converts an on-disk path into the root-relative, slash-
+// separated URL ngsw.json keys its hashTable by (e.g. "/faq/index.html").
+func manifestKey(path string) (string, error) {
+	rel, err := filepath.Rel(htmlDir, path)
+	if err != nil {
+		return "", err
+	}
+	return "/" + filepath.ToSlash(rel), nil
+}
+
+func sha1File(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	sum := sha1.Sum(data)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 // execNginx replaces this process with nginx, forwarding whatever arguments

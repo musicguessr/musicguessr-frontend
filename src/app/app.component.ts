@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppErrorService } from './services/app-error.service';
+import { AppUpdateService } from './services/app-update.service';
 
 @Component({
   selector: 'app-root',
@@ -8,6 +9,12 @@ import { AppErrorService } from './services/app-error.service';
   imports: [RouterOutlet],
   template: `
     <router-outlet />
+    @if (updateAvailable()) {
+      <div class="update-banner" role="status">
+        <span class="update-text">A new version is available.</span>
+        <button class="update-btn" type="button" (click)="applyUpdate()">Reload</button>
+      </div>
+    }
     @if (fatalError(); as msg) {
       <div class="fatal-error-overlay">
         <div class="fatal-error-box">
@@ -49,13 +56,55 @@ import { AppErrorService } from './services/app-error.service';
         line-height: 1.5;
         margin-bottom: 8px;
       }
+      .update-banner {
+        position: fixed;
+        left: 50%;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%);
+        z-index: 900;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: calc(100vw - 32px);
+        padding: 10px 12px 10px 16px;
+        border: 1px solid var(--border, #2a2a2a);
+        border-radius: 999px;
+        background: #1a1a1a;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      }
+      .update-text {
+        color: var(--text);
+        font-size: 0.82rem;
+        white-space: nowrap;
+      }
+      .update-btn {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        border: none;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #0a0a0a;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private appError = inject(AppErrorService);
+  private appUpdate = inject(AppUpdateService);
   readonly fatalError = this.appError.fatalError;
+  readonly updateAvailable = this.appUpdate.updateAvailable;
+
+  ngOnInit(): void {
+    this.appUpdate.init();
+  }
+
+  applyUpdate(): void {
+    void this.appUpdate.applyUpdate();
+  }
 
   reload(): void {
     window.location.reload();

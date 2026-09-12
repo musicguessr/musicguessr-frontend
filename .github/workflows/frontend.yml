@@ -5,20 +5,28 @@ on:
     paths:
       - 'src/**'
       - 'e2e/**'
+      - 'docker/**'
+      - 'nginx/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig*.json'
       - 'jest.config.js'
+      - 'ngsw-config.json'
+      - 'angular.json'
       - 'playwright.config.ts'
       - '.github/workflows/frontend.yml'
   pull_request:
     paths:
       - 'src/**'
       - 'e2e/**'
+      - 'docker/**'
+      - 'nginx/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig*.json'
       - 'jest.config.js'
+      - 'ngsw-config.json'
+      - 'angular.json'
       - 'playwright.config.ts'
       - '.github/workflows/frontend.yml'
 
@@ -55,6 +63,36 @@ jobs:
       - name: Run tests
         run: npm test -- --no-coverage
 
+  # The runtime entrypoint (docker/entrypoint) is a Go program with its own
+  # tests that nothing in CI ran until now — despite it owning config.json
+  # generation, the SEO placeholder patching, and the service worker hash
+  # rewrite that the PWA depends on being correct.
+  entrypoint:
+    name: Entrypoint (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docker/entrypoint
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: docker/entrypoint/go.mod
+          # Stdlib only, so there is no go.sum for the cache to key on.
+          cache: false
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files are not gofmt-formatted. Run: gofmt -w ."
+            echo "$unformatted"
+            exit 1
+          fi
+      - name: go vet
+        run: go vet ./...
+      - name: Run tests
+        run: go test -race ./...
+
   build:
     name: Build & Prerender
     runs-on: ubuntu-latest
@@ -65,6 +103,12 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: package-lock.json
+      # Needed by the entrypoint service-worker check below, which builds and
+      # runs the real runtime entrypoint against the real build output.
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: docker/entrypoint/go.mod
+          cache: false
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
       - name: Build
@@ -74,6 +118,67 @@ jobs:
           grep -q 'ng-server-context="ssg"' dist/frontend/browser/index.html
           test -f dist/frontend/browser/create-deck/index.html
           grep -q 'ng-server-context="ssg"' dist/frontend/browser/create-deck/index.html
+
+      # Guards the two ways the service worker silently breaks: shipping
+      # without one at all, and caching runtime-generated files whose build-time
+      # hash can never match what the container actually serves.
+      - name: Verify service worker
+        run: |
+          test -f dist/frontend/browser/ngsw.json
+          test -f dist/frontend/browser/ngsw-worker.js
+          test -f dist/frontend/browser/manifest.webmanifest
+          node -e '
+            const m = require("./dist/frontend/browser/ngsw.json");
+            const keys = Object.keys(m.hashTable);
+            if (keys.includes("/config.json")) {
+              throw new Error("config.json is in the service worker hashTable: it is rewritten at container start, so its build-time hash can never match and the worker would reject the whole app version");
+            }
+            if (!keys.includes("/index.html")) {
+              throw new Error("index.html is missing from the service worker hashTable");
+            }
+            const nav = JSON.stringify(m.navigationUrls);
+            if (!nav.includes("api")) {
+              throw new Error("navigationUrls no longer excludes /api/**; API calls would be answered with the app shell");
+            }
+          '
+
+      # The entrypoint rewrites index.html at runtime, which invalidates the
+      # hash the service worker checks it against. This runs the real binary
+      # over the real build output and asserts every hash still matches
+      # afterwards — the failure it prevents (a permanently un-updatable PWA)
+      # is invisible until users are already stuck on a stale version.
+      - name: Verify entrypoint keeps service worker hashes valid
+        run: |
+          set -e
+          STAGE=$(mktemp -d)
+          cp -r dist/frontend/browser/* "$STAGE/"
+          # -C because docker/entrypoint is its own Go module, not part of a
+          # workspace rooted here.
+          go build -C docker/entrypoint -ldflags "-X main.htmlDir=$STAGE" -o /tmp/entrypoint-check .
+          SITE_URL=https://musicguessr.app \
+          API_URL=https://musicguessr.app \
+          GA_MEASUREMENT_ID=G-CITEST \
+          GOOGLE_SITE_VERIFICATION=citest \
+            /tmp/entrypoint-check || true
+          node -e '
+            const crypto = require("crypto");
+            const fs = require("fs");
+            const dir = process.argv[1];
+            const m = JSON.parse(fs.readFileSync(dir + "/ngsw.json", "utf8"));
+            const bad = [];
+            for (const [key, recorded] of Object.entries(m.hashTable)) {
+              const actual = crypto.createHash("sha1").update(fs.readFileSync(dir + key)).digest("hex");
+              if (actual !== recorded) bad.push(key);
+            }
+            if (bad.length) {
+              throw new Error("ngsw.json hashes stale after the entrypoint ran: " + bad.join(", "));
+            }
+            const index = fs.readFileSync(dir + "/index.html", "utf8");
+            if (index.includes("__SITE_URL__")) {
+              throw new Error("entrypoint did not patch index.html, so this check proved nothing");
+            }
+          ' "$STAGE"
+          rm -rf "$STAGE" /tmp/entrypoint-check
 
   e2e:
     name: E2E Smoke Tests
