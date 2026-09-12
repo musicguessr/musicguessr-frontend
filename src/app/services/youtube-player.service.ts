@@ -18,6 +18,16 @@ declare global {
 // the user's perspective either way.
 const API_LOAD_TIMEOUT_MS = 8000;
 
+// youtube-nocookie.com is YouTube's own "privacy-enhanced" embed domain —
+// no tracking cookies until playback starts. Several tracker-blocklists
+// used by privacy-hardened browsers (the exact ones behind the blocked-
+// embed failures this file otherwise reports/falls back for) explicitly
+// allow this domain while blocking regular youtube.com embeds, since it's
+// the sanctioned non-tracking alternative. Doesn't change the blur/reveal
+// game mechanic at all — same iframe, same API, different host — and is a
+// strict privacy improvement for every user, not just a workaround.
+const YT_PLAYER_HOST = 'https://www.youtube-nocookie.com';
+
 @Injectable({ providedIn: 'root' })
 export class YoutubePlayerService {
   readonly isPlaying = signal(false);
@@ -145,6 +155,7 @@ export class YoutubePlayerService {
         }
 
         this.player = new window.YT.Player(this.containerId, {
+          host: YT_PLAYER_HOST,
           width: '100%',
           height: '100%',
           playerVars: {
@@ -217,6 +228,7 @@ export class YoutubePlayerService {
     }
 
     this.player = new window.YT.Player(this.containerId, {
+      host: YT_PLAYER_HOST,
       videoId,
       width: '100%',
       height: '100%',
