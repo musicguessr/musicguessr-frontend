@@ -21,6 +21,19 @@ export class SpotifyService {
   private initPromise: Promise<void> | null = null;
   private currentRequestId: string | null = null;
 
+  // The Web Playback SDK isn't officially supported on Safari on any
+  // platform, but critically it doesn't always fail loudly there: on iOS it
+  // can connect and report a real device_id (accepting play commands, even
+  // advancing playback position server-side) while never actually producing
+  // audio locally, since WebKit blocks the audio path it depends on. Relying
+  // on 'ready'/'initialization_error' alone silently sends playback to that
+  // dead local device instead of handing off to a real one — confirmed on a
+  // real device where Spotify Connect showed "musicguessr" progressing with
+  // no sound. So on iOS we skip the local SDK player entirely and always go
+  // straight through Spotify Connect to an actual device.
+  private readonly isIOS =
+    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+
   private config = inject(ConfigService);
   private state = inject(GameStateService);
   private reporter = inject(ClientErrorReporterService);
@@ -146,6 +159,14 @@ export class SpotifyService {
         }
         if (!token) {
           reject(new Error('No Spotify token'));
+          return;
+        }
+
+        if (this.isIOS) {
+          // Don't even attempt the local SDK player here — see isIOS's
+          // comment. play() always uses Connect when deviceId is null, which
+          // it stays here since we never set it.
+          resolve();
           return;
         }
 
