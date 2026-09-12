@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 import { ClientErrorReporterService } from './client-error-reporter.service';
+import { listDevices, pauseOnDevice, pickTargetDevice, playOnDevice } from './spotify-connect';
 
 declare global {
   interface Window {
@@ -20,6 +21,10 @@ export class SpotifyService {
   private deviceId: string | null = null;
   private initPromise: Promise<void> | null = null;
   private currentRequestId: string | null = null;
+  // The real device playback was handed off to via Spotify Connect, so stop()
+  // can pause that exact one rather than whatever Spotify currently considers
+  // active (the user may have started something else on another device).
+  private connectDeviceId: string | null = null;
 
   // The Web Playback SDK isn't officially supported on Safari on any
   // platform, but critically it doesn't always fail loudly there: on iOS it
@@ -284,44 +289,21 @@ export class SpotifyService {
   }
 
   private async playViaConnect(spotifyId: string, token: string): Promise<void> {
-    const devices = await this.getDevices(token);
-    // Prefer whichever device Spotify itself reports as currently active —
-    // falls back to the first available one (e.g. app open but idle).
-    const target = devices.find((d) => d.is_active) ?? devices[0];
+    const devices = await listDevices(token);
+    const target = pickTargetDevice(devices);
     if (!target) {
       this.reportIssue(`Spotify Connect found no devices (${devices.length} total)`, 'spotify-connect-no-device');
       throw new Error('Open the Spotify app on your phone, then tap play again.');
     }
 
-    const resp = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${target.id}`, {
-      method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uris: [`spotify:track:${spotifyId}`] }),
-    });
-
+    const resp = await playOnDevice(token, target.id, spotifyId);
     if (!resp.ok) {
       this.reportIssue(`Spotify Connect play failed: HTTP ${resp.status}`, 'spotify-connect-play-failed');
       this.throwForStatus(resp.status);
     }
 
+    this.connectDeviceId = target.id;
     this.isPlaying.set(true);
-  }
-
-  private async getDevices(token: string): Promise<{ id: string; is_active: boolean; name: string }[]> {
-    try {
-      const resp = await fetch('https://api.spotify.com/v1/me/player/devices', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!resp.ok) {
-        return [];
-      }
-      const data = await resp.json();
-      return data.devices ?? [];
-    } catch {
-      // Network hiccup listing devices shouldn't crash playback — treated
-      // the same as "no devices found" below.
-      return [];
-    }
   }
 
   private throwForStatus(status: number): never {
@@ -340,11 +322,41 @@ export class SpotifyService {
     throw new Error(`Spotify error ${status}`);
   }
 
+  // Pausing only the local SDK player was a no-op wherever playback had been
+  // handed off through Spotify Connect — which is every iOS session, since
+  // we deliberately never construct a local player there. The music simply
+  // kept playing on the user's phone after "End game", after "Next card",
+  // and after navigating away from /game.
   stop(): void {
-    if (this.player) {
+    if (typeof this.player?.pause === 'function') {
       this.player.pause();
+    } else {
+      void this.pauseViaConnect();
     }
     this.isPlaying.set(false);
+  }
+
+  private async pauseViaConnect(): Promise<void> {
+    const token = this.state.getSpotifyToken();
+    if (!token) {
+      return;
+    }
+    try {
+      // Targets the device we actually handed playback to, not whatever
+      // Spotify currently calls active — by now the user may have started
+      // something else somewhere, and pausing that would be worse than
+      // doing nothing.
+      const resp = await pauseOnDevice(token, this.connectDeviceId);
+      // 404 = no active device and 403 = restricted (most often "already
+      // paused"). Both mean the music isn't playing, which is the goal —
+      // neither is worth reporting.
+      if (!resp.ok && resp.status !== 404 && resp.status !== 403) {
+        this.reportIssue(`Spotify Connect pause failed: HTTP ${resp.status}`, 'spotify-connect-pause-failed');
+      }
+    } catch {
+      // Teardown path — failing to pause must never throw into a caller that
+      // is mid-navigation and has no way to handle it.
+    }
   }
 
   disconnect(): void {
@@ -360,6 +372,7 @@ export class SpotifyService {
     this.isReady.set(false);
     this.isPlaying.set(false);
     this.deviceId = null;
+    this.connectDeviceId = null;
   }
 
   // PKCE helpers
