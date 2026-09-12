@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { GameStateService, Provider, VideoBlur } from '../../services/game-state.service';
 import { SpotifyService } from '../../services/spotify.service';
 import { AppleMusicService } from '../../services/apple-music.service';
+import { YoutubePlayerService } from '../../services/youtube-player.service';
 import { ConfigService } from '../../services/config.service';
 import { DeckService } from '../../services/deck.service';
 import { SeoService } from '../../services/seo.service';
@@ -31,6 +32,7 @@ export class ProviderSelectComponent implements OnInit {
   private state = inject(GameStateService);
   private spotify = inject(SpotifyService);
   private apple = inject(AppleMusicService);
+  private ytPlayer = inject(YoutubePlayerService);
   private config = inject(ConfigService);
   private deckService = inject(DeckService);
   private seo = inject(SeoService);
@@ -119,6 +121,15 @@ export class ProviderSelectComponent implements OnInit {
 
       if (p === 'youtube') {
         this.state.lock();
+        // Fire-and-forget: start the YouTube IFrame API script loading now
+        // instead of waiting until the game page mounts after a card is
+        // scanned. The script doesn't depend on which video will play, only
+        // on which provider was chosen — by the time preparePlayer() calls
+        // loadAPI() again there, it's often already resolved (dedup makes
+        // the second call a no-op), shaving the "LOADING…" wait after tap.
+        void this.ytPlayer.loadAPI().catch(() => {
+          /* speculative — the real attempt in preparePlayer() surfaces any error */
+        });
         this.router.navigate(['/scan']);
         return;
       }
@@ -127,6 +138,11 @@ export class ProviderSelectComponent implements OnInit {
         const token = this.state.getSpotifyToken();
         if (token) {
           this.state.lock();
+          // Same idea as YouTube above — get the Web Playback SDK connecting
+          // now rather than waiting until the game page mounts.
+          void this.spotify.initSDK().catch(() => {
+            /* speculative — the real attempt in preparePlayer() surfaces any error */
+          });
           this.router.navigate(['/scan']);
         } else {
           await this.spotify.authorize(); // redirects away
@@ -138,6 +154,9 @@ export class ProviderSelectComponent implements OnInit {
         const token = this.state.getAppleMusicToken();
         if (token) {
           this.state.lock();
+          void this.apple.init().catch(() => {
+            /* speculative — the real attempt in preparePlayer() surfaces any error */
+          });
           this.router.navigate(['/scan']);
         } else {
           await this.apple.authorize();

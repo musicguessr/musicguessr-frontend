@@ -94,6 +94,18 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Playback providers — only one is ever actually used per session
+         (provider is locked at /play), but preconnecting to all three up
+         front is cheap (idle TCP+TLS handshakes, no requests) and means
+         whichever one gets chosen doesn't pay that latency cold on the
+         very first real request once a card is scanned. -->
+    <link href="https://www.youtube.com" rel="preconnect" />
+    <link href="https://www.youtube-nocookie.com" rel="preconnect" />
+    <link href="https://sdk.scdn.co" rel="preconnect" />
+    <link href="https://accounts.spotify.com" rel="preconnect" />
+    <link href="https://api.spotify.com" rel="preconnect" />
+    <link href="https://js-cdn.music.apple.com" rel="preconnect" />
     <base href="/" />
   </head>
   <body>
