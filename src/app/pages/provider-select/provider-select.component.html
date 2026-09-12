@@ -16,6 +16,15 @@
         <div class="locked-icon">🔒</div>
         <p class="locked-label">Provider locked for this game</p>
         <p class="locked-provider">{{ currentProvider | titlecase }}</p>
+        @if (currentProvider === 'spotify' && isIOS) {
+          <div class="ios-spotify-notice">
+            <p>
+              On iPhone, Spotify plays through the Spotify app, not in the browser. Open Spotify and leave it running in
+              the background before you scan a card.
+            </p>
+            <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">Open Spotify app</button>
+          </div>
+        }
         <button class="btn btn-primary mt" [disabled]="loading()" (click)="confirm()">
           @if (loading()) {
             <span class="spinner"></span>
@@ -99,6 +108,16 @@
               <div class="toggle-knob"></div>
             </div>
           </div>
+        </div>
+      }
+
+      @if (selected() === 'spotify' && isIOS) {
+        <div class="ios-spotify-notice">
+          <p>
+            On iPhone, Spotify plays through the Spotify app, not in the browser. Open Spotify and leave it running in
+            the background before you scan a card — otherwise nothing will play.
+          </p>
+          <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">Open Spotify app</button>
         </div>
       }
 

@@ -58,7 +58,7 @@ export class FaqComponent implements OnInit {
     },
     {
       q: 'Why does Spotify not work on my iPhone?',
-      a: 'Apple restricts third-party Web Audio on iOS Safari, which prevents the Spotify Web Playback SDK from working. Tapping play will open the track in the Spotify app instead. Use YouTube for in-browser playback on iPhone.',
+      a: 'Apple restricts third-party Web Audio on iOS Safari, which prevents the Spotify Web Playback SDK from working in the browser. Instead, playback is handed off to the Spotify app via Spotify Connect — make sure the Spotify app is open and running in the background before you scan a card, or use YouTube for in-browser playback on iPhone.',
       open: false,
     },
     {

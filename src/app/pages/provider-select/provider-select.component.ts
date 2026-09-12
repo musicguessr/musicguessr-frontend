@@ -56,6 +56,15 @@ export class ProviderSelectComponent implements OnInit {
 
   providers: ProviderOption[] = [];
 
+  // Web Playback SDK never works on iOS Safari (WebKit blocks the Web Audio
+  // API it needs) — Spotify playback there is instead handed off via
+  // Spotify Connect to the real app, which only works if that app is
+  // already running. There's no way to check or force that from the
+  // browser, so the best we can do is warn up front instead of a silent
+  // "nothing happened" after the card is scanned.
+  readonly isIOS =
+    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+
   ngOnInit(): void {
     this.seo.set({
       title: 'Play Hitster Cards on YouTube — Free, No Login',
@@ -170,6 +179,14 @@ export class ProviderSelectComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // Best-effort convenience for the iOS Connect-handoff notice below — opens
+  // the Spotify app if installed (does nothing harmful if it isn't). Can't
+  // detect success or bring the user back to this tab automatically; they
+  // have to switch back themselves.
+  openSpotifyApp(): void {
+    window.location.href = 'spotify:';
   }
 
   setBlur(v: VideoBlur): void {
