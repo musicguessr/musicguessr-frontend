@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { ConfigService } from './config.service';
+import { SessionIdService } from './session-id.service';
 
 export type ClientErrorReport = {
   message: string;
@@ -19,6 +20,7 @@ export type ClientErrorReport = {
 @Injectable({ providedIn: 'root' })
 export class ClientErrorReporterService {
   private config = inject(ConfigService);
+  private sessionId = inject(SessionIdService);
 
   // Fire-and-forget by design: reporting a bug must never itself throw,
   // block the caller, or surface a new error. `keepalive` lets the request
@@ -35,7 +37,7 @@ export class ClientErrorReporterService {
       });
       fetch(`${this.config.apiUrl}/api/client-error`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Session-Id': this.sessionId.id },
         body,
         keepalive: true,
       }).catch(() => {

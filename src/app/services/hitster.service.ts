@@ -1,13 +1,15 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from './config.service';
 import { TrackInfo } from './game-state.service';
+import { SessionIdService } from './session-id.service';
 
 @Injectable({ providedIn: 'root' })
 export class HitsterService {
   private http = inject(HttpClient);
   private config = inject(ConfigService);
+  private sessionId = inject(SessionIdService);
 
   async resolve(qrUrl: string, ytVariants = true): Promise<TrackInfo> {
     let url = `${this.config.apiUrl}/api/resolve?url=${encodeURIComponent(qrUrl)}`;
@@ -15,7 +17,8 @@ export class HitsterService {
       url += '&yt_variants=1';
     }
     try {
-      const data = await firstValueFrom(this.http.get<TrackInfo & { error?: string }>(url));
+      const headers = new HttpHeaders({ 'X-Session-Id': this.sessionId.id });
+      const data = await firstValueFrom(this.http.get<TrackInfo & { error?: string }>(url, { headers }));
       if (data.error) {
         throw new Error(data.error);
       }

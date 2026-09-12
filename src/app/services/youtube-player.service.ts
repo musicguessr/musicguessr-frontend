@@ -109,18 +109,30 @@ export class YoutubePlayerService {
       return this.preloadPromise;
     }
 
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<void>((resolve, reject) => {
       // Belt-and-braces alongside loadAPI()'s own timeout: even once the API
       // script has loaded, the actual player iframe (youtube.com/embed/…)
       // can itself be blocked by the same class of tracker/ad blocker,
       // which would otherwise leave onReady/onError never firing and this
       // promise — and the TAP TO PLAY overlay — stuck forever.
+      //
+      // Must reject (not resolve): new window.YT.Player(...) below returns a
+      // real, truthy object synchronously, but its actual command methods
+      // (loadVideoById, playVideo, …) are only attached once the internal
+      // iframe handshake completes — which is exactly what's blocked here.
+      // Resolving "successfully" left this.player as that half-built stub,
+      // which onOverlayTap()'s youtube branch then happily called
+      // .loadVideoById() on — a real crash a user hit in production
+      // (TypeError: this.player.loadVideoById is not a function).
+      // Rejecting routes this through prepareYoutube()'s catch instead,
+      // which sets overlayError and blocks the tap from ever reaching a
+      // broken player.
       const timeout = setTimeout(() => {
         this.reportBlocked('player embed timed out');
-        this.error.set(
-          'YouTube player failed to load — it may be blocked by a browser extension or DNS-level ad blocker',
+        this.player = null;
+        reject(
+          new Error('YouTube player failed to load — it may be blocked by a browser extension or DNS-level ad blocker'),
         );
-        resolve();
       }, API_LOAD_TIMEOUT_MS);
 
       // setTimeout(0) ensures Angular change detection has rendered the container
@@ -176,7 +188,12 @@ export class YoutubePlayerService {
     // doesn't leak into this one.
     this.error.set(null);
 
-    if (this.player) {
+    // typeof-checked, not just truthy: a YT.Player instance can exist
+    // without its command methods actually attached yet (see the timeout
+    // comment in preloadPlayer()) — calling loadVideoById on one of those
+    // throws instead of failing gracefully. Belt and braces alongside that
+    // fix, in case any other path ever leaves this.player half-built again.
+    if (this.player && typeof this.player.loadVideoById === 'function') {
       this.player.loadVideoById(videoId);
       this.isPlaying.set(true);
       return;
