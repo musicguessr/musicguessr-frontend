@@ -16,6 +16,7 @@ import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
 import { ClientErrorReporterService } from '../../services/client-error-reporter.service';
 import { isHitsterCardUrl } from './hitster-url';
+import { decodeQRViaWebCodecs, webCodecsSupported } from './webcodecs-qr';
 
 declare global {
   interface Window {
@@ -80,18 +81,19 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private ctx!: CanvasRenderingContext2D;
   private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
   // Native QR detection (Chromium only) reads straight from the <video>
-  // element — no canvas pixel readback involved at all. Preferred over the
-  // jsQR/canvas fallback below whenever available: some hardened/privacy
-  // browsers (e.g. GrapheneOS Vanadium, Firefox forks with resistFingerprinting-
-  // style protections) deliberately poison or block canvas.getImageData() as
-  // an anti-fingerprinting measure, which silently breaks jsQR decoding while
-  // the camera preview itself keeps working fine — reported as "camera works
-  // but QR is never recognized" (see github.com/musicguessr/musicguessr-frontend/issues/7).
+  // element — no canvas pixel readback involved at all. Preferred whenever
+  // available: canvas.getImageData() is unusable for QR decoding on some
+  // hardened/privacy browsers, which silently breaks jsQR while the camera
+  // preview keeps working fine (see webcodecs-qr.ts for specifics and
+  // github.com/musicguessr/musicguessr-frontend/issues/7).
   private barcodeDetector: InstanceType<NonNullable<Window['BarcodeDetector']>> | null = null;
-  // Guards against overlapping detect() calls — unlike jsQR's synchronous
-  // decode, BarcodeDetector.detect() is async and its latency isn't
-  // guaranteed to stay under SCAN_INTERVAL.
+  // Guards overlapping async detect()/decode calls (BarcodeDetector and
+  // WebCodecs below) — shared since the two are mutually exclusive in
+  // practice, so only one is ever in flight.
   private detecting = false;
+  // Set once decodeQRViaWebCodecs() fails — stops retrying a broken API
+  // every SCAN_INTERVAL and falls back to canvas/jsQR. See webcodecs-qr.ts.
+  private webCodecsBroken = false;
   // A signal (not a plain field) so the template can show/hide the "Try
   // again" button — kept so a resolve failure (e.g. the backend being
   // briefly unreachable) can be retried directly, without the only recovery
@@ -248,7 +250,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (!this.scanning()) {
       return;
     }
-    const detector = this.barcodeDetector ? 'BarcodeDetector' : 'jsQR';
+    const detector = this.barcodeDetector
+      ? 'BarcodeDetector'
+      : webCodecsSupported && !this.webCodecsBroken
+        ? 'WebCodecs'
+        : 'jsQR';
     this.errorReporter.report({
       message: `QR not detected after ${SCAN_STUCK_MS / 1000}s of active scanning (detector=${detector})`,
       context: 'scanner-timeout',
@@ -263,6 +269,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     if (this.barcodeDetector) {
       this.scanWithBarcodeDetector(video);
+      return;
+    }
+
+    if (webCodecsSupported && !this.webCodecsBroken) {
+      this.scanWithWebCodecs(video);
       return;
     }
 
@@ -293,6 +304,28 @@ export class ScannerComponent implements OnInit, OnDestroy {
       })
       .catch(() => {
         this.detecting = false;
+      });
+  }
+
+  private scanWithWebCodecs(video: HTMLVideoElement): void {
+    if (this.detecting) {
+      return;
+    }
+    this.detecting = true;
+    decodeQRViaWebCodecs(video)
+      .then((data) => {
+        this.detecting = false;
+        // Async — may resolve after stopScanner() already ran, same as above.
+        if (this.scanning() && data && isHitsterCardUrl(data)) {
+          this.stopScanner();
+          this.onQRFound(data);
+        }
+      })
+      .catch(() => {
+        // Not usable in this browser/session — stop retrying every tick and
+        // fall back to canvas/jsQR.
+        this.detecting = false;
+        this.webCodecsBroken = true;
       });
   }
 

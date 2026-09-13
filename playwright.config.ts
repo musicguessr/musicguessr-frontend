@@ -13,6 +13,16 @@ import { defineConfig, devices } from '@playwright/test';
 // with no config that fixed it — not something to ship unverified. The
 // golden path this does cover (TAP TO PLAY -> reveal, see CLAUDE.md's iOS
 // autoplay section) is the higher-value target anyway.
+//
+// Three engines (Chromium/Firefox/WebKit), not just Chromium: the
+// this.player.loadVideoById crash that shipped to production happened on
+// real Firefox on Android, a browser this suite otherwise never touches.
+// These are Playwright's own upstream browser builds, though, not a
+// privacy-hardened fork — they won't reproduce fingerprinting-resistance
+// behavior (e.g. resistFingerprinting's canvas randomization, see
+// webcodecs-qr.ts) since that's an opt-in privacy setting, not the engine's
+// default. What this does catch is ordinary per-engine breakage: a DOM API
+// used slightly differently, a CSS property unsupported outside Chromium.
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -33,6 +43,14 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
 });
