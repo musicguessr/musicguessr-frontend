@@ -42,10 +42,40 @@ export class CreateDeckComponent implements OnInit {
   private seo = inject(SeoService);
 
   ngOnInit(): void {
+    // Same reasoning as landing.component.ts's origin() use — resolves to
+    // the real domain in-browser, a __SITE_URL__ placeholder the Docker
+    // entrypoint patches in at container start while prerendering.
+    const origin = this.seo.siteOrigin();
     this.seo.set({
       title: 'Create Deck',
       description:
         'Build your own music quiz deck from YouTube videos or playlists. Share it with friends via a link or QR code.',
+      breadcrumbs: [
+        { name: 'musicguessr', path: '/' },
+        { name: 'Create Deck', path: '/create-deck' },
+      ],
+      structuredData: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'musicguessr Custom Deck Creator',
+          url: `${origin}/create-deck`,
+          description:
+            'Build a custom music quiz deck from YouTube videos or an entire playlist, then share it with friends via a link or QR code.',
+          applicationCategory: 'GameApplication',
+          operatingSystem: 'Any',
+          isPartOf: {
+            '@type': 'WebApplication',
+            name: 'musicguessr',
+            url: origin,
+          },
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+          },
+        },
+      ],
     });
   }
 
