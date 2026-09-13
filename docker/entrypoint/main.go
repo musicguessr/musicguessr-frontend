@@ -26,6 +26,12 @@ import (
 // htmlDir is a var (not const) so tests can point it at a temp directory.
 var htmlDir = "/usr/share/nginx/html"
 
+// Set via -ldflags "-X main.gitCommit=..." at image build time (see
+// Dockerfile's GIT_COMMIT build arg and docker-build.yml, which passes
+// github.sha) — written into version.json alongside the container-start
+// buildDate below. A plain local build leaves this at "unknown".
+var gitCommit = "unknown"
+
 // Temp dirs referenced by nginx.conf's *_temp_path directives — nginx
 // requires the top-level directory to already exist; it only creates the
 // hashed subdirectories on demand. These live under /tmp, which may be a
@@ -72,6 +78,14 @@ func main() {
 		log.Fatalf("[entrypoint] failed to write config.json: %v", err)
 	}
 
+	// Computed once here (rather than separately down by the sitemap patch
+	// below) so version.json and sitemap.xml's <lastmod> agree on what
+	// "this build" means — the moment this container started.
+	buildDate := time.Now().UTC().Format("2006-01-02")
+	if err := writeVersionInfo(gitCommit, buildDate); err != nil {
+		log.Fatalf("[entrypoint] failed to write version.json: %v", err)
+	}
+
 	replacements := map[string]string{
 		"__SITE_URL__":            siteURL,
 		"__GOOGLE_VERIFICATION__": googleVerification,
@@ -102,8 +116,7 @@ func main() {
 	// container started rather than a value baked in at `ng build` time
 	// means it tracks actual deploys (a real proxy for "content might have
 	// changed") instead of drifting into a permanently stale date the day
-	// after the image was built.
-	buildDate := time.Now().UTC().Format("2006-01-02")
+	// after the image was built. (Computed once, above, alongside version.json.)
 	for _, name := range []string{"robots.txt", "sitemap.xml"} {
 		path := filepath.Join(htmlDir, name)
 		if err := patchPlaceholders(path, map[string]string{"__SITE_URL__": siteURL, "__BUILD_DATE__": buildDate}); err != nil {
@@ -196,6 +209,29 @@ func writeRuntimeConfig(apiURL, spotifyClientID, appleDevToken string) error {
 	}
 	path := filepath.Join(htmlDir, "config.json")
 	logf("writing runtime config to %s", path)
+	return os.WriteFile(path, data, 0o644)
+}
+
+type versionInfo struct {
+	Commit    string `json:"commit"`
+	BuildDate string `json:"buildDate"`
+}
+
+// writeVersionInfo overwrites version.json — the frontend equivalent of the
+// backend's /health commit/build_date fields, for confirming which image is
+// actually deployed. src/version.json ships a placeholder (same pattern as
+// config.json) so this file already exists in the image with the right
+// ownership from the Dockerfile's --chown COPY; the hardened nginx image's
+// html directory isn't writable enough to create a brand-new file here, only
+// to overwrite an existing one. Not part of the service worker's asset group
+// (same as robots.txt/sitemap.xml), so no ngsw.json rehash is needed for it.
+func writeVersionInfo(commit, buildDate string) error {
+	data, err := json.MarshalIndent(versionInfo{Commit: commit, BuildDate: buildDate}, "", "  ")
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(htmlDir, "version.json")
+	logf("writing version info to %s", path)
 	return os.WriteFile(path, data, 0o644)
 }
 

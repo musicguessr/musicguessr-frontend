@@ -37,6 +37,11 @@
                 "output": "/"
               },
               {
+                "glob": "version.json",
+                "input": "src",
+                "output": "/"
+              },
+              {
                 "glob": "manifest.webmanifest",
                 "input": "src",
                 "output": "/"

@@ -56,6 +56,24 @@ func TestWriteRuntimeConfig(t *testing.T) {
 	}
 }
 
+func TestWriteVersionInfo(t *testing.T) {
+	htmlDir = t.TempDir()
+	if err := writeVersionInfo("abc123", "2026-09-13"); err != nil {
+		t.Fatalf("writeVersionInfo: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(htmlDir, "version.json"))
+	if err != nil {
+		t.Fatalf("read version.json: %v", err)
+	}
+	var got versionInfo
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatalf("version.json is not valid JSON: %v\ncontent: %s", err, data)
+	}
+	if got.Commit != "abc123" || got.BuildDate != "2026-09-13" {
+		t.Errorf("round-tripped values don't match: %+v", got)
+	}
+}
+
 func TestPatchPlaceholders_MissingFileIsNotError(t *testing.T) {
 	htmlDir = t.TempDir()
 	err := patchPlaceholders(filepath.Join(htmlDir, "robots.txt"), map[string]string{"__SITE_URL__": "https://x.example"})

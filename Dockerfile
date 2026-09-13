@@ -36,7 +36,13 @@ WORKDIR /src
 COPY docker/entrypoint/go.mod ./
 RUN go mod download
 COPY docker/entrypoint/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /entrypoint .
+# Passed via --build-arg from docker-build.yml (github.sha) — written into
+# version.json at container start (see main.go's writeVersionInfo). Left at
+# its Go zero-value default ("unknown") for a plain local build.
+ARG GIT_COMMIT=unknown
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -X main.gitCommit=${GIT_COMMIT}" \
+    -trimpath -o /entrypoint .
 
 # Stage 3: runtime — hardened nginx, no shell.
 FROM registry.access.redhat.com/hi/nginx:1.30
