@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Actions are pinned to commit SHAs; Dependabot bumps the SHA and the
+  # trailing "# vX.Y.Z" comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # Angular packages have to move in lockstep (core, cli, build, ssr, ...),
+  # so they're one grouped PR instead of a dozen that each fail CI alone.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'zone.js', 'typescript']
+      dev-tooling:
+        dependency-type: development
+        exclude-patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'typescript']
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

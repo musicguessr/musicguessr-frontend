@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,10 @@ import (
 
 // htmlDir is a var (not const) so tests can point it at a temp directory.
 var htmlDir = "/usr/share/nginx/html"
+
+// cspConfPath is the nginx include carrying the CSP, whose
+// connect-src/report-uri need the API origin filled in at start.
+var cspConfPath = "/etc/nginx/csp.conf"
 
 // Set via -ldflags "-X main.gitCommit=..." at image build time (see
 // Dockerfile's GIT_COMMIT build arg and docker-build.yml, which passes
@@ -112,6 +117,20 @@ func main() {
 		}
 		patched = append(patched, path)
 	}
+	// ga.js is the Google Analytics loader — an external file rather than an
+	// inline <script> so the Content-Security-Policy needs no inline scripts.
+	gaPath := filepath.Join(htmlDir, "ga.js")
+	if err := patchPlaceholders(gaPath, map[string]string{"__GA_MEASUREMENT_ID__": gaMeasurementID}); err != nil {
+		log.Fatalf("[entrypoint] failed to patch ga.js: %v", err)
+	}
+	patched = append(patched, gaPath)
+
+	// Not fatal: an unpatched placeholder is an invalid CSP source that
+	// browsers ignore, so same-origin API calls keep working either way.
+	if err := patchPlaceholders(cspConfPath, map[string]string{"__API_ORIGIN__": apiOrigin(apiURL)}); err != nil {
+		logf("WARNING: failed to patch %s: %v", cspConfPath, err)
+	}
+
 	// __BUILD_DATE__ backs sitemap.xml's <lastmod> — using the moment this
 	// container started rather than a value baked in at `ng build` time
 	// means it tracks actual deploys (a real proxy for "content might have
@@ -149,6 +168,18 @@ func normalizeAPIURL(raw string) string {
 		return raw
 	}
 	return "http://" + raw
+}
+
+// apiOrigin reduces a normalized API URL to the scheme://host[:port] form a
+// CSP source expression needs (paths aren't allowed in report-uri's base and
+// would over-restrict connect-src). Falls back to 'self' for anything
+// unparseable, which is still a valid source.
+func apiOrigin(apiURL string) string {
+	u, err := url.Parse(apiURL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return "'self'"
+	}
+	return u.Scheme + "://" + u.Host
 }
 
 // normalizeSiteURL mirrors the previous entrypoint.sh: default to

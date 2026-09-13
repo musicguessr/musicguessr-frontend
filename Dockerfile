@@ -48,6 +48,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 FROM registry.access.redhat.com/hi/nginx:1.30
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/security-headers.conf /etc/nginx/security-headers.conf
+# Owned by the runtime user: the entrypoint fills in the CSP's __API_ORIGIN__
+# placeholder (overwriting an existing file works in this image; creating one
+# doesn't — same reason as config.json/version.json).
+COPY --chown=65532:65532 nginx/csp.conf /etc/nginx/csp.conf
 COPY --from=build --chown=65532:65532 /app/dist/frontend/browser /usr/share/nginx/html
 COPY --from=entrypoint-build --chown=65532:65532 --chmod=0755 /entrypoint /entrypoint
 EXPOSE 8080
