@@ -11,7 +11,7 @@
   </header>
 
   <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
-  <section aria-label="Introduction" class="hero">
+  <section class="hero">
     <div class="hero-eyebrow">{{ i18n.t('landing.heroEyebrow') }}</div>
     <h1 class="hero-title">
       {{ i18n.t('landing.heroTitleLine1') }} <br /><span class="hero-accent">{{
@@ -29,7 +29,7 @@
   </section>
 
   <!-- ── How it works ───────────────────────────────────────────────────────── -->
-  <section aria-label="How it works" class="section steps-section" id="how-it-works">
+  <section class="section steps-section" id="how-it-works">
     <h2 class="section-heading">{{ i18n.t('landing.stepsHeading') }}</h2>
     <ol class="steps-list">
       <li class="step-item">
@@ -65,7 +65,7 @@
   </section>
 
   <!-- ── Music services ─────────────────────────────────────────────────────── -->
-  <section aria-label="Supported music services" class="section providers-section">
+  <section class="section providers-section">
     <h2 class="section-heading">{{ i18n.t('landing.providersHeading') }}</h2>
     <div class="provider-cards">
       <div class="provider-card provider-yt">
@@ -94,7 +94,7 @@
   </section>
 
   <!-- ── Why musicguessr ────────────────────────────────────────────────────── -->
-  <section aria-label="Why use musicguessr" class="section why-section">
+  <section class="section why-section">
     <h2 class="section-heading">{{ i18n.t('landing.whyHeading') }}</h2>
     <ul class="why-list">
       <li>
@@ -126,7 +126,7 @@
   </section>
 
   <!-- ── Custom decks ───────────────────────────────────────────────────────── -->
-  <section aria-label="Custom decks" class="section decks-section">
+  <section class="section decks-section">
     <h2 class="section-heading">{{ i18n.t('landing.decksHeading') }}</h2>
     <p class="section-sub">{{ i18n.t('landing.decksDesc') }}</p>
     <div class="deck-feature-row">
@@ -151,7 +151,7 @@
   </section>
 
   <!-- ── FAQ preview ────────────────────────────────────────────────────────── -->
-  <section aria-label="Common questions" class="section faq-preview-section">
+  <section class="section faq-preview-section">
     <h2 class="section-heading">{{ i18n.t('landing.faqHeading') }}</h2>
     <dl class="faq-preview-list">
       <div class="faq-item">
@@ -171,7 +171,7 @@
   </section>
 
   <!-- ── Footer CTA ─────────────────────────────────────────────────────────── -->
-  <section aria-label="Get started" class="footer-cta">
+  <section class="footer-cta">
     <h2 class="footer-cta-title">{{ i18n.t('landing.footerCtaTitle') }}</h2>
     <p class="footer-cta-sub">{{ i18n.t('landing.footerCtaSub') }}</p>
     <a class="btn btn-primary" [routerLink]="'/play' | localize">{{ i18n.t('landing.startPlaying') }}</a>

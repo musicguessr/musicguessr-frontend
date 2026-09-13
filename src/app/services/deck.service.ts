@@ -1,5 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { ConfigService } from './config.service';
+import { TranslationService } from '../i18n/translation.service';
+import { localizeBackendError } from '../i18n/backend-error';
 
 export type DeckTTL = '1week' | '1month' | '3months' | '6months' | '1year';
 
@@ -59,6 +61,7 @@ type LocalDeckEntry = {
 @Injectable({ providedIn: 'root' })
 export class DeckService {
   private config = inject(ConfigService);
+  private i18n = inject(TranslationService);
 
   private get apiUrl(): string {
     return this.config.apiUrl;
@@ -68,7 +71,7 @@ export class DeckService {
     const res = await fetch(`${this.apiUrl}/api/deck/validate-yt?url=${encodeURIComponent(url)}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      return { valid: false, error: err.error ?? `HTTP ${res.status}` };
+      return { valid: false, error: localizeBackendError(this.i18n, err.error) };
     }
     return res.json();
   }
@@ -81,7 +84,7 @@ export class DeckService {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(err.error ?? `HTTP ${res.status}`);
+      throw new Error(localizeBackendError(this.i18n, err.error));
     }
     return res.json();
   }
@@ -90,7 +93,7 @@ export class DeckService {
     const res = await fetch(`${this.apiUrl}/api/deck/import-playlist?url=${encodeURIComponent(url)}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      throw new Error(err.error ?? `HTTP ${res.status}`);
+      throw new Error(localizeBackendError(this.i18n, err.error));
     }
     return res.json();
   }
@@ -99,21 +102,21 @@ export class DeckService {
     // The id comes from the URL — unencoded, "/deck/..%2Fresolve" reached a
     // different API endpoint and its response was treated as a deck.
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
-      throw new Error('Deck not found');
+      throw new Error(this.i18n.t('errors.deckNotFound'));
     }
     const res = await fetch(`${this.apiUrl}/api/deck/${encodeURIComponent(id)}`);
     if (res.status === 404) {
-      throw new Error('Deck not found');
+      throw new Error(this.i18n.t('errors.deckNotFound'));
     }
     if (res.status === 410) {
-      throw new Error('Deck has expired');
+      throw new Error(this.i18n.t('errors.deckExpired'));
     }
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+      throw new Error(this.i18n.t('errors.server'));
     }
     const deck = await res.json();
     if (!Array.isArray(deck?.cards)) {
-      throw new Error('Invalid deck data');
+      throw new Error(this.i18n.t('errors.server'));
     }
     return deck;
   }

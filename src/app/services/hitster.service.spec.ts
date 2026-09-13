@@ -74,6 +74,7 @@ describe('HitsterService', () => {
     const req = httpMock.expectOne((r) => r.url.includes('/api/resolve'));
     req.flush({ error: 'card not found', spotify_id: '', spotify_url: '', links: {} });
 
-    await expect(promise).rejects.toThrow('card not found');
+    // The backend's English text is mapped to a translated, user-facing message.
+    await expect(promise).rejects.toThrow("We couldn't find this card");
   });
 });

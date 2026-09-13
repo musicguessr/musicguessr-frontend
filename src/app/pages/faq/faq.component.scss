@@ -11,7 +11,8 @@
 
 .heading {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  // Same page-title size on every content page (faq, how-to-play, create-deck, deck list, 404).
+  font-size: clamp(2rem, 7vw, 2.4rem);
   letter-spacing: 1.5px;
   color: var(--text);
   margin-bottom: 12px;
@@ -90,5 +91,5 @@
   width: auto;
   display: inline-flex;
   padding: 12px 24px;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }

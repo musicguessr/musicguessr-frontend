@@ -44,7 +44,7 @@
           @if (isCustomMode() && customProgress(); as p) {
             <span class="progress-badge">{{ p.current }} / {{ p.total }}</span>
           }
-          <div class="provider-badge"><span class="p-dot"></span>{{ provider() | titlecase }}</div>
+          <div class="provider-badge"><span class="p-dot"></span>{{ provider() | providerName }}</div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
+import { TranslationService } from '../i18n/translation.service';
 
 declare global {
   interface Window {
@@ -18,6 +19,7 @@ export class AppleMusicService {
 
   private config = inject(ConfigService);
   private state = inject(GameStateService);
+  private i18n = inject(TranslationService);
 
   private kitLoadPromise: Promise<void> | null = null;
   private configurePromise: Promise<void> | null = null;
@@ -35,7 +37,7 @@ export class AppleMusicService {
       const s = document.createElement('script');
       s.src = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
       s.onload = (): void => resolve();
-      s.onerror = (): void => reject(new Error('Failed to load MusicKit'));
+      s.onerror = (): void => reject(new Error(this.i18n.t('errors.appleLoadFailed')));
       document.head.appendChild(s);
     }).finally(() => {
       this.kitLoadPromise = null;
@@ -56,7 +58,7 @@ export class AppleMusicService {
 
     const devToken = this.config.appleDevToken;
     if (!devToken) {
-      this.error.set('Apple developer token not configured');
+      this.error.set(this.i18n.t('errors.appleLoadFailed'));
       return;
     }
 
@@ -90,7 +92,7 @@ export class AppleMusicService {
       await this.init();
     }
     if (!this.music) {
-      throw new Error('MusicKit not initialized');
+      throw new Error(this.i18n.t('errors.appleLoadFailed'));
     }
 
     const userToken = await this.music.authorize();
@@ -103,7 +105,7 @@ export class AppleMusicService {
   // can be called synchronously inside a user gesture without any preceding awaits.
   async preloadTrack(artist: string, title: string): Promise<void> {
     if (!this.music) {
-      throw new Error('MusicKit not ready');
+      throw new Error(this.i18n.t('errors.appleLoadFailed'));
     }
     const query = encodeURIComponent(`${artist} ${title}`);
     const result = await this.music.api.music(
@@ -112,7 +114,7 @@ export class AppleMusicService {
     );
     const songs = result?.data?.results?.songs?.data;
     if (!songs?.length) {
-      throw new Error('Track not found on Apple Music');
+      throw new Error(this.i18n.t('errors.appleNotFound'));
     }
     await this.music.setQueue({ song: songs[0].id });
   }
@@ -122,7 +124,7 @@ export class AppleMusicService {
   // Queue must be pre-loaded via preloadTrack() before this is called.
   async play(): Promise<void> {
     if (!this.music) {
-      throw new Error('MusicKit not ready');
+      throw new Error(this.i18n.t('errors.appleLoadFailed'));
     }
     await this.music.play();
     this.isPlaying.set(true);

@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { ClientErrorReporterService } from './client-error-reporter.service';
+import { TranslationService } from '../i18n/translation.service';
 
 declare global {
   interface Window {
@@ -28,17 +29,6 @@ const API_LOAD_TIMEOUT_MS = 8000;
 // strict privacy improvement for every user, not just a workaround.
 const YT_PLAYER_HOST = 'https://www.youtube-nocookie.com';
 
-// Shared across all three failure points below so the wording a user
-// actually sees is consistent regardless of which one fired — confirmed
-// (via real device testing, both youtube.com and the nocookie domain above)
-// to come from strict browser/network-level blocking of Google's video
-// domains, not an app bug. Leads with the actionable part (what tapping
-// does) rather than the diagnostic detail, which still gets attached
-// separately as the request ID/context on the error report for anyone who
-// wants to dig further — see the FAQ entry on this.
-const YOUTUBE_BLOCKED_MESSAGE =
-  'YouTube appears to be blocked by your browser or network settings — tap to open this track in YouTube Music instead.';
-
 @Injectable({ providedIn: 'root' })
 export class YoutubePlayerService {
   readonly isPlaying = signal(false);
@@ -46,6 +36,20 @@ export class YoutubePlayerService {
   readonly error = signal<string | null>(null);
 
   private reporter = inject(ClientErrorReporterService);
+  private i18n = inject(TranslationService);
+
+  // Shared across every failure point so the wording is consistent no matter
+  // which one fired — confirmed on real devices to come from browser/network
+  // blocking of Google's video domains, not an app bug. Leads with the
+  // actionable part (what tapping does); see the FAQ entry on this.
+  private blockedMessage(): string {
+    return this.i18n.t('errors.ytBlocked');
+  }
+
+  noVideoMessage(): string {
+    return this.i18n.t('errors.ytNoVideo');
+  }
+
   // Set by the caller (see prepare-player.ts) right before loadAPI()/
   // preloadPlayer() so reportBlocked() can tie its report back to the
   // /api/resolve call this card came from.
@@ -78,7 +82,7 @@ export class YoutubePlayerService {
     const promise = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.reportBlocked('iframe_api script timed out');
-        reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
+        reject(new Error(this.blockedMessage()));
       }, API_LOAD_TIMEOUT_MS);
 
       window.onYouTubeIframeAPIReady = (): void => {
@@ -95,7 +99,7 @@ export class YoutubePlayerService {
         s.onerror = (): void => {
           clearTimeout(timeout);
           this.reportBlocked('iframe_api script onerror');
-          reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
+          reject(new Error(this.blockedMessage()));
         };
         document.head.appendChild(s);
       } else if (window.YT?.Player) {
@@ -153,7 +157,7 @@ export class YoutubePlayerService {
         }
         this.reportBlocked('player embed timed out');
         this.player = null;
-        reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
+        reject(new Error(this.blockedMessage()));
       }, API_LOAD_TIMEOUT_MS);
 
       // setTimeout(0) ensures Angular change detection has rendered the container
@@ -299,16 +303,16 @@ export class YoutubePlayerService {
   private describeError(code: number | undefined): string {
     switch (code) {
       case 2:
-        return 'Invalid YouTube video';
+        return this.i18n.t('errors.ytInvalid');
       case 5:
-        return 'This video cannot be played in the HTML5 player';
+        return this.i18n.t('errors.ytUnplayable');
       case 100:
-        return 'Video not found or has been removed';
+        return this.i18n.t('errors.ytRemoved');
       case 101:
       case 150:
-        return 'Video owner does not allow embedded playback';
+        return this.i18n.t('errors.ytNoEmbed');
       default:
-        return 'YouTube playback failed';
+        return this.i18n.t('errors.ytFailed');
     }
   }
 

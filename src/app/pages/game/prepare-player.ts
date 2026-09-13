@@ -47,7 +47,7 @@ async function prepareYoutube(
   ytPlayer.error.set(null);
   ytPlayer.setRequestId(track?.request_id ?? null);
   if (!ytId) {
-    return { ready: true, error: 'No YouTube video available for this card' };
+    return { ready: true, error: ytPlayer.noVideoMessage() };
   }
   try {
     await ytPlayer.loadAPI();

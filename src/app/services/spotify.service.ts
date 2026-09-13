@@ -95,7 +95,7 @@ export class SpotifyService {
   async handleCallback(code: string): Promise<void> {
     const verifier = sessionStorage.getItem('pkce_verifier');
     if (!verifier) {
-      throw new Error('Missing PKCE verifier');
+      throw new Error(this.i18n.t('callback.errTokenExchange'));
     }
 
     const data = await requestToken({
@@ -106,7 +106,7 @@ export class SpotifyService {
       code_verifier: verifier,
     });
     if (!data) {
-      throw new Error('Token exchange failed');
+      throw new Error(this.i18n.t('callback.errTokenExchange'));
     }
     this.state.setSpotifyToken(data.access_token, data.refresh_token, data.expires_in);
     sessionStorage.removeItem('pkce_verifier');
@@ -151,7 +151,7 @@ export class SpotifyService {
       // that fires no listener below) left TAP TO PLAY on LOADING… forever.
       const timeout = setTimeout(() => {
         this.reportIssue('Spotify Web Playback SDK not ready before timeout', 'spotify-init-timeout');
-        rejectRaw(new Error('Spotify player did not load — check your connection or content blocker.'));
+        rejectRaw(new Error(this.i18n.t('errors.spotifyLoadFailed')));
       }, SDK_READY_TIMEOUT_MS);
       const resolve = (): void => {
         clearTimeout(timeout);
@@ -170,7 +170,7 @@ export class SpotifyService {
           token = ok ? this.state.getSpotifyToken() : null;
         }
         if (!token) {
-          reject(new Error('No Spotify token'));
+          reject(new Error(this.i18n.t('errors.spotifySessionExpired')));
           return;
         }
 
@@ -190,7 +190,7 @@ export class SpotifyService {
               if (!t) {
                 const ok = await this.refreshToken();
                 if (!ok) {
-                  this.error.set('Session expired, please reconnect Spotify');
+                  this.error.set(this.i18n.t('errors.spotifySessionExpired'));
                   // Must always call cb(), even on failure — otherwise the SDK's
                   // internal auth promise hangs forever instead of surfacing an error.
                   cb('');
@@ -226,7 +226,7 @@ export class SpotifyService {
             // treats this specific message as non-fatal and falls back to
             // Spotify Connect, but we still want a trace of how often this
             // path is actually hit and on which browsers.
-            this.error.set(`Spotify not supported on this browser: ${message}`);
+            this.error.set(this.i18n.t('errors.spotifyUnsupported'));
             this.reportIssue(`Spotify Web Playback SDK initialization_error: ${message}`, 'spotify-init-unsupported');
             // Don't leave a half-constructed player behind — otherwise the
             // `if (this.player) return Promise.resolve()` guard above would
@@ -236,7 +236,7 @@ export class SpotifyService {
           });
 
           this.player.addListener('authentication_error', ({ message }: any) => {
-            this.error.set('Spotify authentication error');
+            this.error.set(this.i18n.t('errors.spotifyAuth'));
             this.reportIssue(`Spotify Web Playback SDK authentication_error: ${message}`, 'spotify-auth-error');
             this.player = null;
             reject(new Error(message));
@@ -244,10 +244,10 @@ export class SpotifyService {
 
           // Fired for accounts without Premium, and never followed by 'ready'.
           this.player.addListener('account_error', ({ message }: any) => {
-            this.error.set('Spotify Premium is required for in-browser playback');
+            this.error.set(this.i18n.t('errors.spotifyPremium'));
             this.reportIssue(`Spotify Web Playback SDK account_error: ${message}`, 'spotify-account-error');
             this.player = null;
-            reject(new Error('Spotify Premium is required for in-browser playback'));
+            reject(new Error(this.i18n.t('errors.spotifyPremium')));
           });
 
           this.player.addListener('playback_error', ({ message }: any) => {
@@ -289,7 +289,7 @@ export class SpotifyService {
       token = ok ? this.state.getSpotifyToken() : null;
     }
     if (!token) {
-      throw new Error('Spotify not ready');
+      throw new Error(this.i18n.t('errors.spotifyNotReady'));
     }
 
     // No local Web Playback SDK device — this is the normal case on iOS
@@ -320,7 +320,7 @@ export class SpotifyService {
     const target = pickTargetDevice(devices);
     if (!target) {
       this.reportIssue(`Spotify Connect found no devices (${devices.length} total)`, 'spotify-connect-no-device');
-      throw new Error('Open the Spotify app on your phone, then tap play again.');
+      throw new Error(this.i18n.t('errors.spotifyOpenApp'));
     }
 
     const resp = await playOnDevice(token, target.id, spotifyId);
@@ -338,15 +338,15 @@ export class SpotifyService {
       // Token was rejected server-side (e.g. access revoked) — clear it so
       // hasAuth()/getSpotifyToken() stop reporting a dead token as valid.
       this.state.clearSpotifyToken();
-      throw new Error('Spotify session expired, please reconnect');
+      throw new Error(this.i18n.t('errors.spotifySessionExpired'));
     }
     if (status === 403) {
-      throw new Error('Spotify Premium required');
+      throw new Error(this.i18n.t('errors.spotifyPremium'));
     }
     if (status === 429) {
-      throw new Error('Too many requests, try again in a moment');
+      throw new Error(this.i18n.t('errors.rateLimited'));
     }
-    throw new Error(`Spotify error ${status}`);
+    throw new Error(this.i18n.t('game.errSpotifyPlaybackFailed'));
   }
 
   // Pauses the local SDK player, or else the Connect device playback was handed

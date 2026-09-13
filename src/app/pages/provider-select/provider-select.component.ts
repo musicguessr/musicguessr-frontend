@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { ProviderNamePipe } from '../../shared/provider-name.pipe';
 import { FormsModule } from '@angular/forms';
 import { GameStateService, Provider, VideoBlur } from '../../services/game-state.service';
 import { SpotifyService } from '../../services/spotify.service';
@@ -27,7 +27,7 @@ type ProviderOption = {
 @Component({
   selector: 'app-provider-select',
   standalone: true,
-  imports: [TitleCasePipe, RouterLink, FormsModule, LanguageSwitcherComponent, LocalizePathPipe],
+  imports: [ProviderNamePipe, RouterLink, FormsModule, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './provider-select.component.html',
   styleUrl: './provider-select.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,32 +1,10 @@
-.page {
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
-  padding: 0 1rem 4rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 0 1rem;
-}
-
-.logo {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.heading-sub {
-  font-size: 1rem;
-  opacity: 0.5;
-}
-
+// Page/header/logo come from the global styles, same as every other page.
 .content {
+  // Without an explicit width the flex-centered .page sized this to its
+  // max-width, so on a 390px phone long song titles pushed it to 480px.
+  width: 100%;
   max-width: 480px;
-  margin: 0 auto;
+  margin: 24px auto 0;
 
   @media (min-width: 640px) {
     max-width: 640px;
@@ -75,7 +53,6 @@
 .play-btn {
   width: 100%;
   margin-bottom: 1.5rem;
-  font-size: 1rem;
 }
 
 /* Share section */
@@ -119,8 +96,9 @@
   color: #000;
   border: none;
   border-radius: 5px;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.75rem;
+  min-height: 36px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
   white-space: nowrap;
 }

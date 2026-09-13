@@ -1,11 +1,11 @@
 <div class="page">
   <div class="page-header">
     <a class="logo" [routerLink]="'/' | localize">{{ i18n.t('common.logo') }}</a>
-    <span class="heading-sub">{{ i18n.t('deckList.headerSub') }}</span>
     <app-language-switcher />
   </div>
 
   <div class="content">
+    <h1 class="page-title">{{ i18n.t('deckList.headerSub') }}</h1>
     @if (entries.length === 0) {
       <div class="empty-state">
         <p>{{ i18n.t('deckList.empty') }}</p>

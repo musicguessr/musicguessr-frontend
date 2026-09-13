@@ -40,6 +40,8 @@
   gap: 20px;
 
   a {
+    display: inline-block;
+    padding: 10px 0;
     font-size: 0.8rem;
     color: var(--muted);
     text-decoration: none;
@@ -52,15 +54,15 @@
     }
   }
 
-  // Below ~400px the logo + all 3 links no longer fit on one line at the
-  // default size — without this, individual link labels ("How to play",
-  // "Create deck") wrap mid-phrase onto two lines instead of the row
-  // shrinking, which reads as broken rather than compact.
-  @media (max-width: 400px) {
-    gap: 10px;
-
-    a {
-      font-size: 0.7rem;
+  // Below 640px the page content is at most 448px wide, and logo + three
+  // links + language pill don't fit in every locale: on a 390px iPhone the
+  // Dutch labels pushed the language switcher fully off-screen (unreachable),
+  // and German/English clipped it on narrower phones. On mobile the header
+  // is logo + language pill like every other page; each link's destination
+  // is still reachable from the page itself (hero, sections, footer).
+  @media (max-width: 639px) {
+    > a {
+      display: none;
     }
   }
 }
@@ -114,7 +116,7 @@
 }
 
 .cta-secondary {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .hero-note {
@@ -148,7 +150,8 @@
 
 .link-more {
   display: inline-block;
-  margin-top: 20px;
+  margin-top: 10px;
+  padding: 10px 0;
   font-size: 0.85rem;
   color: var(--accent);
   text-decoration: none;
@@ -389,6 +392,8 @@
   border-top: 1px solid var(--border);
 
   a {
+    display: inline-block;
+    padding: 10px 4px;
     font-size: 0.78rem;
     color: rgba(255, 255, 255, 0.3);
     text-decoration: none;

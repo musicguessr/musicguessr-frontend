@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { ConfigService } from './config.service';
 import { TrackInfo } from './game-state.service';
 import { SessionIdService } from './session-id.service';
+import { TranslationService } from '../i18n/translation.service';
+import { localizeBackendError } from '../i18n/backend-error';
 
 // Transient failures worth a couple of quick retries before giving up: 0
 // means the request never reached the server at all (a flaky mobile network
@@ -25,6 +27,7 @@ export class HitsterService {
   private http = inject(HttpClient);
   private config = inject(ConfigService);
   private sessionId = inject(SessionIdService);
+  private i18n = inject(TranslationService);
 
   async resolve(qrUrl: string, ytVariants = true): Promise<TrackInfo> {
     let url = `${this.config.apiUrl}/api/resolve?url=${encodeURIComponent(qrUrl)}`;
@@ -38,7 +41,7 @@ export class HitsterService {
       try {
         const data = await firstValueFrom(this.http.get<TrackInfo & { error?: string }>(url, { headers }));
         if (data.error) {
-          throw new Error(data.error);
+          throw new Error(localizeBackendError(this.i18n, data.error));
         }
         return data;
       } catch (e) {
@@ -49,9 +52,9 @@ export class HitsterService {
             continue;
           }
           if (e.status === 0) {
-            throw new Error("Can't reach the server. Check your connection and try again.", { cause: e });
+            throw new Error(this.i18n.t('errors.network'), { cause: e });
           }
-          throw new Error(e.error?.error || `Server error (${e.status}). Please try again.`, { cause: e });
+          throw new Error(localizeBackendError(this.i18n, e.error?.error), { cause: e });
         }
         throw e;
       }

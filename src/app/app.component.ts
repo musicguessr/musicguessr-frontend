@@ -133,7 +133,8 @@ import { LocaleSuggestionService } from './i18n/locale-suggestion.service';
       }
       .locale-banner-switch {
         flex-shrink: 0;
-        padding: 6px 14px;
+        height: 32px;
+        padding: 0 14px;
         border: none;
         border-radius: 999px;
         background: var(--accent);
@@ -144,8 +145,8 @@ import { LocaleSuggestionService } from './i18n/locale-suggestion.service';
       }
       .locale-banner-dismiss {
         flex-shrink: 0;
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
         border: none;
         border-radius: 50%;
         background: transparent;

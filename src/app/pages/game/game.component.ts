@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { ProviderNamePipe } from '../../shared/provider-name.pipe';
 import { GameStateService, TrackInfo } from '../../services/game-state.service';
 import { YoutubePlayerService } from '../../services/youtube-player.service';
 import { SpotifyService } from '../../services/spotify.service';
@@ -28,7 +28,7 @@ import { localizedPath } from '../../i18n/locale';
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [TitleCasePipe],
+  imports: [ProviderNamePipe],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

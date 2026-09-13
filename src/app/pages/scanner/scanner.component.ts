@@ -9,7 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { TitleCasePipe } from '@angular/common';
+import { ProviderNamePipe } from '../../shared/provider-name.pipe';
 import jsQR from 'jsqr';
 import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
@@ -30,7 +30,7 @@ const SCAN_STUCK_MS = 10_000;
 @Component({
   selector: 'app-scanner',
   standalone: true,
-  imports: [TitleCasePipe, LanguageSwitcherComponent],
+  imports: [ProviderNamePipe, LanguageSwitcherComponent],
   templateUrl: './scanner.component.html',
   styleUrl: './scanner.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

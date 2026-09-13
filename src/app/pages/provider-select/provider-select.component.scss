@@ -408,7 +408,8 @@
 
 .custom-deck-btn {
   white-space: nowrap;
-  padding: 0.6rem 1rem;
+  padding: 0.55rem 1rem;
+  font-size: 1rem;
 }
 
 .custom-deck-error {
@@ -425,6 +426,8 @@
 }
 
 .link-subtle {
+  display: inline-block;
+  padding: 10px 4px;
   color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
 

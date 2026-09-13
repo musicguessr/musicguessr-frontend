@@ -37,7 +37,7 @@ import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
       }
       .not-found h1 {
         font-family: var(--font-display);
-        font-size: 2.4rem;
+        font-size: clamp(2rem, 7vw, 2.4rem);
         margin: 0;
       }
       .not-found p {

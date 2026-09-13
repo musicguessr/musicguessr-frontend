@@ -1,32 +1,8 @@
-.page {
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
-  padding: 0 1rem 4rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 0 1rem;
-}
-
-.logo {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.heading-sub {
-  font-size: 1rem;
-  opacity: 0.5;
-}
-
+// Page/header/logo come from the global styles, same as every other page.
 .content {
+  width: 100%;
   max-width: 640px;
-  margin: 0 auto;
+  margin: 24px auto 0;
 
   @media (min-width: 640px) {
     max-width: 760px;
@@ -35,10 +11,11 @@
 
 .builder-heading {
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  letter-spacing: 1px;
+  font-size: clamp(2rem, 7vw, 2.4rem);
+  letter-spacing: 1.5px;
+  line-height: 1.05;
   color: var(--text);
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
 .builder-sub {
@@ -77,7 +54,9 @@
   align-items: center;
   gap: 0.4rem;
   min-width: 80px;
-  padding: 0.5rem 1rem;
+  // Same as provider-select's .custom-deck-btn — the other input-adjacent button.
+  padding: 0.55rem 1rem;
+  font-size: 1rem;
   justify-content: center;
 }
 
@@ -202,6 +181,8 @@
   color: #555;
   font-size: 1.2rem;
   cursor: pointer;
+  min-width: 36px;
+  min-height: 36px;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   align-self: flex-start;
@@ -239,7 +220,8 @@
   border: 1px solid #2a2a2a;
   color: var(--text);
   border-radius: 6px;
-  padding: 0.4rem 0.75rem;
+  min-height: 36px;
+  padding: 0.45rem 0.85rem;
   font-size: 0.8rem;
   cursor: pointer;
 
@@ -303,7 +285,8 @@
   color: #000;
   border: none;
   border-radius: 5px;
-  padding: 0.35rem 0.75rem;
+  min-height: 36px;
+  padding: 0.45rem 0.9rem;
   font-size: 0.8rem;
   cursor: pointer;
   white-space: nowrap;

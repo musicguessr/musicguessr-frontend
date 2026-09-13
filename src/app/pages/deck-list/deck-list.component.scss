@@ -1,32 +1,17 @@
-.page {
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
-  padding: 0 1rem 4rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 0 1rem;
-}
-
-.logo {
+// Page/header/logo come from the global styles, same as every other page.
+.page-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.heading-sub {
-  font-size: 1rem;
-  opacity: 0.5;
+  font-size: clamp(2rem, 7vw, 2.4rem);
+  letter-spacing: 1.5px;
+  line-height: 1.05;
+  color: var(--text);
+  margin-bottom: 16px;
 }
 
 .content {
+  width: 100%;
   max-width: 480px;
-  margin: 0 auto;
+  margin: 24px auto 0;
 
   @media (min-width: 640px) {
     max-width: 640px;

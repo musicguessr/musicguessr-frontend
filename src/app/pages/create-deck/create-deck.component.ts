@@ -17,6 +17,7 @@ import { TranslationService } from '../../i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
 import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
 import { localizedPath } from '../../i18n/locale';
+import { localizeBackendError } from '../../i18n/backend-error';
 import QRCodeStyling from 'qr-code-styling';
 
 type CardRow = {
@@ -172,7 +173,7 @@ export class CreateDeckComponent implements OnInit {
         this.updateCard(i, {
           validating: false,
           valid: false,
-          error: res.error ?? this.i18n.t('createDeck.errInvalidVideo'),
+          error: res.error ? localizeBackendError(this.i18n, res.error) : this.i18n.t('createDeck.errInvalidVideo'),
         });
       }
     } catch {

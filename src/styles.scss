@@ -22,10 +22,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
-body {
-  height: 100%;
+// overflow-x on both html and body (with body at height:100%) made <body> the
+// scroll container instead of the viewport: the window never scrolled, the
+// mobile address bar couldn't collapse, and full-page rendering stopped at
+// one screen height. On html it propagates to the viewport; `clip` on body
+// cuts stray horizontal overflow without creating a scroll container.
+html {
   overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -138,6 +146,9 @@ select {
 .gh-link {
   display: flex;
   align-items: center;
+  // Bigger tap target without changing the icon's visual position.
+  padding: 7px;
+  margin: -7px;
   color: var(--muted);
   text-decoration: none;
   opacity: 0.6;

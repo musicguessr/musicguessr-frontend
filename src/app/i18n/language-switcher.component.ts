@@ -65,7 +65,8 @@ import { LocaleSuggestionService } from './locale-suggestion.service';
         display: flex;
         align-items: center;
         gap: 5px;
-        padding: 5px 10px;
+        min-height: 36px;
+        padding: 6px 12px;
         border: 1px solid var(--border, #2a2a2a);
         border-radius: 999px;
         background: transparent;
@@ -102,7 +103,7 @@ import { LocaleSuggestionService } from './locale-suggestion.service';
         display: none;
       }
       .lang-option {
-        padding: 8px 10px;
+        padding: 10px 12px;
         border-radius: 8px;
         color: var(--text, #fff);
         font-size: 0.85rem;

@@ -16,7 +16,7 @@
       <div class="locked-card card">
         <div class="locked-icon">🔒</div>
         <p class="locked-label">{{ i18n.t('providerSelect.lockedLabel') }}</p>
-        <p class="locked-provider">{{ currentProvider | titlecase }}</p>
+        <p class="locked-provider">{{ currentProvider | providerName }}</p>
         @if (currentProvider === 'spotify' && isIOS) {
           <div class="ios-spotify-notice">
             <p>{{ i18n.t('providerSelect.iosSpotifyNotice') }}</p>
@@ -37,14 +37,14 @@
       </div>
     </div>
   } @else {
-    <section aria-label="Introduction" class="hero">
+    <section class="hero">
       <h1 class="hero-title">
         {{ i18n.t('providerSelect.heroTitlePrefix')
         }}<span class="hero-accent">{{ i18n.t('providerSelect.heroTitleAccent') }}</span
         ><br />{{ i18n.t('providerSelect.heroTitleSuffix') }}
       </h1>
       <p class="hero-desc">{{ i18n.t('providerSelect.heroDesc') }}</p>
-      <ol aria-label="How it works" class="steps">
+      <ol class="steps" [attr.aria-label]="i18n.t('landing.stepsHeading')">
         <li class="step">
           <span class="step-icon">📷</span>
           <span class="step-label">{{ i18n.t('providerSelect.scanCardStep') }}</span>

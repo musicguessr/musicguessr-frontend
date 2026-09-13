@@ -368,7 +368,8 @@ $actions-bar-space: 232px;
 .stream-btn {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
+  min-height: 36px;
+  padding: 8px 14px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-family: var(--font-body);
@@ -537,13 +538,15 @@ $actions-bar-space: 232px;
 
 .actions {
   width: 100%;
-  max-width: 480px;
+  // The .page content box (max-width minus its side padding), so the pinned
+  // buttons line up with the card above instead of overhanging it.
+  max-width: 448px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 
   @media (min-width: 640px) {
-    max-width: 640px;
+    max-width: 592px;
   }
 
   // Reveal/hide toggle uses the shared .btn-secondary look, with an accent
