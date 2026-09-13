@@ -1,17 +1,21 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingComponent implements OnInit {
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   ngOnInit(): void {
     // Derived via SeoService.siteOrigin() (real origin in-browser, a
@@ -22,15 +26,22 @@ export class LandingComponent implements OnInit {
     // ones pointing at musicguessr.app.
     const origin = this.seo.siteOrigin();
     this.seo.set({
-      title: 'Play Hitster Cards on YouTube — Free, No Login',
-      description:
-        'Play Hitster card game in your browser using YouTube, Spotify, or Apple Music. Scan QR codes, guess the year — no Spotify required. Free & open source.',
+      title: this.i18n.t('landing.seoTitle'),
+      description: this.i18n.t('landing.seoDescription'),
+      alternatePath: '/',
       structuredData: [
         {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
           name: 'musicguessr',
           url: origin,
+          // JSON-LD structured data is read by crawlers, not shown to
+          // visitors — kept in English throughout (description here,
+          // featureList below) rather than translated per locale. Google
+          // doesn't require schema.org content to match the page's visible
+          // language, and duplicating this whole block with a translated
+          // featureList for three more locales wasn't worth it for content
+          // nothing reads directly.
           description:
             'Play any Hitster card with YouTube, Spotify or Apple Music. Scan QR codes, guess the year, and create custom music quiz decks — no subscription lock-in.',
           applicationCategory: 'GameApplication',

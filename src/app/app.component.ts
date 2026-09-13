@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/cor
 import { RouterOutlet } from '@angular/router';
 import { AppErrorService } from './services/app-error.service';
 import { AppUpdateService } from './services/app-update.service';
+import { TranslationService } from './i18n/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -11,8 +12,8 @@ import { AppUpdateService } from './services/app-update.service';
     <router-outlet />
     @if (updateAvailable()) {
       <div class="update-banner" role="status">
-        <span class="update-text">A new version is available.</span>
-        <button class="update-btn" type="button" (click)="applyUpdate()">Reload</button>
+        <span class="update-text">{{ i18n.t('app.updateAvailable') }}</span>
+        <button class="update-btn" type="button" (click)="applyUpdate()">{{ i18n.t('common.reload') }}</button>
       </div>
     }
     @if (fatalError(); as msg) {
@@ -20,7 +21,7 @@ import { AppUpdateService } from './services/app-update.service';
         <div class="fatal-error-box">
           <p class="fatal-error-icon">!</p>
           <p class="fatal-error-msg">{{ msg }}</p>
-          <button class="btn btn-primary" type="button" (click)="reload()">Reload</button>
+          <button class="btn btn-primary" type="button" (click)="reload()">{{ i18n.t('common.reload') }}</button>
         </div>
       </div>
     }
@@ -95,6 +96,7 @@ import { AppUpdateService } from './services/app-update.service';
 export class AppComponent implements OnInit {
   private appError = inject(AppErrorService);
   private appUpdate = inject(AppUpdateService);
+  i18n = inject(TranslationService);
   readonly fatalError = this.appError.fatalError;
   readonly updateAvailable = this.appUpdate.updateAvailable;
 

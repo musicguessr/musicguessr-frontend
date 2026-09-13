@@ -1,101 +1,53 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
-
-type FaqItem = { q: string; a: string; open: boolean };
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
 
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './faq.component.html',
   styleUrl: './faq.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FaqComponent implements OnInit {
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
-  readonly items = signal<FaqItem[]>([
-    {
-      q: 'Can I play Hitster without Spotify?',
-      a: 'Yes. musicguessr supports YouTube as a free playback option — no Spotify account or Premium subscription required. Simply choose YouTube when starting a game.',
-      open: true,
-    },
-    {
-      q: 'How do I use musicguessr to play Hitster cards?',
-      a: 'Open musicguessr in your browser, select a music service (YouTube, Spotify, or Apple Music), then scan the QR code on any Hitster card with your camera. The track plays automatically.',
-      open: false,
-    },
-    {
-      q: 'Does musicguessr work on iPhone and Android?',
-      a: 'Yes. musicguessr is a Progressive Web App optimised for iOS Safari and Android Chrome. It works directly in the browser — no app download required. You can also install it on your home screen from the browser menu.',
-      open: false,
-    },
-    {
-      q: 'Does it work with all Hitster editions?',
-      a: 'Yes. musicguessr reads the QR code on any Hitster card from any edition — Original, 80s, Party, Kids, and regional editions. As long as the card has a QR code, it works.',
-      open: false,
-    },
-    {
-      q: 'Why is the year or artist sometimes wrong?',
-      a: "Track details come from a handful of public music databases, plus Spotify's own catalog when available. For older or less common recordings — TV and film themes especially — those databases sometimes only have a re-recorded cover version indexed rather than the original, which can show up as the wrong year or artist. We're sorry when that happens — it's a real limitation of the third-party data we rely on, not something we can guarantee against for every card, though we keep working to reduce it. If you spot one, an issue on GitHub with the card's details genuinely helps us investigate.",
-      open: false,
-    },
-    {
-      q: "YouTube says it's blocked — what does that mean?",
-      a: "Some browsers (especially privacy-focused ones like Firefox forks with strict tracking protection, or a device using a filtering DNS provider) block YouTube's own domains outright as part of their ad/tracker blocking — this is a deliberate choice by your browser or network, not something musicguessr can override, and we wouldn't want to bypass it even if we could. When this happens, tapping the overlay opens the track in YouTube Music instead so you can still play it. If you'd rather have it play directly in the app, try relaxing your browser's tracking protection for musicguessr.app specifically, or use Spotify/Apple Music instead if you have one.",
-      open: false,
-    },
-    {
-      q: 'Can I create my own Hitster-style music quiz?',
-      a: 'Yes. Use the Create Deck page to build a custom music quiz from YouTube videos or an entire YouTube playlist. Share it with friends via a link or QR code — no account needed.',
-      open: false,
-    },
-    {
-      q: 'Is musicguessr free?',
-      a: 'musicguessr is completely free and open source. YouTube playback requires no subscription. Spotify playback requires a Spotify Premium account. Apple Music playback requires an Apple Music subscription.',
-      open: false,
-    },
-    {
-      q: 'Why does Spotify not work on my iPhone?',
-      a: 'Apple restricts third-party Web Audio on iOS Safari, which prevents the Spotify Web Playback SDK from working in the browser. Instead, playback is handed off to the Spotify app via Spotify Connect — make sure the Spotify app is open and running in the background before you scan a card, or use YouTube for in-browser playback on iPhone.',
-      open: false,
-    },
-    {
-      q: 'Is my data stored anywhere?',
-      a: "No user accounts, no cookies, no tracking. Game state is stored in your browser's localStorage only. Custom decks are stored on the server temporarily (they expire after the TTL you choose) but are not linked to any user.",
-      open: false,
-    },
-    {
-      q: 'Can I install musicguessr on my phone?',
-      a: 'Yes. In Chrome or Safari, tap the browser menu and choose "Add to Home Screen" or "Install App". musicguessr is a Progressive Web App (PWA) and works offline for previously loaded decks.',
-      open: false,
-    },
-    {
-      q: 'Is musicguessr affiliated with Jumbo or the official Hitster game?',
-      a: 'No. musicguessr is an independent open-source project and is not affiliated with Jumbo B.V., Slättaratindur AB, or any official Hitster publisher.',
-      open: false,
-    },
-  ]);
+  // Open/closed state lives separately from the translated q/a content
+  // (i18n.faqItems(), which changes on every locale switch) so switching
+  // language mid-page doesn't collapse whatever the user had open — the
+  // item count and order are fixed across every locale (satisfies
+  // Translations in each translations/*.ts file guarantees it), so indices
+  // stay meaningfully aligned.
+  private readonly openState = signal<boolean[]>([true, ...Array(12).fill(false)]);
+
+  readonly items = computed(() => this.i18n.faqItems().map((item, i) => ({ ...item, open: this.openState()[i] })));
 
   ngOnInit(): void {
     this.seo.set({
-      title: 'FAQ — Hitster Online, YouTube Playback & Custom Decks',
-      description:
-        'Frequently asked questions about playing Hitster online with musicguessr. Learn how to use YouTube instead of Spotify, create custom decks, and more.',
+      title: this.i18n.t('faq.seoTitle'),
+      description: this.i18n.t('faq.seoDescription'),
+      alternatePath: '/faq',
       breadcrumbs: [
         { name: 'musicguessr', path: '/' },
-        { name: 'FAQ', path: '/faq' },
+        { name: this.i18n.t('faq.breadcrumb'), path: '/faq' },
       ],
-      // Generated from the same `items` list rendered on the page (rather than
-      // a separately hand-maintained copy) so the structured data can never
-      // drift out of sync with what's actually visible — Google requires
-      // FAQPage markup to match on-page content.
+      // Generated from the same translated `items` rendered on the page
+      // (rather than a separately hand-maintained copy) so the structured
+      // data can never drift out of sync with what's actually visible —
+      // Google requires FAQPage markup to match on-page content. Unlike
+      // landing/how-to-play's JSON-LD, this one *is* translated per locale,
+      // since it's a verbatim copy of the visible Q&A text, not a separate
+      // description written for crawlers.
       structuredData: [
         {
           '@context': 'https://schema.org',
           '@type': 'FAQPage',
-          mainEntity: this.items().map((item) => ({
+          mainEntity: this.i18n.faqItems().map((item) => ({
             '@type': 'Question',
             name: item.q,
             acceptedAnswer: { '@type': 'Answer', text: item.a },
@@ -106,6 +58,6 @@ export class FaqComponent implements OnInit {
   }
 
   toggle(index: number): void {
-    this.items.update((list) => list.map((item, i) => (i === index ? { ...item, open: !item.open } : item)));
+    this.openState.update((list) => list.map((open, i) => (i === index ? !open : open)));
   }
 }

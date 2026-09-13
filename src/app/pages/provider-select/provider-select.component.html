@@ -1,6 +1,7 @@
 <div class="page">
   <header class="page-header">
-    <a class="logo" routerLink="/">musicguessr</a>
+    <a class="logo" [routerLink]="'/' | localize">{{ i18n.t('common.logo') }}</a>
+    <app-language-switcher />
     <a aria-label="GitHub" class="gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
       <svg fill="currentColor" height="22" viewBox="0 0 16 16" width="22">
         <path
@@ -14,56 +15,58 @@
     <div class="content">
       <div class="locked-card card">
         <div class="locked-icon">🔒</div>
-        <p class="locked-label">Provider locked for this game</p>
+        <p class="locked-label">{{ i18n.t('providerSelect.lockedLabel') }}</p>
         <p class="locked-provider">{{ currentProvider | titlecase }}</p>
         @if (currentProvider === 'spotify' && isIOS) {
           <div class="ios-spotify-notice">
-            <p>
-              On iPhone, Spotify plays through the Spotify app, not in the browser. Open Spotify and leave it running in
-              the background before you scan a card.
-            </p>
-            <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">Open Spotify app</button>
+            <p>{{ i18n.t('providerSelect.iosSpotifyNotice') }}</p>
+            <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">
+              {{ i18n.t('providerSelect.openSpotifyApp') }}
+            </button>
           </div>
         }
         <button class="btn btn-primary mt" [disabled]="loading()" (click)="confirm()">
           @if (loading()) {
             <span class="spinner"></span>
           }
-          START SCANNING
+          {{ i18n.t('providerSelect.startScanning') }}
         </button>
-        <button class="btn btn-ghost mt-sm" (click)="changeProvider()">Change provider</button>
+        <button class="btn btn-ghost mt-sm" (click)="changeProvider()">
+          {{ i18n.t('providerSelect.changeProvider') }}
+        </button>
       </div>
     </div>
   } @else {
     <section aria-label="Introduction" class="hero">
-      <h1 class="hero-title">Play <span class="hero-accent">Hitster</span><br />on any music service</h1>
-      <p class="hero-desc">
-        Scan QR codes from Hitster cards and hear the song instantly in your browser — on YouTube, Spotify, or Apple
-        Music. Free, no login required for YouTube.
-      </p>
+      <h1 class="hero-title">
+        {{ i18n.t('providerSelect.heroTitlePrefix')
+        }}<span class="hero-accent">{{ i18n.t('providerSelect.heroTitleAccent') }}</span
+        ><br />{{ i18n.t('providerSelect.heroTitleSuffix') }}
+      </h1>
+      <p class="hero-desc">{{ i18n.t('providerSelect.heroDesc') }}</p>
       <ol aria-label="How it works" class="steps">
         <li class="step">
           <span class="step-icon">📷</span>
-          <span class="step-label">Scan card</span>
+          <span class="step-label">{{ i18n.t('providerSelect.scanCardStep') }}</span>
         </li>
         <li class="step">
           <span class="step-icon">🎵</span>
-          <span class="step-label">Hear song</span>
+          <span class="step-label">{{ i18n.t('providerSelect.hearSongStep') }}</span>
         </li>
         <li class="step">
           <span class="step-icon">🤔</span>
-          <span class="step-label">Guess year</span>
+          <span class="step-label">{{ i18n.t('providerSelect.guessYearStep') }}</span>
         </li>
       </ol>
     </section>
 
     <div class="content">
       <div class="section-divider">
-        <span>choose your music service</span>
+        <span>{{ i18n.t('providerSelect.chooseService') }}</span>
       </div>
 
       <div class="provider-list">
-        @for (p of providers; track p.id) {
+        @for (p of providers(); track p.id) {
           <button
             class="provider-item"
             [attr.aria-disabled]="!p.available"
@@ -85,9 +88,9 @@
 
       @if (selected() === 'youtube') {
         <div class="setting-group">
-          <span class="setting-label">YouTube video visibility</span>
+          <span class="setting-label">{{ i18n.t('providerSelect.videoVisibility') }}</span>
           <div class="blur-options">
-            @for (opt of blurOptions; track opt.value) {
+            @for (opt of blurOptions(); track opt.value) {
               <button class="blur-option" [class.active]="videoBlur() === opt.value" (click)="setBlur(opt.value)">
                 <span class="blur-icon">{{ opt.icon }}</span>
                 <span class="blur-name">{{ opt.label }}</span>
@@ -101,8 +104,8 @@
         <div class="setting-group">
           <div class="toggle-row" tabindex="0" (click)="toggleYtVariants()" (keydown.enter)="toggleYtVariants()">
             <div class="toggle-info">
-              <span class="setting-label">Fallback to remixes &amp; alt versions</span>
-              <span class="toggle-desc">When the original isn't on YouTube, use the best available version</span>
+              <span class="setting-label">{{ i18n.t('providerSelect.fallbackVariants') }}</span>
+              <span class="toggle-desc">{{ i18n.t('providerSelect.fallbackVariantsDesc') }}</span>
             </div>
             <div class="toggle" [class.on]="ytVariants()">
               <div class="toggle-knob"></div>
@@ -113,11 +116,10 @@
 
       @if (selected() === 'spotify' && isIOS) {
         <div class="ios-spotify-notice">
-          <p>
-            On iPhone, Spotify plays through the Spotify app, not in the browser. Open Spotify and leave it running in
-            the background before you scan a card — otherwise nothing will play.
-          </p>
-          <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">Open Spotify app</button>
+          <p>{{ i18n.t('providerSelect.iosSpotifyNoticeConfirm') }}</p>
+          <button class="btn btn-ghost btn-sm" (click)="openSpotifyApp()">
+            {{ i18n.t('providerSelect.openSpotifyApp') }}
+          </button>
         </div>
       }
 
@@ -129,21 +131,19 @@
         @if (loading()) {
           <span class="spinner"></span>
         }
-        {{ loading() ? 'CONNECTING...' : 'CONFIRM &amp; START' }}
+        {{ loading() ? i18n.t('providerSelect.connecting') : i18n.t('providerSelect.confirmStart') }}
       </button>
 
-      <p class="footer-note">
-        Spotify and Apple Music require your own subscription. YouTube works for everyone, no login needed.
-      </p>
+      <p class="footer-note">{{ i18n.t('providerSelect.footerNote') }}</p>
 
       <div class="custom-deck-section">
         <div class="custom-deck-divider">
-          <span>or play a custom deck</span>
+          <span>{{ i18n.t('providerSelect.orCustomDeck') }}</span>
         </div>
         <div class="custom-deck-row">
           <input
             class="custom-deck-input"
-            placeholder="Paste deck ID or link…"
+            [placeholder]="i18n.t('providerSelect.deckInputPlaceholder')"
             [(ngModel)]="deckInput"
             (keydown.enter)="loadCustomDeck()"
           />
@@ -155,7 +155,7 @@
             @if (deckLoading()) {
               <span class="spinner"></span>
             } @else {
-              Load
+              {{ i18n.t('providerSelect.load') }}
             }
           </button>
         </div>
@@ -163,9 +163,9 @@
           <p class="custom-deck-error">{{ deckError() }}</p>
         }
         <div class="custom-deck-links">
-          <a class="link-subtle" routerLink="/create-deck">Create a deck</a>
+          <a class="link-subtle" [routerLink]="'/create-deck' | localize">{{ i18n.t('providerSelect.createDeck') }}</a>
           <span class="link-sep">·</span>
-          <a class="link-subtle" routerLink="/deck">My decks</a>
+          <a class="link-subtle" [routerLink]="'/deck' | localize">{{ i18n.t('providerSelect.myDecks') }}</a>
         </div>
       </div>
     </div>

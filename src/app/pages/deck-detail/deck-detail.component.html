@@ -1,35 +1,42 @@
 <div class="page">
   <div class="page-header">
-    <a class="logo" routerLink="/">musicguessr</a>
-    <span class="heading-sub">Deck</span>
+    <a class="logo" [routerLink]="'/' | localize">{{ i18n.t('common.logo') }}</a>
+    <span class="heading-sub">{{ i18n.t('deckDetail.headerSub') }}</span>
+    <app-language-switcher />
   </div>
 
   <div class="content">
     @if (loading()) {
       <div class="loading-state">
         <span class="spinner large"></span>
-        <p>Loading deck…</p>
+        <p>{{ i18n.t('deckDetail.loading') }}</p>
       </div>
     } @else if (error()) {
       <div class="error-state">
         <p class="error-msg">{{ error() }}</p>
-        <a class="btn btn-ghost" routerLink="/">Go home</a>
+        <a class="btn btn-ghost" [routerLink]="'/' | localize">{{ i18n.t('deckDetail.goHome') }}</a>
       </div>
     } @else if (deck(); as d) {
       <div class="deck-header">
         <div class="deck-id-badge">{{ d.id }}</div>
         <div class="deck-stats">
-          <span>{{ d.cards.length }} cards</span>
+          <span>{{
+            d.cards.length === 1
+              ? i18n.t('deckDetail.cardsCountOne')
+              : i18n.t('deckDetail.cardsCountMany', { count: d.cards.length })
+          }}</span>
           @if (isExpired()) {
-            <span class="badge-expired">Expired</span>
+            <span class="badge-expired">{{ i18n.t('deckDetail.expired') }}</span>
           } @else {
-            <span class="badge-active">Expires {{ d.expires_at | date: 'mediumDate' }}</span>
+            <span class="badge-active"
+              >{{ i18n.t('deckDetail.expiresPrefix') }}{{ d.expires_at | date: 'mediumDate' }}</span
+            >
           }
         </div>
       </div>
 
       @if (!isExpired()) {
-        <button class="btn btn-primary play-btn" (click)="play()">▶ Play this deck</button>
+        <button class="btn btn-primary play-btn" (click)="play()">{{ i18n.t('deckDetail.playDeck') }}</button>
       }
 
       <!-- QR + share -->
@@ -39,13 +46,13 @@
         </div>
         <div class="share-link-row">
           <span class="share-url-text">{{ shareUrl() }}</span>
-          <button class="btn-copy" (click)="copyLink()">Copy link</button>
+          <button class="btn-copy" (click)="copyLink()">{{ i18n.t('deckDetail.copyLink') }}</button>
         </div>
       </div>
 
       <!-- Song list -->
       <div class="song-list-section">
-        <h3 class="section-title">Songs in this deck</h3>
+        <h3 class="section-title">{{ i18n.t('deckDetail.songsHeading') }}</h3>
         <div class="song-list">
           @for (card of d.cards; track card.yt_id; let i = $index) {
             <div class="song-row">

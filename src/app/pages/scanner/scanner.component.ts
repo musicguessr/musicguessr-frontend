@@ -16,6 +16,9 @@ import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
 import { ClientErrorReporterService } from '../../services/client-error-reporter.service';
 import { isHitsterCardUrl } from './hitster-url';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { localizedPath } from '../../i18n/locale';
 import { decodeQRViaWebCodecs, webCodecsSupported } from './webcodecs-qr';
 
 declare global {
@@ -39,7 +42,7 @@ const SCAN_STUCK_MS = 10_000;
 @Component({
   selector: 'app-scanner',
   standalone: true,
-  imports: [TitleCasePipe],
+  imports: [TitleCasePipe, LanguageSwitcherComponent],
   templateUrl: './scanner.component.html',
   styleUrl: './scanner.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,10 +55,11 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private state = inject(GameStateService);
   private seo = inject(SeoService);
   private errorReporter = inject(ClientErrorReporterService);
+  i18n = inject(TranslationService);
 
   readonly scanning = signal(false);
   readonly loading = signal(false);
-  readonly loadingMessage = signal('Looking up track…');
+  readonly loadingMessage = signal('');
   readonly error = signal<string | null>(null);
   readonly provider = this.state.provider;
 
@@ -69,27 +73,20 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private videoTrack: MediaStreamTrack | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   // One-shot report if scanning is still running after SCAN_STUCK_MS with
-  // nothing found — camera permission was granted and frames are flowing
-  // (we're never in this state otherwise), so a QR genuinely in frame that
-  // never decodes points at the detector itself failing silently, which is
-  // exactly what happens on browsers that poison canvas pixel readback for
-  // anti-fingerprinting (see the BarcodeDetector comment above). Gives us
-  // real signal on that instead of only ever hearing about it via a
-  // GitHub issue with no diagnostic information attached.
+  // nothing found — camera permission was granted and frames are flowing,
+  // so a QR genuinely in frame that never decodes points at the detector
+  // itself failing silently (see the BarcodeDetector comment above).
   private scanStuckTimer: ReturnType<typeof setTimeout> | null = null;
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
   private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
-  // Native QR detection (Chromium only) reads straight from the <video>
-  // element — no canvas pixel readback involved at all. Preferred whenever
-  // available: canvas.getImageData() is unusable for QR decoding on some
-  // hardened/privacy browsers, which silently breaks jsQR while the camera
-  // preview keeps working fine (see webcodecs-qr.ts for specifics and
+  // Native QR detection (Chromium only) — no canvas pixel readback involved.
+  // Preferred whenever available: canvas.getImageData() is unusable for QR
+  // decoding on some hardened/privacy browsers (see webcodecs-qr.ts and
   // github.com/musicguessr/musicguessr-frontend/issues/7).
   private barcodeDetector: InstanceType<NonNullable<Window['BarcodeDetector']>> | null = null;
   // Guards overlapping async detect()/decode calls (BarcodeDetector and
-  // WebCodecs below) — shared since the two are mutually exclusive in
-  // practice, so only one is ever in flight.
+  // WebCodecs below) — shared, the two are mutually exclusive in practice.
   private detecting = false;
   // Set once decodeQRViaWebCodecs() fails — stops retrying a broken API
   // every SCAN_INTERVAL and falls back to canvas/jsQR. See webcodecs-qr.ts.
@@ -102,7 +99,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   readonly lastScannedUrl = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.seo.set({ title: 'Scan QR Code', noindex: true });
+    this.seo.set({ title: this.i18n.t('scanner.seoTitle'), noindex: true });
+    this.loadingMessage.set(this.i18n.t('scanner.loadingLookingUp'));
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
     void this.setupBarcodeDetector();
@@ -139,7 +137,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.error.set(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.error.set('Camera not available in this browser');
+      this.error.set(this.i18n.t('scanner.errCameraUnavailable'));
       return;
     }
 
@@ -175,7 +173,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       // camera stays on with no indicator that it's ever stopped, and the
       // next startScanner() call overwrites this.stream, orphaning it.
       this.stopScanner();
-      this.error.set('Camera access denied. Please allow camera permissions.');
+      this.error.set(this.i18n.t('scanner.errCameraDenied'));
     }
   }
 
@@ -220,7 +218,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       await track.applyConstraints({ advanced: [{ torch: next } as MediaTrackConstraintSet] });
       this.torchOn.set(next);
     } catch {
-      this.error.set('Could not turn on the flash on this device.');
+      this.error.set(this.i18n.t('scanner.errTorch'));
     }
   }
 
@@ -371,18 +369,18 @@ export class ScannerComponent implements OnInit, OnDestroy {
     // confirming something is still happening without over-promising a
     // specific duration. Cards scanned again are cached server-side and
     // resolve near-instantly, so this path is the uncommon, worst case one.
-    this.loadingMessage.set('Looking up track…');
+    this.loadingMessage.set(this.i18n.t('scanner.loadingLookingUp'));
     this.loadingMessageTimers = [
-      setTimeout(() => this.loadingMessage.set('Checking a few sources for the best match…'), 2500),
-      setTimeout(() => this.loadingMessage.set('Still going — new cards can take a few seconds…'), 6000),
+      setTimeout(() => this.loadingMessage.set(this.i18n.t('scanner.loadingCheckingSources')), 2500),
+      setTimeout(() => this.loadingMessage.set(this.i18n.t('scanner.loadingStillGoing')), 6000),
     ];
     try {
       const track = await this.hitster.resolve(url, this.state.ytVariants());
       this.state.clearCustomDeck();
       this.state.currentTrack.set(track);
-      this.router.navigate(['/game']);
+      this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/game'));
     } catch (e: any) {
-      this.error.set(e.message || 'Failed to resolve track');
+      this.error.set(e.message || this.i18n.t('scanner.errFailedToResolve'));
     } finally {
       this.loading.set(false);
       this.clearLoadingMessageTimers();
@@ -395,6 +393,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/'));
   }
 }

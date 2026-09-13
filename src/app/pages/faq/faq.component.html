@@ -1,14 +1,15 @@
 <main class="page">
   <div class="page-header">
-    <a class="logo" routerLink="/">musicguessr</a>
+    <a class="logo" [routerLink]="'/' | localize">{{ i18n.t('common.logo') }}</a>
+    <app-language-switcher />
   </div>
 
   <div class="content">
-    <h1 class="heading">Frequently Asked Questions</h1>
-    <p class="intro">Everything you need to know about playing Hitster online with YouTube, Spotify, or Apple Music.</p>
+    <h1 class="heading">{{ i18n.t('faq.heading') }}</h1>
+    <p class="intro">{{ i18n.t('faq.intro') }}</p>
 
     <dl class="faq-list">
-      @for (item of items(); track item.q; let i = $index) {
+      @for (item of items(); track $index; let i = $index) {
         <div class="faq-item" [class.open]="item.open">
           <dt>
             <button class="faq-trigger" [attr.aria-expanded]="item.open" (click)="toggle(i)">
@@ -24,9 +25,9 @@
     </dl>
 
     <div class="faq-footer">
-      <p>Still have questions?</p>
+      <p>{{ i18n.t('faq.stillHaveQuestions') }}</p>
       <a class="btn btn-ghost faq-gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
-        Open an issue on GitHub
+        {{ i18n.t('faq.openIssue') }}
       </a>
     </div>
   </div>

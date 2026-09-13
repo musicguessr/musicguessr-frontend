@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,10 @@ import { YoutubePlayerService } from '../../services/youtube-player.service';
 import { ConfigService } from '../../services/config.service';
 import { DeckService } from '../../services/deck.service';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
+import { localizedPath } from '../../i18n/locale';
 
 type ProviderOption = {
   id: Provider;
@@ -22,7 +26,7 @@ type ProviderOption = {
 @Component({
   selector: 'app-provider-select',
   standalone: true,
-  imports: [TitleCasePipe, RouterLink, FormsModule],
+  imports: [TitleCasePipe, RouterLink, FormsModule, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './provider-select.component.html',
   styleUrl: './provider-select.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +40,7 @@ export class ProviderSelectComponent implements OnInit {
   private config = inject(ConfigService);
   private deckService = inject(DeckService);
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   readonly loading = signal(false);
   readonly errorMsg = signal<string | null>(null);
@@ -48,13 +53,39 @@ export class ProviderSelectComponent implements OnInit {
   readonly deckLoading = signal(false);
   readonly deckError = signal<string | null>(null);
 
-  readonly blurOptions: { value: VideoBlur; label: string; icon: string }[] = [
-    { value: 'hidden', label: 'Hidden', icon: '🙈' },
-    { value: 'blurred', label: 'Blurred', icon: '👁' },
-    { value: 'visible', label: 'Visible', icon: '👀' },
-  ];
+  // computed (not a static field) so a language switch while still on this
+  // page — before confirm() locks anything in — updates the labels shown.
+  readonly blurOptions = computed((): { value: VideoBlur; label: string; icon: string }[] => [
+    { value: 'hidden', label: this.i18n.t('providerSelect.blurHidden'), icon: '🙈' },
+    { value: 'blurred', label: this.i18n.t('providerSelect.blurBlurred'), icon: '👁' },
+    { value: 'visible', label: this.i18n.t('providerSelect.blurVisible'), icon: '👀' },
+  ]);
 
-  providers: ProviderOption[] = [];
+  readonly providers = computed((): ProviderOption[] => [
+    {
+      id: 'youtube',
+      label: this.i18n.t('providerSelect.ytLabel'),
+      icon: '▶',
+      description: this.i18n.t('providerSelect.ytDesc'),
+      available: true,
+    },
+    {
+      id: 'spotify',
+      label: this.i18n.t('providerSelect.spotifyLabel'),
+      icon: '♫',
+      description: this.i18n.t('providerSelect.spotifyDesc'),
+      available: !!this.config.spotifyClientId,
+      unavailableReason: this.i18n.t('providerSelect.unavailable'),
+    },
+    {
+      id: 'apple',
+      label: this.i18n.t('providerSelect.appleLabel'),
+      icon: '♪',
+      description: this.i18n.t('providerSelect.appleDesc'),
+      available: !!this.config.appleDevToken,
+      unavailableReason: this.i18n.t('providerSelect.unavailable'),
+    },
+  ]);
 
   // Web Playback SDK never works on iOS Safari (WebKit blocks the Web Audio
   // API it needs) — Spotify playback there is instead handed off via
@@ -67,36 +98,10 @@ export class ProviderSelectComponent implements OnInit {
 
   ngOnInit(): void {
     this.seo.set({
-      title: 'Play Hitster Cards on YouTube — Free, No Login',
-      description:
-        'Scan QR codes from Hitster cards and play songs on YouTube, Spotify, or Apple Music. Free companion app for the Hitster card game — no Spotify required.',
+      title: this.i18n.t('providerSelect.seoTitle'),
+      description: this.i18n.t('providerSelect.seoDescription'),
       noindex: true,
     });
-    this.providers = [
-      {
-        id: 'youtube',
-        label: 'YouTube',
-        icon: '▶',
-        description: 'Free · No login required · Works everywhere',
-        available: true,
-      },
-      {
-        id: 'spotify',
-        label: 'Spotify',
-        icon: '♫',
-        description: 'Requires Spotify Premium',
-        available: !!this.config.spotifyClientId,
-        unavailableReason: 'Not available on this site',
-      },
-      {
-        id: 'apple',
-        label: 'Apple Music',
-        icon: '♪',
-        description: 'Requires Apple Music subscription',
-        available: !!this.config.appleDevToken,
-        unavailableReason: 'Not available on this site',
-      },
-    ];
 
     // Pre-select if returning
     const p = this.state.provider();
@@ -105,11 +110,15 @@ export class ProviderSelectComponent implements OnInit {
     }
   }
 
+  private goTo(path: string): void {
+    this.router.navigateByUrl(localizedPath(this.i18n.locale(), path));
+  }
+
   select(p: Provider): void {
     if (!p) {
       return;
     }
-    const opt = this.providers.find((x) => x.id === p);
+    const opt = this.providers().find((x) => x.id === p);
     if (!opt?.available) {
       return;
     }
@@ -139,7 +148,7 @@ export class ProviderSelectComponent implements OnInit {
         void this.ytPlayer.loadAPI().catch(() => {
           /* speculative — the real attempt in preparePlayer() surfaces any error */
         });
-        this.router.navigate(['/scan']);
+        this.goTo('/scan');
         return;
       }
 
@@ -152,7 +161,7 @@ export class ProviderSelectComponent implements OnInit {
           void this.spotify.initSDK().catch(() => {
             /* speculative — the real attempt in preparePlayer() surfaces any error */
           });
-          this.router.navigate(['/scan']);
+          this.goTo('/scan');
         } else {
           await this.spotify.authorize(); // redirects away
         }
@@ -166,16 +175,16 @@ export class ProviderSelectComponent implements OnInit {
           void this.apple.init().catch(() => {
             /* speculative — the real attempt in preparePlayer() surfaces any error */
           });
-          this.router.navigate(['/scan']);
+          this.goTo('/scan');
         } else {
           await this.apple.authorize();
           this.state.lock();
-          this.router.navigate(['/scan']);
+          this.goTo('/scan');
         }
         return;
       }
     } catch (e: any) {
-      this.errorMsg.set(e.message || 'Something went wrong');
+      this.errorMsg.set(e.message || this.i18n.t('providerSelect.errSomethingWrong'));
     } finally {
       this.loading.set(false);
     }
@@ -223,9 +232,9 @@ export class ProviderSelectComponent implements OnInit {
         this.deckService.cacheDeck(deck);
         this.deckService.saveLocalDeckEntry(deck);
       }
-      this.router.navigate(['/deck', id]);
+      this.goTo(`/deck/${id}`);
     } catch (e: any) {
-      this.deckError.set(e.message ?? 'Failed to load deck');
+      this.deckError.set(e.message ?? this.i18n.t('providerSelect.errFailedToLoadDeck'));
     } finally {
       this.deckLoading.set(false);
     }

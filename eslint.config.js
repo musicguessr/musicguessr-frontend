@@ -102,6 +102,20 @@ module.exports = defineConfig([
     },
   },
   {
+    // Translation dictionaries are flat data, not logic — the 400-line cap
+    // exists to keep code reviewable, which doesn't apply to a list of
+    // strings whose length tracks how much UI copy the app has, not how
+    // complex it is. Splitting one locale's dictionary across multiple
+    // files to dodge the limit would cost real clarity (satisfies
+    // Translations' completeness check, and every "does pl.ts have this
+    // key" question, both get harder once the object isn't in one place)
+    // for zero actual reviewability gain.
+    files: ['src/app/i18n/translations/*.ts'],
+    rules: {
+      'max-lines': 'off',
+    },
+  },
+  {
     files: ['**/*.html'],
     extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {

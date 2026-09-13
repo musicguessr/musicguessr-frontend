@@ -2,12 +2,12 @@
   <!-- Finished screen (custom deck only) -->
   @if (isCustomMode() && isFinished()) {
     <div class="finished-screen">
-      <div class="logo">musicguessr</div>
+      <div class="logo">{{ i18n.t('common.logo') }}</div>
       <div class="finished-icon">🎉</div>
-      <h2 class="finished-title">All cards played!</h2>
-      <p class="finished-sub">{{ customProgress()?.total }} songs done.</p>
-      <button class="btn btn-primary" (click)="restartCustomDeck()">Shuffle &amp; play again</button>
-      <button class="btn btn-ghost mt-sm" (click)="endGame()">End game</button>
+      <h2 class="finished-title">{{ i18n.t('game.allCardsPlayed') }}</h2>
+      <p class="finished-sub">{{ customProgress()?.total }} {{ i18n.t('game.songsDone') }}</p>
+      <button class="btn btn-primary" (click)="restartCustomDeck()">{{ i18n.t('game.shuffleAndPlayAgain') }}</button>
+      <button class="btn btn-ghost mt-sm" (click)="endGame()">{{ i18n.t('game.endGame') }}</button>
     </div>
   } @else {
     <!-- TAP TO PLAY overlay -->
@@ -32,14 +32,14 @@
       <p class="play-label">{{ overlayLabel() }}</p>
       <p class="play-sub">{{ overlaySub() }}</p>
       @if (overlayError() && track()?.request_id; as reqId) {
-        <p class="request-id">Reporting a bug? Include this ID: {{ reqId }}</p>
+        <p class="request-id">{{ i18n.t('game.reportBug') }} {{ reqId }}</p>
       }
     </div>
 
     <!-- Game content -->
     <div class="game-content" [class.overlay-hidden]="!showOverlay()">
       <div class="top-bar">
-        <div class="logo">musicguessr</div>
+        <div class="logo">{{ i18n.t('common.logo') }}</div>
         <div class="top-bar-right">
           @if (isCustomMode() && customProgress(); as p) {
             <span class="progress-badge">{{ p.current }} / {{ p.total }}</span>
@@ -75,7 +75,7 @@
               <div class="track-artist" [class.blurred]="!revealed()">{{ card.artist || '—' }}</div>
             </div>
             <div class="year-row">
-              <span class="year-label">Year</span>
+              <span class="year-label">{{ i18n.t('game.yearLabel') }}</span>
               <span class="year-value" [class.blurred]="!revealed()">{{ card.year ?? '?' }}</span>
             </div>
           </div>
@@ -96,12 +96,12 @@
               <div class="track-artist" [class.blurred]="!revealed()">{{ t.artist || '—' }}</div>
             </div>
             <div class="year-row">
-              <span class="year-label">Year</span>
+              <span class="year-label">{{ i18n.t('game.yearLabel') }}</span>
               <span class="year-value" [class.blurred]="!revealed()">{{ t.year ?? '?' }}</span>
             </div>
             @if (revealed() && streamingLinks().length) {
               <div class="streaming-links">
-                <span class="streaming-label">Listen on</span>
+                <span class="streaming-label">{{ i18n.t('game.listenOn') }}</span>
                 <div class="streaming-btns">
                   @for (link of streamingLinks(); track link.key) {
                     <a class="stream-btn stream-btn--{{ link.key }}" rel="noopener" target="_blank" [href]="link.url">{{
@@ -116,13 +116,13 @@
       </div>
 
       @if (isTouchDevice && ((isCustomMode() && customCard()) || (!isCustomMode() && track()))) {
-        <p class="swipe-hint">← Swipe card to skip to the next one</p>
+        <p class="swipe-hint">{{ i18n.t('game.swipeHint') }}</p>
       }
 
       <!-- YouTube blurred player -->
       @if (provider() === 'youtube') {
         <div class="yt-player-wrap" [class.hidden]="!isPlaying()">
-          <div class="yt-blur-label">Now playing</div>
+          <div class="yt-blur-label">{{ i18n.t('game.nowPlaying') }}</div>
           <div
             class="yt-blur-container"
             [class.blur-blurred]="!revealed() && videoBlur() === 'blurred'"
@@ -138,10 +138,10 @@
         <div class="error-msg">
           {{ playerError() }}
           @if (provider() === 'spotify') {
-            <button class="retry-link" type="button" (click)="retryPlayback()">Try again</button>
+            <button class="retry-link" type="button" (click)="retryPlayback()">{{ i18n.t('game.tryAgain') }}</button>
           }
           @if (track()?.request_id; as reqId) {
-            <p class="request-id">Reporting a bug? Include this ID: {{ reqId }}</p>
+            <p class="request-id">{{ i18n.t('game.reportBug') }} {{ reqId }}</p>
           }
         </div>
       }
@@ -149,8 +149,8 @@
 
     @if (showUndoToast()) {
       <div class="undo-toast">
-        <span>Card skipped</span>
-        <button class="undo-toast-btn" type="button" (click)="undoSwipe()">Undo</button>
+        <span>{{ i18n.t('game.cardSkipped') }}</span>
+        <button class="undo-toast-btn" type="button" (click)="undoSwipe()">{{ i18n.t('game.undo') }}</button>
       </div>
     }
 
@@ -161,16 +161,16 @@
     <div class="actions-bar">
       <div class="actions">
         @if (!revealed()) {
-          <button class="btn btn-secondary" (click)="reveal()">TAP TO REVEAL</button>
+          <button class="btn btn-secondary" (click)="reveal()">{{ i18n.t('game.tapToReveal') }}</button>
         } @else {
-          <button class="btn btn-secondary revealed" (click)="hide()">TAP TO HIDE</button>
+          <button class="btn btn-secondary revealed" (click)="hide()">{{ i18n.t('game.tapToHide') }}</button>
         }
         @if (isCustomMode()) {
-          <button class="btn btn-primary" (click)="nextCustomCard()">NEXT CARD →</button>
-          <button class="btn btn-ghost" (click)="endGame()">End game</button>
+          <button class="btn btn-primary" (click)="nextCustomCard()">{{ i18n.t('game.nextCard') }}</button>
+          <button class="btn btn-ghost" (click)="endGame()">{{ i18n.t('game.endGame') }}</button>
         } @else {
-          <button class="btn btn-primary" (click)="scanNext()">SCAN NEXT CARD</button>
-          <button class="btn btn-ghost" (click)="endGame()">End game</button>
+          <button class="btn btn-primary" (click)="scanNext()">{{ i18n.t('game.scanNextCard') }}</button>
+          <button class="btn btn-ghost" (click)="endGame()">{{ i18n.t('game.endGame') }}</button>
         }
       </div>
     </div>

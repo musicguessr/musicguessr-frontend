@@ -1,7 +1,8 @@
 <div class="page">
   <div class="page-header header-row">
-    <div class="logo">musicguessr</div>
+    <div class="logo">{{ i18n.t('common.logo') }}</div>
     <div class="header-actions">
+      <app-language-switcher />
       <a aria-label="GitHub" class="gh-link" href="https://github.com/musicguessr" rel="noopener" target="_blank">
         <svg fill="currentColor" height="20" viewBox="0 0 16 16" width="20">
           <path
@@ -9,7 +10,7 @@
           />
         </svg>
       </a>
-      <button class="back-btn" (click)="goBack()">← Back</button>
+      <button class="back-btn" (click)="goBack()">← {{ i18n.t('common.goBack') }}</button>
     </div>
   </div>
 
@@ -31,7 +32,7 @@
           <rect height="7" rx="1.5" width="7" x="3" y="14" />
           <path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" />
         </svg>
-        <p>Tap to start scanning</p>
+        <p>{{ i18n.t('scanner.tapToStartScanning') }}</p>
       </div>
     }
 
@@ -43,13 +44,13 @@
         <div class="scan-corner bl"></div>
         <div class="scan-corner br"></div>
       </div>
-      <p class="scan-hint">Hold card QR code steady inside the frame</p>
+      <p class="scan-hint">{{ i18n.t('scanner.scanHint') }}</p>
 
       @if (torchSupported()) {
         <button
-          aria-label="Toggle flashlight"
           class="torch-btn"
           type="button"
+          [attr.aria-label]="i18n.t('scanner.toggleFlashlight')"
           [class.on]="torchOn()"
           (click)="toggleTorch()"
         >
@@ -81,14 +82,14 @@
     <div class="error-msg">
       {{ error() }}
       @if (lastScannedUrl()) {
-        <button class="retry-link" type="button" (click)="retryResolve()">Try again</button>
+        <button class="retry-link" type="button" (click)="retryResolve()">{{ i18n.t('common.tryAgain') }}</button>
       }
     </div>
   }
 
   @if (!scanning() && !loading()) {
-    <button class="btn btn-primary" (click)="startScanner()">SCAN CARD</button>
+    <button class="btn btn-primary" (click)="startScanner()">{{ i18n.t('scanner.scanCard') }}</button>
   } @else if (scanning()) {
-    <button class="btn btn-secondary" (click)="stopScanner()">STOP</button>
+    <button class="btn btn-secondary" (click)="stopScanner()">{{ i18n.t('scanner.stop') }}</button>
   }
 </div>

@@ -1,9 +1,22 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { CreateDeckResponse, DeckService, DeckTTL, ValidateYtResponse } from '../../services/deck.service';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
+import { localizedPath } from '../../i18n/locale';
 import QRCodeStyling from 'qr-code-styling';
 
 type CardRow = {
@@ -18,18 +31,10 @@ type CardRow = {
   artwork: string | null;
 };
 
-const TTL_LABELS: { value: DeckTTL; label: string }[] = [
-  { value: '1week', label: '1 week' },
-  { value: '1month', label: '1 month' },
-  { value: '3months', label: '3 months (default)' },
-  { value: '6months', label: '6 months' },
-  { value: '1year', label: '1 year' },
-];
-
 @Component({
   selector: 'app-create-deck',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, RouterLink, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './create-deck.component.html',
   styleUrl: './create-deck.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +45,15 @@ export class CreateDeckComponent implements OnInit {
   private deck = inject(DeckService);
   private router = inject(Router);
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
+
+  readonly ttlOptions = computed((): { value: DeckTTL; label: string }[] => [
+    { value: '1week', label: this.i18n.t('createDeck.ttl1week') },
+    { value: '1month', label: this.i18n.t('createDeck.ttl1month') },
+    { value: '3months', label: this.i18n.t('createDeck.ttl3months') },
+    { value: '6months', label: this.i18n.t('createDeck.ttl6months') },
+    { value: '1year', label: this.i18n.t('createDeck.ttl1year') },
+  ]);
 
   ngOnInit(): void {
     // Same reasoning as landing.component.ts's origin() use — resolves to
@@ -47,21 +61,20 @@ export class CreateDeckComponent implements OnInit {
     // entrypoint patches in at container start while prerendering.
     const origin = this.seo.siteOrigin();
     this.seo.set({
-      title: 'Create Deck',
-      description:
-        'Build your own music quiz deck from YouTube videos or playlists. Share it with friends via a link or QR code.',
+      title: this.i18n.t('createDeck.seoTitle'),
+      description: this.i18n.t('createDeck.seoDescription'),
+      alternatePath: '/create-deck',
       breadcrumbs: [
         { name: 'musicguessr', path: '/' },
-        { name: 'Create Deck', path: '/create-deck' },
+        { name: this.i18n.t('createDeck.breadcrumb'), path: '/create-deck' },
       ],
       structuredData: [
         {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
-          name: 'musicguessr Custom Deck Creator',
+          name: this.i18n.t('createDeck.schemaName'),
           url: `${origin}/create-deck`,
-          description:
-            'Build a custom music quiz deck from YouTube videos or an entire playlist, then share it with friends via a link or QR code.',
+          description: this.i18n.t('createDeck.schemaDescription'),
           applicationCategory: 'GameApplication',
           operatingSystem: 'Any',
           isPartOf: {
@@ -80,7 +93,6 @@ export class CreateDeckComponent implements OnInit {
   }
 
   readonly MAX_CARDS = 300;
-  readonly ttlOptions = TTL_LABELS;
 
   // Monotonic per-row request counter — discards stale validateYt() responses
   // when a row's URL is edited again before the in-flight request returns.
@@ -156,13 +168,17 @@ export class CreateDeckComponent implements OnInit {
           error: null,
         });
       } else {
-        this.updateCard(i, { validating: false, valid: false, error: res.error ?? 'Invalid video' });
+        this.updateCard(i, {
+          validating: false,
+          valid: false,
+          error: res.error ?? this.i18n.t('createDeck.errInvalidVideo'),
+        });
       }
     } catch {
       if (this.urlValidationSeq[i] !== seq) {
         return;
       }
-      this.updateCard(i, { validating: false, valid: false, error: 'Validation failed' });
+      this.updateCard(i, { validating: false, valid: false, error: this.i18n.t('createDeck.errValidationFailed') });
     }
   }
 
@@ -204,7 +220,11 @@ export class CreateDeckComponent implements OnInit {
 
         if (added.length < newCards.length) {
           this.playlistError.set(
-            `Only ${added.length} of ${newCards.length} videos added — deck limit of ${this.MAX_CARDS} reached.`,
+            this.i18n.t('createDeck.errPlaylistPartial', {
+              added: added.length,
+              total: newCards.length,
+              max: this.MAX_CARDS,
+            }),
           );
         }
         return [...base, ...added];
@@ -212,7 +232,7 @@ export class CreateDeckComponent implements OnInit {
 
       this.playlistUrl = '';
     } catch (e: any) {
-      this.playlistError.set(e?.message ?? 'Failed to import playlist');
+      this.playlistError.set(e?.message ?? this.i18n.t('createDeck.errPlaylistImportFailed'));
     } finally {
       this.playlistImporting.set(false);
     }
@@ -222,7 +242,7 @@ export class CreateDeckComponent implements OnInit {
     const rows = this.cards();
     const invalid = rows.some((c) => c.valid !== true);
     if (invalid) {
-      this.submitError.set('Please validate all cards before creating the deck.');
+      this.submitError.set(this.i18n.t('createDeck.errValidateAllCards'));
       return;
     }
 
@@ -250,7 +270,7 @@ export class CreateDeckComponent implements OnInit {
           /* non-fatal */
         });
     } catch (e: any) {
-      this.submitError.set(e.message ?? 'Failed to create deck');
+      this.submitError.set(e.message ?? this.i18n.t('createDeck.errFailedToCreate'));
     } finally {
       this.submitting.set(false);
     }
@@ -284,7 +304,7 @@ export class CreateDeckComponent implements OnInit {
   playNow(): void {
     const id = this.result()?.id;
     if (id) {
-      this.router.navigate(['/deck', id]);
+      this.router.navigateByUrl(localizedPath(this.i18n.locale(), `/deck/${id}`));
     }
   }
 

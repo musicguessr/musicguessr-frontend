@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 )
 
 // htmlDir is a var (not const) so tests can point it at a temp directory.
@@ -97,9 +98,15 @@ func main() {
 		}
 		patched = append(patched, path)
 	}
+	// __BUILD_DATE__ backs sitemap.xml's <lastmod> — using the moment this
+	// container started rather than a value baked in at `ng build` time
+	// means it tracks actual deploys (a real proxy for "content might have
+	// changed") instead of drifting into a permanently stale date the day
+	// after the image was built.
+	buildDate := time.Now().UTC().Format("2006-01-02")
 	for _, name := range []string{"robots.txt", "sitemap.xml"} {
 		path := filepath.Join(htmlDir, name)
-		if err := patchPlaceholders(path, map[string]string{"__SITE_URL__": siteURL}); err != nil {
+		if err := patchPlaceholders(path, map[string]string{"__SITE_URL__": siteURL, "__BUILD_DATE__": buildDate}); err != nil {
 			log.Fatalf("[entrypoint] failed to patch %s: %v", name, err)
 		}
 		patched = append(patched, path)

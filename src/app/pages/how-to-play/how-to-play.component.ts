@@ -1,27 +1,32 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
 
 @Component({
   selector: 'app-how-to-play',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './how-to-play.component.html',
   styleUrl: './how-to-play.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HowToPlayComponent implements OnInit {
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   ngOnInit(): void {
     this.seo.set({
-      title: 'How to Play Hitster Online with YouTube — Step by Step',
-      description:
-        'Learn how to play Hitster card game online using YouTube, Spotify, or Apple Music. Scan QR codes, hear the song, guess the year. No Spotify required.',
+      title: this.i18n.t('howToPlay.seoTitle'),
+      description: this.i18n.t('howToPlay.seoDescription'),
+      alternatePath: '/how-to-play',
       breadcrumbs: [
         { name: 'musicguessr', path: '/' },
-        { name: 'How to Play', path: '/how-to-play' },
+        { name: this.i18n.t('howToPlay.breadcrumb'), path: '/how-to-play' },
       ],
+      // See landing.component.ts's comment on why JSON-LD stays English.
       structuredData: [
         {
           '@context': 'https://schema.org',

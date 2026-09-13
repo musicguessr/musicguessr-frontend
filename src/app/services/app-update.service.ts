@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { AppErrorService } from './app-error.service';
+import { TranslationService } from '../i18n/translation.service';
 
 // Without this, a service worker is a liability rather than a feature: a
 // client pins itself to the app version it loaded and would otherwise keep
@@ -16,6 +17,7 @@ import { AppErrorService } from './app-error.service';
 export class AppUpdateService {
   private swUpdate = inject(SwUpdate);
   private appError = inject(AppErrorService);
+  private i18n = inject(TranslationService);
 
   // Drives an unobtrusive prompt rather than reloading on its own: a forced
   // reload mid-round would yank the page out from under someone who is
@@ -38,7 +40,7 @@ export class AppUpdateService {
     // cleaned up server-side). Nothing works from here without a reload, so
     // this is the one case that warrants the fatal overlay.
     this.swUpdate.unrecoverable.subscribe(() => {
-      this.appError.reportFatal('A new version of musicguessr is available — please reload.');
+      this.appError.reportFatal(this.i18n.t('app.fatalNewVersion'));
     });
   }
 

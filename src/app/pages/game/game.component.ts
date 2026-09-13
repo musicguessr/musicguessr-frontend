@@ -22,6 +22,8 @@ import { CardSwipeGesture } from './card-swipe-gesture';
 import { SwipeHint } from './swipe-hint';
 import { UndoToast } from './undo-toast';
 import { preparePlayerFor } from './prepare-player';
+import { TranslationService } from '../../i18n/translation.service';
+import { localizedPath } from '../../i18n/locale';
 
 @Component({
   selector: 'app-game',
@@ -47,6 +49,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private apple = inject(AppleMusicService);
   private deckService = inject(DeckService);
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   readonly track = this.state.currentTrack;
   readonly provider = this.state.provider;
@@ -99,9 +102,9 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.seo.set({ title: 'Playing', noindex: true });
+    this.seo.set({ title: this.i18n.t('game.seoTitle'), noindex: true });
     if (!this.isCustomMode() && !this.track()) {
-      this.router.navigate(['/scan']);
+      this.goTo('/scan');
       return;
     }
     if (this.isCustomMode() && this.isFinished()) {
@@ -124,6 +127,10 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     this.swipeGesture.destroy();
     this.undoToast.destroy();
+  }
+
+  private goTo(path: string): void {
+    this.router.navigateByUrl(localizedPath(this.i18n.locale(), path));
   }
 
   private async preparePlayer(): Promise<void> {
@@ -175,13 +182,13 @@ export class GameComponent implements OnInit, OnDestroy {
 
     if (p === 'spotify') {
       if (!t?.spotify_id) {
-        this.playerError.set('Track not available on Spotify');
+        this.playerError.set(this.i18n.t('game.errTrackNotOnSpotify'));
         return;
       }
       this.spotify
         .play(t.spotify_id)
         .then(() => this.isPlaying.set(true))
-        .catch((e: any) => this.playerError.set(e?.message ?? 'Spotify playback failed'));
+        .catch((e: any) => this.playerError.set(e?.message ?? this.i18n.t('game.errSpotifyPlaybackFailed')));
       return;
     }
 
@@ -191,7 +198,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.apple
         .play()
         .then(() => this.isPlaying.set(true))
-        .catch((e: any) => this.playerError.set(e?.message ?? 'Apple Music playback failed'));
+        .catch((e: any) => this.playerError.set(e?.message ?? this.i18n.t('game.errApplePlaybackFailed')));
       return;
     }
   }
@@ -208,7 +215,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.spotify
         .play(t.spotify_id)
         .then(() => this.isPlaying.set(true))
-        .catch((e: any) => this.playerError.set(e?.message ?? 'Spotify playback failed'));
+        .catch((e: any) => this.playerError.set(e?.message ?? this.i18n.t('game.errSpotifyPlaybackFailed')));
     }
   }
 
@@ -257,7 +264,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.spotify.stop();
     this.apple.stop();
     this.state.currentTrack.set(null);
-    this.router.navigate(['/scan']);
+    this.goTo('/scan');
   }
 
   endGame(): void {
@@ -265,7 +272,7 @@ export class GameComponent implements OnInit, OnDestroy {
     // whole session, provider lock included) sitting right next to the
     // routine "next card" buttons — a party game's phone gets passed
     // around, so a stray tap here is a real, not hypothetical, risk.
-    if (!confirm('End the game and go back to the home screen?')) {
+    if (!confirm(this.i18n.t('game.endGameConfirm'))) {
       return;
     }
     this.ytPlayer.destroy();
@@ -275,7 +282,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.state.clearCustomDeck();
     this.state.unlock();
     this.state.setProvider(null);
-    this.router.navigate(['/']);
+    this.goTo('/');
   }
 
   private getFallbackLink(t: TrackInfo): string | null {
@@ -291,12 +298,12 @@ export class GameComponent implements OnInit, OnDestroy {
 
   readonly overlayLabel = computed(() => {
     if (!this.overlayReady()) {
-      return 'LOADING…';
+      return this.i18n.t('game.loading');
     }
     if (this.overlayError()) {
-      return 'TAP TO OPEN';
+      return this.i18n.t('game.tapToOpen');
     }
-    return 'TAP TO PLAY';
+    return this.i18n.t('game.tapToPlay');
   });
 
   readonly overlaySub = computed(() => {
@@ -305,13 +312,13 @@ export class GameComponent implements OnInit, OnDestroy {
       return this.overlayError()!;
     }
     if (p === 'youtube') {
-      return 'Playing via YouTube';
+      return this.i18n.t('game.playingViaYoutube');
     }
     if (p === 'spotify') {
-      return 'Playing via Spotify';
+      return this.i18n.t('game.playingViaSpotify');
     }
     if (p === 'apple') {
-      return 'Playing via Apple Music';
+      return this.i18n.t('game.playingViaApple');
     }
     return '';
   });
@@ -322,12 +329,12 @@ export class GameComponent implements OnInit, OnDestroy {
       return [];
     }
     const order: [string, string][] = [
-      ['spotify', 'Spotify'],
-      ['apple_music', 'Apple Music'],
-      ['deezer', 'Deezer'],
-      ['tidal', 'Tidal'],
-      ['youtube_music', 'YT Music'],
-      ['youtube', 'YouTube'],
+      ['spotify', this.i18n.t('game.linkSpotify')],
+      ['apple_music', this.i18n.t('game.linkApple')],
+      ['deezer', this.i18n.t('game.linkDeezer')],
+      ['tidal', this.i18n.t('game.linkTidal')],
+      ['youtube_music', this.i18n.t('game.linkYtMusic')],
+      ['youtube', this.i18n.t('game.linkYoutube')],
     ];
     return order.filter(([key]) => !!t.links[key]).map(([key, name]) => ({ key, name, url: t.links[key] }));
   });

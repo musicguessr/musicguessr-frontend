@@ -4,12 +4,16 @@ import { DatePipe } from '@angular/common';
 import { Deck, DeckService } from '../../services/deck.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
+import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
+import { localizedPath } from '../../i18n/locale';
 import QRCodeStyling from 'qr-code-styling';
 
 @Component({
   selector: 'app-deck-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, LanguageSwitcherComponent, LocalizePathPipe],
   templateUrl: './deck-detail.component.html',
   styleUrl: './deck-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +26,7 @@ export class DeckDetailComponent implements OnInit {
   private deckService = inject(DeckService);
   private state = inject(GameStateService);
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   readonly deck = signal<Deck | null>(null);
   readonly loading = signal(true);
@@ -57,7 +62,7 @@ export class DeckDetailComponent implements OnInit {
       this.applyDeckSeo(deck);
       setTimeout(() => this.renderQR(), 0);
     } catch (e: any) {
-      this.error.set(e.message ?? 'Failed to load deck');
+      this.error.set(e.message ?? this.i18n.t('deckDetail.errFailedToLoad'));
     } finally {
       this.loading.set(false);
     }
@@ -89,7 +94,7 @@ export class DeckDetailComponent implements OnInit {
     this.state.startCustomDeck(d, shuffleOrder);
     this.state.setProvider('youtube');
     this.state.lock();
-    this.router.navigate(['/game']);
+    this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/game'));
   }
 
   copyLink(): void {
@@ -101,6 +106,12 @@ export class DeckDetailComponent implements OnInit {
     return d ? new Date(d.expires_at) < new Date() : false;
   }
 
+  // Per-deck dynamic SEO content (artist names, track counts are
+  // user-generated) — kept in English along with the rest of this page's
+  // SEO fields, same reasoning as landing/how-to-play's structured data:
+  // this page also has no alternatePath/hreflang (shared decks aren't a
+  // fixed, prerendered page family the way /faq or /how-to-play are), so
+  // there's no per-locale URL for a crawler to land on here anyway.
   private applyDeckSeo(deck: import('../../services/deck.service').Deck): void {
     const artists = [...new Set(deck.cards.map((c) => c.artist).filter(Boolean))].slice(0, 4).join(', ');
     const title = `Music Quiz Deck — ${deck.cards.length} tracks${artists ? ` (${artists}…)` : ''}`;

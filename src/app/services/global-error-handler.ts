@@ -1,6 +1,7 @@
 import { ErrorHandler, inject, Injectable, NgZone } from '@angular/core';
 import { AppErrorService } from './app-error.service';
 import { ClientErrorReporterService } from './client-error-reporter.service';
+import { TranslationService } from '../i18n/translation.service';
 
 // Chunk-load failures are the single most common uncaught error in a
 // deployed SPA: a tab stays open across a deploy, then navigates to a
@@ -14,6 +15,7 @@ export class GlobalErrorHandler implements ErrorHandler {
   private appError = inject(AppErrorService);
   private zone = inject(NgZone);
   private reporter = inject(ClientErrorReporterService);
+  private i18n = inject(TranslationService);
 
   handleError(error: unknown): void {
     // Always log to the console — devtools / a real error-tracking SDK
@@ -31,9 +33,9 @@ export class GlobalErrorHandler implements ErrorHandler {
     // zone explicitly so the signal write reliably triggers change detection.
     this.zone.run(() => {
       if (CHUNK_LOAD_PATTERN.test(message)) {
-        this.appError.reportFatal('A new version of musicguessr is available — please reload.');
+        this.appError.reportFatal(this.i18n.t('app.fatalNewVersion'));
       } else {
-        this.appError.reportFatal('Something went wrong.');
+        this.appError.reportFatal(this.i18n.t('app.fatalDefault'));
       }
     });
   }

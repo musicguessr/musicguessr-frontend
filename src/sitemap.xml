@@ -1,23 +1,182 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>__SITE_URL__/</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/" />
   </url>
+  <url>
+    <loc>__SITE_URL__/pl</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/de</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/nl</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/" />
+  </url>
+
   <url>
     <loc>__SITE_URL__/how-to-play</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/how-to-play" />
   </url>
+  <url>
+    <loc>__SITE_URL__/pl/how-to-play</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/how-to-play" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/de/how-to-play</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/how-to-play" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/nl/how-to-play</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/how-to-play" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/how-to-play" />
+  </url>
+
   <url>
     <loc>__SITE_URL__/faq</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/faq" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/faq" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/faq" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/faq" />
   </url>
   <url>
-    <loc>__SITE_URL__/create-deck</loc>
+    <loc>__SITE_URL__/pl/faq</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/faq" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/faq" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/faq" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/faq" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/de/faq</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/faq" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/faq" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/faq" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/faq" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/nl/faq</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/faq" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/faq" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/faq" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/faq" />
+  </url>
+
+  <url>
+    <loc>__SITE_URL__/create-deck</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/create-deck" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/create-deck" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/create-deck" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/pl/create-deck</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/create-deck" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/create-deck" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/create-deck" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/de/create-deck</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/create-deck" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/create-deck" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/create-deck" />
+  </url>
+  <url>
+    <loc>__SITE_URL__/nl/create-deck</loc>
+    <lastmod>__BUILD_DATE__</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="__SITE_URL__/create-deck" />
+    <xhtml:link rel="alternate" hreflang="pl" href="__SITE_URL__/pl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="de" href="__SITE_URL__/de/create-deck" />
+    <xhtml:link rel="alternate" hreflang="nl" href="__SITE_URL__/nl/create-deck" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="__SITE_URL__/create-deck" />
   </url>
 </urlset>

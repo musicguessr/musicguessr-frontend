@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SpotifyService } from '../../services/spotify.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
+import { TranslationService } from '../../i18n/translation.service';
+import { localizedPath } from '../../i18n/locale';
 
 @Component({
   selector: 'app-callback',
@@ -11,13 +13,13 @@ import { SeoService } from '../../services/seo.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="callback-page">
-      <div class="logo">musicguessr</div>
+      <div class="logo">{{ i18n.t('common.logo') }}</div>
       @if (!error()) {
         <span class="spinner large"></span>
-        <p class="msg">Connecting to {{ provider() }}…</p>
+        <p class="msg">{{ i18n.t('callback.connectingTo', { provider: provider() }) }}</p>
       } @else {
         <p class="error">{{ error() }}</p>
-        <button class="btn btn-ghost" (click)="goHome()">Go back</button>
+        <button class="btn btn-ghost" (click)="goHome()">{{ i18n.t('callback.goBack') }}</button>
       }
     </div>
   `,
@@ -63,18 +65,19 @@ export class CallbackComponent implements OnInit {
   private spotify = inject(SpotifyService);
   private state = inject(GameStateService);
   private seo = inject(SeoService);
+  i18n = inject(TranslationService);
 
   readonly error = signal<string | null>(null);
   readonly provider = signal<string>('Spotify');
 
   async ngOnInit(): Promise<void> {
-    this.seo.set({ title: 'Connecting…', noindex: true });
+    this.seo.set({ title: this.i18n.t('callback.seoTitle'), noindex: true });
     const params = this.route.snapshot.queryParams;
     const code = params['code'];
     const errorParam = params['error'];
 
     if (errorParam) {
-      this.error.set(`Auth denied: ${errorParam}`);
+      this.error.set(this.i18n.t('callback.errAuthDenied', { reason: errorParam }));
       return;
     }
 
@@ -83,17 +86,17 @@ export class CallbackComponent implements OnInit {
         await this.spotify.handleCallback(code);
         this.state.setProvider('spotify');
         this.state.lock();
-        this.router.navigate(['/scan']);
+        this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/scan'));
       } catch (e: any) {
-        this.error.set(e.message || 'Token exchange failed');
+        this.error.set(e.message || this.i18n.t('callback.errTokenExchange'));
       }
       return;
     }
 
-    this.error.set('No authorization code received');
+    this.error.set(this.i18n.t('callback.errNoCode'));
   }
 
   goHome(): void {
-    this.router.navigate(['/']);
+    this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/'));
   }
 }
