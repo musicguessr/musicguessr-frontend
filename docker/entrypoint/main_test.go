@@ -112,6 +112,7 @@ func TestFindIndexHTMLFiles(t *testing.T) {
 	dir := t.TempDir()
 	paths := []string{
 		"index.html",
+		"index.csr.html",
 		filepath.Join("how-to-play", "index.html"),
 		filepath.Join("faq", "index.html"),
 		filepath.Join("deck", "123", "index.html"), // hypothetical nested route
@@ -131,11 +132,11 @@ func TestFindIndexHTMLFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("findIndexHTMLFiles: %v", err)
 	}
-	if len(got) != 4 {
-		t.Fatalf("expected 4 index.html files, got %d: %v", len(got), got)
+	if len(got) != 5 {
+		t.Fatalf("expected 5 HTML shell files, got %d: %v", len(got), got)
 	}
 	for _, p := range got {
-		if filepath.Base(p) != "index.html" {
+		if b := filepath.Base(p); b != "index.html" && b != "index.csr.html" {
 			t.Errorf("unexpected non-index.html file returned: %s", p)
 		}
 	}

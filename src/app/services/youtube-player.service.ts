@@ -55,6 +55,11 @@ export class YoutubePlayerService {
   private containerId = 'yt-player-container';
   private apiLoadPromise: Promise<void> | null = null;
   private preloadPromise: Promise<void> | null = null;
+  // Bumped by destroy(). A preload started before a destroy (e.g. swipe to
+  // the next card, then undo) must not later null out the new player or
+  // report YouTube as "blocked" because its own, destroyed player never
+  // fired onReady.
+  private generation = 0;
 
   setRequestId(id: string | null): void {
     this.currentRequestId = id;
@@ -122,6 +127,7 @@ export class YoutubePlayerService {
       return this.preloadPromise;
     }
 
+    const generation = this.generation;
     const promise = new Promise<void>((resolve, reject) => {
       // Belt-and-braces alongside loadAPI()'s own timeout: even once the API
       // script has loaded, the actual player iframe (youtube.com/embed/…)
@@ -141,6 +147,10 @@ export class YoutubePlayerService {
       // which sets overlayError and blocks the tap from ever reaching a
       // broken player.
       const timeout = setTimeout(() => {
+        if (generation !== this.generation) {
+          resolve();
+          return;
+        }
         this.reportBlocked('player embed timed out');
         this.player = null;
         reject(new Error(YOUTUBE_BLOCKED_MESSAGE));
@@ -148,6 +158,11 @@ export class YoutubePlayerService {
 
       // setTimeout(0) ensures Angular change detection has rendered the container
       setTimeout(() => {
+        if (generation !== this.generation) {
+          clearTimeout(timeout);
+          resolve();
+          return;
+        }
         const container = document.getElementById(this.containerId);
         if (!container || this.player) {
           clearTimeout(timeout);
@@ -186,7 +201,9 @@ export class YoutubePlayerService {
         });
       }, 0);
     }).finally(() => {
-      this.preloadPromise = null;
+      if (this.preloadPromise === promise) {
+        this.preloadPromise = null;
+      }
     });
     this.preloadPromise = promise;
     return promise;
@@ -215,7 +232,9 @@ export class YoutubePlayerService {
     // Create the player with autoplay=1; onReady will attempt play, but this
     // may not work on iOS Safari due to the async gap.
     if (!this.apiReady) {
-      this.loadAPI().then(() => setTimeout(() => this.createPlayer(videoId), 0));
+      this.loadAPI()
+        .then(() => setTimeout(() => this.createPlayer(videoId), 0))
+        .catch((e: unknown) => this.error.set(e instanceof Error ? e.message : String(e)));
       return;
     }
     this.createPlayer(videoId);
@@ -312,6 +331,8 @@ export class YoutubePlayerService {
       this.player.destroy();
     }
     this.player = null;
+    this.generation++;
+    this.preloadPromise = null;
     this.isPlaying.set(false);
     this.videoId.set(null);
     this.error.set(null);

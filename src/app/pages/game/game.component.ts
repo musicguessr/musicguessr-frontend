@@ -115,6 +115,15 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopActivePlayer();
+    this.swipeGesture.destroy();
+    this.undoToast.destroy();
+  }
+
+  // Only the provider this game uses — stopping every provider paused a
+  // previously connected Spotify session on the user's own device while
+  // they were playing through YouTube.
+  private stopActivePlayer(): void {
     const p = this.provider();
     if (p === 'youtube') {
       this.ytPlayer.destroy();
@@ -125,8 +134,6 @@ export class GameComponent implements OnInit, OnDestroy {
     if (p === 'apple') {
       this.apple.stop();
     }
-    this.swipeGesture.destroy();
-    this.undoToast.destroy();
   }
 
   private goTo(path: string): void {
@@ -163,11 +170,14 @@ export class GameComponent implements OnInit, OnDestroy {
     // Apple init would still call play() (and, for Apple, silently play the
     // *previous* card's queue instead of showing an error or opening a link).
     if (this.overlayError()) {
-      if (!this.isCustomMode() && t) {
-        const link = this.getFallbackLink(t);
-        if (link) {
-          window.open(link, '_blank', 'noopener');
-        }
+      const link = !this.isCustomMode() && t ? this.getFallbackLink(t) : null;
+      if (link) {
+        window.open(link, '_blank', 'noopener');
+      } else {
+        // The error text only lived on the overlay being hidden above —
+        // without this, a custom-deck card with a blocked embed showed no
+        // music and no explanation.
+        this.playerError.set(this.overlayError());
       }
       return;
     }
@@ -185,6 +195,7 @@ export class GameComponent implements OnInit, OnDestroy {
         this.playerError.set(this.i18n.t('game.errTrackNotOnSpotify'));
         return;
       }
+      this.spotify.activateElement();
       this.spotify
         .play(t.spotify_id)
         .then(() => this.isPlaying.set(true))
@@ -260,9 +271,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   scanNext(): void {
-    this.ytPlayer.destroy();
-    this.spotify.stop();
-    this.apple.stop();
+    this.stopActivePlayer();
     this.state.currentTrack.set(null);
     this.goTo('/scan');
   }
@@ -275,9 +284,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!confirm(this.i18n.t('game.endGameConfirm'))) {
       return;
     }
-    this.ytPlayer.destroy();
-    this.spotify.stop();
-    this.apple.stop();
+    this.stopActivePlayer();
     this.state.currentTrack.set(null);
     this.state.clearCustomDeck();
     this.state.unlock();

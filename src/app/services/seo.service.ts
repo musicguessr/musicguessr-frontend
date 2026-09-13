@@ -1,12 +1,14 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
-import { LOCALES, localizedPath } from '../i18n/locale';
+import { Locale, LOCALES, localizedPath } from '../i18n/locale';
 import { TranslationService } from '../i18n/translation.service';
 
 const APP_NAME = 'musicguessr';
 const DEFAULT_DESCRIPTION =
   'Play any Hitster card with YouTube, Spotify or Apple Music — no subscription lock-in. Scan QR codes, guess the year, create custom decks.';
+
+const OG_LOCALES: Record<Locale, string> = { en: 'en_US', pl: 'pl_PL', de: 'de_DE', nl: 'nl_NL' };
 
 export type BreadcrumbItem = { name: string; path: string };
 
@@ -71,6 +73,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:title', content: fullTitle });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:url', content: canonical });
+    this.setOgLocales(options.alternatePath);
     if (options.image) {
       this.meta.updateTag({ property: 'og:image', content: options.image });
     }
@@ -94,7 +97,9 @@ export class SeoService {
           '@type': 'ListItem',
           position: i + 1,
           name: crumb.name,
-          item: `${this.siteOrigin()}${crumb.path}`,
+          // Same locale as the page — an unprefixed item URL on /pl/faq
+          // pointed the breadcrumb at the English page's canonical.
+          item: `${this.siteOrigin()}${localizedPath(this.i18n.locale(), crumb.path)}`,
         })),
       });
     }
@@ -134,6 +139,22 @@ export class SeoService {
     defaultLink.setAttribute('href', `${origin}${localizedPath('en', alternatePath)}`);
     defaultLink.setAttribute('data-seo-hreflang', '');
     this.doc.head.appendChild(defaultLink);
+  }
+
+  // og:locale comes hardcoded as en_US from index.html; without this every
+  // Polish/German/Dutch page told social previews it was American English.
+  private setOgLocales(alternatePath: string | undefined): void {
+    const locale = this.i18n.locale();
+    this.meta.updateTag({ property: 'og:locale', content: OG_LOCALES[locale] });
+    this.meta.getTags('property="og:locale:alternate"').forEach((el) => this.meta.removeTagElement(el));
+    if (!alternatePath) {
+      return;
+    }
+    for (const other of LOCALES) {
+      if (other !== locale) {
+        this.meta.addTag({ property: 'og:locale:alternate', content: OG_LOCALES[other] }, true);
+      }
+    }
   }
 
   private setCanonical(url: string): void {

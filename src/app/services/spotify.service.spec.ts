@@ -35,16 +35,15 @@ describe('SpotifyService.stop()', () => {
     return fetchMock.mock.calls.filter((c) => String(c[0]).includes('/me/player/pause'));
   }
 
-  it('pauses over the Web API when there is no local SDK player', async () => {
+  it("doesn't pause the user's active device when playback was never handed off", async () => {
+    // A stale Spotify token from an earlier session must not pause whatever
+    // the user is listening to elsewhere while this game plays via YouTube.
     state.setSpotifyToken('tok', 'ref', 3600);
 
     service.stop();
     await Promise.resolve();
 
-    const calls = pauseCalls();
-    expect(calls).toHaveLength(1);
-    expect(calls[0][1]['method']).toBe('PUT');
-    expect((calls[0][1]['headers'] as Record<string, string>)['Authorization']).toBe('Bearer tok');
+    expect(pauseCalls()).toHaveLength(0);
     expect(service.isPlaying()).toBe(false);
   });
 

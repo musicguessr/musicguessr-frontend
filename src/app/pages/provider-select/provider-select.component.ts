@@ -13,6 +13,7 @@ import { TranslationService } from '../../i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
 import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
 import { localizedPath } from '../../i18n/locale';
+import { isIOSDevice } from '../../services/platform';
 
 type ProviderOption = {
   id: Provider;
@@ -93,8 +94,7 @@ export class ProviderSelectComponent implements OnInit {
   // already running. There's no way to check or force that from the
   // browser, so the best we can do is warn up front instead of a silent
   // "nothing happened" after the card is scanned.
-  readonly isIOS =
-    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+  readonly isIOS = isIOSDevice();
 
   ngOnInit(): void {
     this.seo.set({
@@ -220,7 +220,8 @@ export class ProviderSelectComponent implements OnInit {
     }
 
     // Accept full URL or bare ID
-    const id = raw.split('/').pop() ?? raw;
+    // Tolerates a pasted share URL with a trailing slash, query or fragment.
+    const id = raw.split(/[?#]/)[0].replace(/\/+$/, '').split('/').pop() ?? raw;
 
     this.deckLoading.set(true);
     this.deckError.set(null);

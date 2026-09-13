@@ -73,7 +73,8 @@ export class CreateDeckComponent implements OnInit {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
           name: this.i18n.t('createDeck.schemaName'),
-          url: `${origin}/create-deck`,
+          url: `${origin}${localizedPath(this.i18n.locale(), '/create-deck')}`,
+          inLanguage: this.i18n.locale(),
           description: this.i18n.t('createDeck.schemaDescription'),
           applicationCategory: 'GameApplication',
           operatingSystem: 'Any',
@@ -297,7 +298,8 @@ export class CreateDeckComponent implements OnInit {
   copyLink(): void {
     const url = this.result()?.share_url;
     if (url) {
-      navigator.clipboard.writeText(url);
+      // Undefined outside secure contexts, and rejects when permission is denied.
+      void navigator.clipboard?.writeText(url)?.catch(() => undefined);
     }
   }
 

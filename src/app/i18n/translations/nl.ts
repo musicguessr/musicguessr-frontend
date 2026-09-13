@@ -17,6 +17,7 @@ export const nl = {
     copy: 'Kopiëren',
     copyLink: 'Link kopiëren',
     play: 'Spelen',
+    language: 'Taal',
   },
   nav: {
     howToPlay: 'Hoe werkt het',
@@ -30,9 +31,9 @@ export const nl = {
     fatalNewVersion: 'musicguessr heeft een update — herlaad de pagina even.',
   },
   landing: {
-    seoTitle: 'Hitster spelen via YouTube — gratis, zonder inloggen',
+    seoTitle: 'Hitster zonder Spotify — gratis via YouTube',
     seoDescription:
-      'Speel Hitster in je browser, met YouTube, Spotify of Apple Music — jij kiest. Kaart scannen, jaartal raden. Spotify heb je er niet voor nodig. Gratis en open source.',
+      'Speel Hitster in je browser met YouTube, Spotify of Apple Music. Kaart scannen, jaartal raden — Spotify heb je er niet voor nodig. Gratis en open source.',
     heroEyebrow: 'De handige metgezel bij je Hitster-avond',
     heroTitleLine1: 'Hitster spelen',
     heroTitleLine2: 'zonder Spotify nodig te hebben',
@@ -88,7 +89,7 @@ export const nl = {
     footerCtaSub: 'Pak je Hitster-kaarten erbij, binnen een paar seconden sta je te spelen.',
   },
   howToPlay: {
-    seoTitle: 'Hitster online spelen met YouTube — stap voor stap',
+    seoTitle: 'Hitster online spelen — stap voor stap',
     seoDescription:
       'Zo speel je Hitster online — met YouTube, Spotify of Apple Music. Kaart scannen, nummer speelt, jaartal raden. Spotify heb je er niet voor nodig.',
     breadcrumb: 'Hoe werkt het',
@@ -115,7 +116,7 @@ export const nl = {
     step1Body: 'Ga naar musicguessr.app in Safari, Chrome of een andere moderne browser. Installeren hoeft niet.',
     step2Title: 'Kies waar de muziek vandaan komt',
     step2Body:
-      'Tik op Start Playing en kies een dienst. YouTube is gratis en zonder login. Spotify en Apple Music vragen een abonnement. Je keuze staat vast voor de hele speelronde, dus kies bewust.',
+      'Tik op "Begin gratis" en kies een dienst. YouTube is gratis en zonder login. Spotify en Apple Music vragen een abonnement. Je keuze staat vast voor de hele speelronde, dus kies bewust.',
     step3Title: 'Geef cameratoegang',
     step3Body:
       'De browser vraagt om je camera — die is nodig om de kaarten te scannen. musicguessr bewaart of neemt daarbij niets op.',
@@ -159,7 +160,7 @@ export const nl = {
     stillHaveQuestions: 'Nog iets onduidelijk? Kijk bij de FAQ',
   },
   faq: {
-    seoTitle: 'Veelgestelde vragen — Hitster online, YouTube en eigen decks',
+    seoTitle: 'Hitster online — veelgestelde vragen',
     seoDescription:
       'Vragen over online Hitster spelen met musicguessr. Hoe je YouTube gebruikt in plaats van Spotify, hoe je eigen decks maakt, en meer.',
     breadcrumb: 'Veelgestelde vragen',
@@ -270,6 +271,7 @@ export const nl = {
   },
   game: {
     seoTitle: 'Aan het spelen',
+    albumArt: 'Albumhoes',
     allCardsPlayed: 'Alle kaarten gehad!',
     songsDone: 'nummers gedaan.',
     shuffleAndPlayAgain: 'Schudden en opnieuw',
@@ -323,9 +325,9 @@ export const nl = {
       'Nog steeds niks gevonden? Zorg voor meer licht, houd de kaart stil en laat hem het grootste deel van het beeld vullen.',
   },
   createDeck: {
-    seoTitle: 'Deck maken',
+    seoTitle: 'Eigen muziekquiz in Hitster-stijl maken',
     seoDescription:
-      "Maak je eigen muziekquizdeck van YouTube-video's of een afspeellijst. Deel het met vrienden via link of QR-code.",
+      "Maak je eigen muziekquiz in Hitster-stijl van YouTube-video's of een hele afspeellijst. Deel hem via link of QR-code — gratis, zonder account.",
     breadcrumb: 'Deck maken',
     schemaName: 'musicguessr deckmaker',
     schemaDescription:
@@ -390,6 +392,12 @@ export const nl = {
     copyLink: 'Link kopiëren',
     songsHeading: 'Nummers in dit deck',
     errFailedToLoad: 'Deck laden is niet gelukt',
+  },
+  notFound: {
+    seoTitle: 'Pagina niet gevonden',
+    heading: 'Pagina niet gevonden',
+    body: 'Deze pagina bestaat niet — misschien is de link oud of zit er een typfout in.',
+    goHome: 'Terug naar de startpagina',
   },
   localeSuggestion: {
     message: 'Liever in het Nederlands?',

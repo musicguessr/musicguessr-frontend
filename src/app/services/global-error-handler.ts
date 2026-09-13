@@ -28,15 +28,17 @@ export class GlobalErrorHandler implements ErrorHandler {
       stack: error instanceof Error ? error.stack : undefined,
       context: 'global-error-handler',
     });
+    // Only a chunk-load failure is truly unrecoverable without a reload.
+    // Blocking the whole app for every other uncaught error (a rejected
+    // clipboard write, a late callback from a destroyed player) turned
+    // harmless background failures into a full-screen dead end; those are
+    // still logged and reported above.
+    if (!CHUNK_LOAD_PATTERN.test(message)) {
+      return;
+    }
     // handleError can be invoked from outside Angular's zone (e.g. a
     // rejected promise from a non-patched async callback) — run inside the
     // zone explicitly so the signal write reliably triggers change detection.
-    this.zone.run(() => {
-      if (CHUNK_LOAD_PATTERN.test(message)) {
-        this.appError.reportFatal(this.i18n.t('app.fatalNewVersion'));
-      } else {
-        this.appError.reportFatal(this.i18n.t('app.fatalDefault'));
-      }
-    });
+    this.zone.run(() => this.appError.reportFatal(this.i18n.t('app.fatalNewVersion')));
   }
 }

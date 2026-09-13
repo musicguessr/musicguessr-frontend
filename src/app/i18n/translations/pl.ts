@@ -17,6 +17,7 @@ export const pl = {
     copy: 'Kopiuj',
     copyLink: 'Kopiuj link',
     play: 'Graj',
+    language: 'Język',
   },
   nav: {
     howToPlay: 'Jak grać',
@@ -30,9 +31,9 @@ export const pl = {
     fatalNewVersion: 'Wyszła nowa wersja musicguessr — odśwież stronę.',
   },
   landing: {
-    seoTitle: 'Hitster na YouTube — za darmo, bez logowania',
+    seoTitle: 'Hitster bez Spotify — graj za darmo na YouTube',
     seoDescription:
-      'Graj w Hitster w przeglądarce — YouTube, Spotify albo Apple Music, jak wolisz. Skanujesz karty, zgadujesz rok. Spotify wcale nie jest wymagany. Darmowe i open source.',
+      'Graj w Hitstera w przeglądarce przez YouTube, Spotify albo Apple Music. Skanujesz kartę, zgadujesz rok. Spotify nie jest potrzebny. Za darmo, open source.',
     heroEyebrow: 'Towarzysz do gry w Hitster',
     heroTitleLine1: 'Graj w Hitster',
     heroTitleLine2: 'bez Spotify',
@@ -89,7 +90,7 @@ export const pl = {
     footerCtaSub: 'Bierz karty Hitstera i startujecie w kilka sekund.',
   },
   howToPlay: {
-    seoTitle: 'Jak grać w Hitstera online przez YouTube — krok po kroku',
+    seoTitle: 'Jak grać w Hitstera online — krok po kroku',
     seoDescription:
       'Krok po kroku, jak zagrać w Hitstera online z YouTube, Spotify albo Apple Music. Skan karty, piosenka leci, zgadujecie rok. Spotify nie jest potrzebny.',
     breadcrumb: 'Jak grać',
@@ -117,7 +118,7 @@ export const pl = {
       'Otwórz musicguessr.app w Safari, Chrome albo jakiejkolwiek nowej przeglądarce. Nic nie musisz instalować.',
     step2Title: 'Wybierz, skąd leci muzyka',
     step2Body:
-      'Kliknij Start Playing i wybierz serwis. YouTube gra za darmo bez logowania. Spotify i Apple Music wymagają subskrypcji. Wybór trzyma się przez całą grę, więc dobrze się zastanów.',
+      'Kliknij „Zacznij grać za darmo” i wybierz serwis. YouTube gra za darmo bez logowania. Spotify i Apple Music wymagają subskrypcji. Wybór trzyma się przez całą grę, więc dobrze się zastanów.',
     step3Title: 'Zgódź się na kamerę',
     step3Body:
       'Przeglądarka spyta o dostęp do kamery — musi go mieć, żeby skanować karty. musicguessr niczego nie nagrywa ani nie zapisuje.',
@@ -160,7 +161,7 @@ export const pl = {
     stillHaveQuestions: 'Coś jeszcze niejasne? Zobacz FAQ',
   },
   faq: {
-    seoTitle: 'FAQ — Hitster online, YouTube i własne talie',
+    seoTitle: 'Hitster online — pytania i odpowiedzi',
     seoDescription:
       'Pytania o granie w Hitstera online z musicguessr. Jak grać przez YouTube zamiast Spotify, jak zrobić własną talię i więcej.',
     breadcrumb: 'FAQ',
@@ -270,6 +271,7 @@ export const pl = {
   },
   game: {
     seoTitle: 'Gra',
+    albumArt: 'Okładka albumu',
     allCardsPlayed: 'Wszystkie karty rozegrane!',
     songsDone: 'piosenek za Wami.',
     shuffleAndPlayAgain: 'Przetasuj i jeszcze raz',
@@ -322,9 +324,9 @@ export const pl = {
     stuckHint: 'Dalej nic nie widać? Dorzuć trochę światła, trzymaj kartę spokojnie i wypełnij nią większość kadru.',
   },
   createDeck: {
-    seoTitle: 'Stwórz talię',
+    seoTitle: 'Własny muzyczny quiz w stylu Hitstera',
     seoDescription:
-      'Zrób własną talię quizu muzycznego z filmów albo playlisty na YouTube. Wyślij znajomym linkiem albo kodem QR.',
+      'Zrób własny muzyczny quiz w stylu Hitstera z filmów albo całej playlisty na YouTube. Wyślij go znajomym linkiem lub kodem QR — za darmo, bez konta.',
     breadcrumb: 'Stwórz talię',
     schemaName: 'Kreator talii musicguessr',
     schemaDescription:
@@ -391,6 +393,12 @@ export const pl = {
     copyLink: 'Kopiuj link',
     songsHeading: 'Piosenki w tej talii',
     errFailedToLoad: 'Nie udało się wczytać talii',
+  },
+  notFound: {
+    seoTitle: 'Nie ma takiej strony',
+    heading: 'Nie ma takiej strony',
+    body: 'Tej strony tu nie ma — może link jest stary albo wkradła się literówka.',
+    goHome: 'Wróć na stronę główną',
   },
   localeSuggestion: {
     message: 'Wolisz po polsku?',

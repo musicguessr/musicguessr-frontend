@@ -117,7 +117,7 @@ func main() {
 	// means it tracks actual deploys (a real proxy for "content might have
 	// changed") instead of drifting into a permanently stale date the day
 	// after the image was built. (Computed once, above, alongside version.json.)
-	for _, name := range []string{"robots.txt", "sitemap.xml"} {
+	for _, name := range []string{"robots.txt", "sitemap.xml", "llms.txt"} {
 		path := filepath.Join(htmlDir, name)
 		if err := patchPlaceholders(path, map[string]string{"__SITE_URL__": siteURL, "__BUILD_DATE__": buildDate}); err != nil {
 			log.Fatalf("[entrypoint] failed to patch %s: %v", name, err)
@@ -173,7 +173,10 @@ func findIndexHTMLFiles(dir string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() && d.Name() == "index.html" {
+		// index.csr.html is the client-only shell nginx serves for app routes
+		// and 404s — it carries the same __SITE_URL__/verification/GA
+		// placeholders as the prerendered pages.
+		if !d.IsDir() && (d.Name() == "index.html" || d.Name() == "index.csr.html") {
 			files = append(files, path)
 		}
 		return nil

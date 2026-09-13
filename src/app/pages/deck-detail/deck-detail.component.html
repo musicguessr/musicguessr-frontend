@@ -29,7 +29,8 @@
             <span class="badge-expired">{{ i18n.t('deckDetail.expired') }}</span>
           } @else {
             <span class="badge-active"
-              >{{ i18n.t('deckDetail.expiresPrefix') }}{{ d.expires_at | date: 'mediumDate' }}</span
+              >{{ i18n.t('deckDetail.expiresPrefix')
+              }}{{ d.expires_at | date: 'mediumDate' : undefined : i18n.locale() }}</span
             >
           }
         </div>

@@ -1,7 +1,12 @@
 name: Build and Push multi-arch Docker image
 
+# Runs only after Frontend CI succeeds for a push to main — the Pi's Quadlets
+# auto-update from :latest, so publishing in parallel with (instead of after)
+# lint/tests/e2e used to ship images whose checks had failed.
 on:
-  push:
+  workflow_run:
+    workflows: [Frontend CI]
+    types: [completed]
     branches: [main, master]
   workflow_dispatch:
 
@@ -11,10 +16,17 @@ permissions:
 
 jobs:
   build:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    env:
+      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.COMMIT_SHA }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -38,8 +50,8 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/musicguessr-frontend:${{ env.COMMIT_SHA }}
           build-args: |
-            GIT_COMMIT=${{ github.sha }}
+            GIT_COMMIT=${{ env.COMMIT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

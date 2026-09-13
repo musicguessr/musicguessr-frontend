@@ -21,7 +21,7 @@ import { LocaleSuggestionService } from './locale-suggestion.service';
         class="lang-trigger"
         type="button"
         [attr.aria-expanded]="open()"
-        [attr.aria-label]="'Language: ' + labelFor(i18n.locale())"
+        [attr.aria-label]="i18n.t('common.language') + ': ' + labelFor(i18n.locale())"
         (click)="toggle()"
       >
         <svg
@@ -38,20 +38,22 @@ import { LocaleSuggestionService } from './locale-suggestion.service';
         </svg>
         <span class="lang-code">{{ codeFor(i18n.locale()) }}</span>
       </button>
-      @if (open()) {
-        <div class="lang-menu" role="menu">
-          @for (l of locales; track l) {
-            <a
-              class="lang-option"
-              role="menuitem"
-              [class.active]="l === i18n.locale()"
-              [routerLink]="pathFor(l)"
-              (click)="select()"
-              >{{ labelFor(l) }}</a
-            >
-          }
-        </div>
-      }
+      <!-- Always rendered (hidden when closed) so every page's HTML links to
+           its other-language versions — an @if left crawlers no
+           locale-to-locale links at all. -->
+      <div class="lang-menu" role="menu" [hidden]="!open()">
+        @for (l of locales; track l) {
+          <a
+            class="lang-option"
+            role="menuitem"
+            [attr.hreflang]="l"
+            [class.active]="l === i18n.locale()"
+            [routerLink]="pathFor(l)"
+            (click)="select()"
+            >{{ labelFor(l) }}</a
+          >
+        }
+      </div>
     </div>
   `,
   styles: [
@@ -95,6 +97,9 @@ import { LocaleSuggestionService } from './locale-suggestion.service';
         border-radius: 12px;
         background: #161616;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      }
+      .lang-menu[hidden] {
+        display: none;
       }
       .lang-option {
         padding: 8px 10px;

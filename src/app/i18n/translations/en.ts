@@ -19,6 +19,7 @@ export const en = {
     copy: 'Copy',
     copyLink: 'Copy link',
     play: 'Play',
+    language: 'Language',
   },
   nav: {
     howToPlay: 'How to play',
@@ -32,7 +33,7 @@ export const en = {
     fatalNewVersion: 'A new version of musicguessr is available — please reload.',
   },
   landing: {
-    seoTitle: 'Play Hitster Cards on YouTube — Free, No Login',
+    seoTitle: 'Hitster Without Spotify — Play Free on YouTube',
     seoDescription:
       'Play Hitster card game in your browser using YouTube, Spotify, or Apple Music. Scan QR codes, guess the year — no Spotify required. Free & open source.',
     heroEyebrow: 'Hitster companion app',
@@ -91,7 +92,7 @@ export const en = {
     footerCtaSub: 'Grab your Hitster cards and start in seconds.',
   },
   howToPlay: {
-    seoTitle: 'How to Play Hitster Online with YouTube — Step by Step',
+    seoTitle: 'How to Play Hitster Online, Step by Step',
     seoDescription:
       'Learn how to play Hitster card game online using YouTube, Spotify, or Apple Music. Scan QR codes, hear the song, guess the year. No Spotify required.',
     breadcrumb: 'How to Play',
@@ -118,7 +119,7 @@ export const en = {
     step1Body: 'Go to musicguessr.app in Safari, Chrome, or any modern browser. No download or installation needed.',
     step2Title: 'Choose your music service',
     step2Body:
-      'Tap Start Playing and pick a provider. Choose YouTube for free play with no login. Spotify and Apple Music require a subscription. Your choice is locked for the entire game session.',
+      'Tap "Start Playing Free" and pick a provider. Choose YouTube for free play with no login. Spotify and Apple Music require a subscription. Your choice is locked for the entire game session.',
     step3Title: 'Allow camera access',
     step3Body:
       'When prompted, allow the browser to use your camera. This is needed to scan QR codes on Hitster cards. musicguessr never stores photos or video.',
@@ -163,7 +164,7 @@ export const en = {
     stillHaveQuestions: 'Still have questions? See FAQ',
   },
   faq: {
-    seoTitle: 'FAQ — Hitster Online, YouTube Playback & Custom Decks',
+    seoTitle: 'Hitster Online FAQ — YouTube, Spotify & Decks',
     seoDescription:
       'Frequently asked questions about playing Hitster online with musicguessr. Learn how to use YouTube instead of Spotify, create custom decks, and more.',
     breadcrumb: 'FAQ',
@@ -273,6 +274,7 @@ export const en = {
   },
   game: {
     seoTitle: 'Playing',
+    albumArt: 'Album artwork',
     allCardsPlayed: 'All cards played!',
     songsDone: 'songs done.',
     shuffleAndPlayAgain: 'Shuffle & play again',
@@ -325,9 +327,9 @@ export const en = {
     stuckHint: 'Still not finding it? Make sure the card is well lit, steady, and filling most of the frame.',
   },
   createDeck: {
-    seoTitle: 'Create Deck',
+    seoTitle: 'Create a Hitster-Style Music Quiz',
     seoDescription:
-      'Build your own music quiz deck from YouTube videos or playlists. Share it with friends via a link or QR code.',
+      'Build your own Hitster-style music quiz from YouTube videos or a whole playlist. Share it with friends via a link or QR code — free, no account needed.',
     breadcrumb: 'Create Deck',
     schemaName: 'musicguessr Custom Deck Creator',
     schemaDescription:
@@ -391,6 +393,12 @@ export const en = {
     copyLink: 'Copy link',
     songsHeading: 'Songs in this deck',
     errFailedToLoad: 'Failed to load deck',
+  },
+  notFound: {
+    seoTitle: 'Page not found',
+    heading: 'Page not found',
+    body: "This page doesn't exist — maybe the link is old or has a typo.",
+    goHome: 'Back to the home page',
   },
   localeSuggestion: {
     // Not actually shown to English readers by the app's own logic (we

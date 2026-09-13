@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SpotifyService } from '../../services/spotify.service';
+import { OAUTH_LOCALE_KEY, SpotifyService } from '../../services/spotify.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
 import { TranslationService } from '../../i18n/translation.service';
-import { localizedPath } from '../../i18n/locale';
+import { isLocale, localizedPath } from '../../i18n/locale';
 
 @Component({
   selector: 'app-callback',
@@ -71,13 +71,22 @@ export class CallbackComponent implements OnInit {
   readonly provider = signal<string>('Spotify');
 
   async ngOnInit(): Promise<void> {
+    // Restore the language the player started the Spotify login from.
+    const savedLocale = sessionStorage.getItem(OAUTH_LOCALE_KEY);
+    sessionStorage.removeItem(OAUTH_LOCALE_KEY);
+    if (savedLocale && isLocale(savedLocale)) {
+      this.i18n.setLocale(savedLocale);
+    }
     this.seo.set({ title: this.i18n.t('callback.seoTitle'), noindex: true });
     const params = this.route.snapshot.queryParams;
     const code = params['code'];
     const errorParam = params['error'];
 
     if (errorParam) {
-      this.error.set(this.i18n.t('callback.errAuthDenied', { reason: errorParam }));
+      // Spotify error codes are short snake_case identifiers; anything else
+      // is attacker-controlled text we shouldn't display verbatim.
+      const reason = /^[a-z_]{1,40}$/.test(errorParam) ? errorParam : 'unknown_error';
+      this.error.set(this.i18n.t('callback.errAuthDenied', { reason }));
       return;
     }
 

@@ -1,60 +1,40 @@
 # musicguessr
 
-> Open-source, platform-agnostic web companion for the Hitster card game. Play any Hitster card with YouTube, Spotify, or Apple Music — no subscription lock-in.
+> Free, open-source browser companion for the Hitster music card game. Scan a Hitster card's QR code and the song plays on YouTube, Spotify, or Apple Music — Spotify is not required.
 
 ## What is musicguessr?
 
-musicguessr lets players scan QR codes from Hitster music quiz cards and instantly play the corresponding track in their browser using whichever music service they have:
+musicguessr lets players scan the QR code on a Hitster card and instantly play that song in their browser, using whichever music service they have:
 
 - **YouTube** — always available, no account required
-- **Spotify** — via Web Playback SDK (requires Premium)
-- **Apple Music** — via MusicKit JS (requires subscription)
+- **Spotify** — Web Playback SDK in the browser (requires Premium); on iPhone/iPad playback is handed to the Spotify app via Spotify Connect
+- **Apple Music** — MusicKit JS (requires a subscription)
 
-The game: players listen to a song snippet, then guess which year it was released. Cards are placed on a timeline in chronological order. The player with the most correctly placed cards wins.
+The game: players listen to a song and guess the year it was released, placing cards on a timeline in chronological order. The player with the most correctly placed cards wins.
 
-## Key Features
+## Key features
 
-- **QR code scanner** — point your camera at any Hitster card to identify the track
-- **Multi-provider playback** — YouTube, Spotify, Apple Music
-- **Custom deck creator** — build your own music quiz deck from YouTube videos or playlists
-- **Playlist import** — import an entire YouTube playlist as a deck in one click
-- **Shareable decks** — share a link or QR code so friends can play your custom deck
-- **PWA** — installable on mobile, works offline (cached decks)
-- **No user accounts** — fully stateless, no login required
+- QR code scanner for every Hitster edition whose cards carry a QR code
+- Multi-provider playback: YouTube, Spotify, Apple Music
+- Custom deck creator: build a Hitster-style music quiz from YouTube videos, or import a whole YouTube playlist
+- Shareable decks via link or QR code; decks expire after a chosen period (1 week to 1 year)
+- Installable Progressive Web App
+- No user accounts; game state stays in the browser
+- Available in English, Polish, German and Dutch
 
-## How it works
+## Pages
 
-1. Go to musicguessr and choose your music provider (YouTube / Spotify / Apple Music)
-2. Scan a QR code from a Hitster card using your camera
-3. Tap to play — the track starts in your browser
-4. Guess the year, then tap to reveal the answer
-5. Optionally create and share your own custom music quiz decks
+- Home: __SITE_URL__/
+- How to play: __SITE_URL__/how-to-play
+- FAQ: __SITE_URL__/faq
+- Create a custom deck: __SITE_URL__/create-deck
+- Polish: __SITE_URL__/pl — German: __SITE_URL__/de — Dutch: __SITE_URL__/nl
+- Source code: https://github.com/musicguessr
 
-## Custom Decks
+## Technical details
 
-Users can create custom decks at `/create-deck`:
-- Add YouTube video URLs one by one, or import an entire YouTube playlist
-- Each card stores the YouTube video ID, title, artist, and year
-- Decks are shareable via a short link and QR code
-- Decks expire after a configurable TTL (1 week to 1 year)
-
-## Technical Details
-
-- Frontend: Angular 19 PWA (TypeScript, standalone components, signals)
-- Backend: Go 1.23 REST API (stdlib only, no framework)
-- Storage: local filesystem or S3-compatible object storage (Cloudflare R2)
-- No user authentication, no cookies, no tracking
-- Open source — MIT license
-
-## Supported Platforms
-
-- Modern browsers: Chrome, Firefox, Safari, Edge
-- Mobile: iOS Safari, Android Chrome (QR scanner requires camera permission)
-- iOS autoplay: handled via tap-to-play gesture gate
-
-## Links
-
-- Home: /
-- Create custom deck: /create-deck
-- My decks: /deck
-- GitHub: https://github.com/musicguessr
+- Frontend: Angular 21 PWA (standalone components, signals), statically prerendered pages
+- Backend: Go 1.27 REST API, standard library only
+- Deck storage: local filesystem or S3-compatible object storage
+- Open source, MIT license
+- Not affiliated with Jumbo, Hitster, Spotify, Apple, or YouTube

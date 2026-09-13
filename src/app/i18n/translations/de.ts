@@ -17,6 +17,7 @@ export const de = {
     copy: 'Kopieren',
     copyLink: 'Link kopieren',
     play: "Los geht's",
+    language: 'Sprache',
   },
   nav: {
     howToPlay: 'Spielanleitung',
@@ -30,9 +31,9 @@ export const de = {
     fatalNewVersion: 'musicguessr hat ein Update bekommen — lad die Seite neu.',
   },
   landing: {
-    seoTitle: 'Hitster auf YouTube spielen — kostenlos, ohne Login',
+    seoTitle: 'Hitster ohne Spotify — kostenlos mit YouTube',
     seoDescription:
-      'Spiel Hitster im Browser — mit YouTube, Spotify oder Apple Music, ganz wie du willst. Karte scannen, Jahr raten. Spotify brauchst du dafür nicht. Kostenlos und Open Source.',
+      'Spiel Hitster im Browser mit YouTube, Spotify oder Apple Music. Karte scannen, Jahr raten — Spotify brauchst du dafür nicht. Kostenlos und Open Source.',
     heroEyebrow: 'Der Begleiter zu deinem Hitster-Spiel',
     heroTitleLine1: 'Hitster spielen',
     heroTitleLine2: 'ganz ohne Spotify',
@@ -89,7 +90,7 @@ export const de = {
     footerCtaSub: "Karten schnappen, und in ein paar Sekunden geht's los.",
   },
   howToPlay: {
-    seoTitle: 'Hitster online spielen mit YouTube — Schritt für Schritt',
+    seoTitle: 'Hitster online spielen — Schritt für Schritt',
     seoDescription:
       'So spielst du Hitster online — mit YouTube, Spotify oder Apple Music. Karte scannen, Song läuft, Jahr raten. Spotify brauchst du dafür nicht.',
     breadcrumb: 'Spielanleitung',
@@ -117,7 +118,7 @@ export const de = {
       'Ruf musicguessr.app in Safari, Chrome oder einem anderen aktuellen Browser auf. Installieren musst du nichts.',
     step2Title: 'Musikdienst aussuchen',
     step2Body:
-      'Auf Start Playing tippen und einen Dienst wählen. YouTube läuft kostenlos ohne Login. Spotify und Apple Music brauchen ein Abo. Die Wahl gilt für die ganze Runde, also gut überlegen.',
+      'Auf „Jetzt kostenlos loslegen“ tippen und einen Dienst wählen. YouTube läuft kostenlos ohne Login. Spotify und Apple Music brauchen ein Abo. Die Wahl gilt für die ganze Runde, also gut überlegen.',
     step3Title: 'Kamerazugriff erlauben',
     step3Body:
       'Der Browser fragt nach der Kamera — die braucht er zum Scannen der Karten. musicguessr speichert oder zeichnet dabei nichts auf.',
@@ -160,9 +161,9 @@ export const de = {
     stillHaveQuestions: 'Noch was unklar? Schau in die FAQ',
   },
   faq: {
-    seoTitle: 'FAQ — Hitster online, YouTube und eigene Decks',
+    seoTitle: 'Hitster online — Fragen und Antworten',
     seoDescription:
-      'Fragen rund ums Hitster-Spielen mit musicguessr. Wie YouTube statt Spotify klappt, wie du eigene Decks baust, und mehr.',
+      'Fragen rund ums Hitster-Spielen mit musicguessr: wie YouTube statt Spotify klappt, wie du eigene Decks baust und was bei Problemen hilft.',
     breadcrumb: 'FAQ',
     heading: 'Fragen und Antworten',
     intro:
@@ -271,6 +272,7 @@ export const de = {
   },
   game: {
     seoTitle: 'Spiel läuft',
+    albumArt: 'Albumcover',
     allCardsPlayed: 'Alle Karten durch!',
     songsDone: 'Songs geschafft.',
     shuffleAndPlayAgain: 'Mischen und nochmal',
@@ -324,9 +326,9 @@ export const de = {
       'Findet er die Karte immer noch nicht? Mehr Licht, Karte ruhig halten, und sie sollte möglichst den ganzen Rahmen ausfüllen.',
   },
   createDeck: {
-    seoTitle: 'Deck erstellen',
+    seoTitle: 'Eigenes Musikquiz im Hitster-Stil bauen',
     seoDescription:
-      'Bau dir ein eigenes Musikquiz-Deck aus YouTube-Videos oder einer Playlist. Teilen per Link oder QR-Code.',
+      'Bau dir ein eigenes Musikquiz im Hitster-Stil aus YouTube-Videos oder einer ganzen Playlist. Teilen per Link oder QR-Code — kostenlos, ohne Konto.',
     breadcrumb: 'Deck erstellen',
     schemaName: 'musicguessr Deck-Baukasten',
     schemaDescription:
@@ -390,6 +392,12 @@ export const de = {
     copyLink: 'Link kopieren',
     songsHeading: 'Songs in diesem Deck',
     errFailedToLoad: 'Deck ließ sich nicht laden',
+  },
+  notFound: {
+    seoTitle: 'Seite nicht gefunden',
+    heading: 'Seite nicht gefunden',
+    body: 'Diese Seite gibt es nicht — vielleicht ist der Link alt oder hat einen Tippfehler.',
+    goHome: 'Zurück zur Startseite',
   },
   localeSuggestion: {
     message: 'Lieber auf Deutsch?',

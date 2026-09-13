@@ -21,7 +21,9 @@
         <div #qrCanvas class="qr-canvas"></div>
       </div>
 
-      <p class="expires-note">{{ i18n.t('createDeck.expiresPrefix') }}{{ res.expires_at | date: 'mediumDate' }}</p>
+      <p class="expires-note">
+        {{ i18n.t('createDeck.expiresPrefix') }}{{ res.expires_at | date: 'mediumDate' : undefined : i18n.locale() }}
+      </p>
 
       <div class="success-actions">
         <button class="btn btn-primary" (click)="playNow()">{{ i18n.t('createDeck.playNow') }}</button>

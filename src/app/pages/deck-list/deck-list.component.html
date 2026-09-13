@@ -30,7 +30,8 @@
                 @if (isExpired(entry.expiresAt)) {
                   {{ i18n.t('deckList.expired') }}
                 } @else {
-                  {{ i18n.t('deckList.expiresPrefix') }}{{ entry.expiresAt | date: 'mediumDate' }}
+                  {{ i18n.t('deckList.expiresPrefix')
+                  }}{{ entry.expiresAt | date: 'mediumDate' : undefined : i18n.locale() }}
                 }
               </span>
             </div>

@@ -17,9 +17,10 @@
               <span class="faq-icon">{{ item.open ? '−' : '+' }}</span>
             </button>
           </dt>
-          @if (item.open) {
-            <dd class="faq-answer">{{ item.a }}</dd>
-          }
+          <!-- Always in the DOM (collapsed via [hidden]) so the prerendered
+               HTML contains every answer — the FAQPage JSON-LD must match
+               visible page content, and the answers are the text that ranks. -->
+          <dd class="faq-answer" [hidden]="!item.open">{{ item.a }}</dd>
         </div>
       }
     </dl>

@@ -14,7 +14,9 @@ on:
       - 'ngsw-config.json'
       - 'angular.json'
       - 'playwright.config.ts'
+      - 'Dockerfile'
       - '.github/workflows/frontend.yml'
+      - '.github/workflows/docker-build.yml'
   pull_request:
     paths:
       - 'src/**'
@@ -28,7 +30,11 @@ on:
       - 'ngsw-config.json'
       - 'angular.json'
       - 'playwright.config.ts'
+      - 'Dockerfile'
       - '.github/workflows/frontend.yml'
+
+permissions:
+  contents: read
 
 jobs:
   lint:

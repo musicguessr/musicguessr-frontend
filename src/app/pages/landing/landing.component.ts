@@ -4,6 +4,7 @@ import { SeoService } from '../../services/seo.service';
 import { TranslationService } from '../../i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
 import { LocalizePathPipe } from '../../i18n/localize-path.pipe';
+import { localizedPath } from '../../i18n/locale';
 
 @Component({
   selector: 'app-landing',
@@ -20,52 +21,45 @@ export class LandingComponent implements OnInit {
   ngOnInit(): void {
     // Derived via SeoService.siteOrigin() (real origin in-browser, a
     // __SITE_URL__ placeholder patched in at container start while
-    // prerendering — see its doc comment) rather than hardcoded, so a
-    // self-hosted deployment under a different domain (see CLAUDE.md's
-    // runtime config.json / SITE_URL) gets correct URLs here too instead of
-    // ones pointing at musicguessr.app.
+    // prerendering) so a self-hosted deployment under another domain gets
+    // correct URLs here too.
     const origin = this.seo.siteOrigin();
+    const locale = this.i18n.locale();
+    const t = (key: string): string => this.i18n.t(key);
     this.seo.set({
-      title: this.i18n.t('landing.seoTitle'),
-      description: this.i18n.t('landing.seoDescription'),
+      title: t('landing.seoTitle'),
+      description: t('landing.seoDescription'),
       alternatePath: '/',
       structuredData: [
         {
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
           name: 'musicguessr',
-          url: origin,
-          // JSON-LD structured data is read by crawlers, not shown to
-          // visitors — kept in English throughout (description here,
-          // featureList below) rather than translated per locale. Google
-          // doesn't require schema.org content to match the page's visible
-          // language, and duplicating this whole block with a translated
-          // featureList for three more locales wasn't worth it for content
-          // nothing reads directly.
-          description:
-            'Play any Hitster card with YouTube, Spotify or Apple Music. Scan QR codes, guess the year, and create custom music quiz decks — no subscription lock-in.',
+          url: `${origin}${localizedPath(locale, '/')}`,
+          inLanguage: locale,
+          // Built from the same translated copy the page shows, so the
+          // pl/de/nl pages don't carry English entity text.
+          description: t('landing.seoDescription'),
           applicationCategory: 'GameApplication',
           operatingSystem: 'Any',
-          browserRequirements: 'Requires JavaScript. Requires a modern browser with camera access for QR scanning.',
           offers: {
             '@type': 'Offer',
             price: '0',
             priceCurrency: 'USD',
           },
           featureList: [
-            'YouTube playback — no account required',
-            'Spotify Web Playback SDK integration',
-            'Apple Music via MusicKit JS',
-            'QR code scanner for Hitster cards',
-            'Custom deck creator with YouTube playlist import',
-            'Shareable deck links with QR codes',
-            'Progressive Web App — installable on mobile',
+            `${t('landing.why1Prefix')}${t('landing.why1Strong')}`,
+            t('landing.why2'),
+            t('landing.why3'),
+            `${t('landing.why4Prefix')}${t('landing.why4Strong')}${t('landing.why4Suffix')}`,
+            t('landing.why5'),
+            t('landing.why6'),
           ],
           screenshot: `${origin}/assets/og-image.png`,
           creator: {
             '@type': 'Organization',
             name: 'musicguessr',
-            url: origin,
+            url: `${origin}/`,
           },
         },
       ],

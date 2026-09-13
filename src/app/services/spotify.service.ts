@@ -3,6 +3,13 @@ import { ConfigService } from './config.service';
 import { GameStateService } from './game-state.service';
 import { ClientErrorReporterService } from './client-error-reporter.service';
 import { listDevices, pauseOnDevice, pickTargetDevice, playOnDevice } from './spotify-connect';
+import { generateChallenge, generateVerifier, requestToken } from './spotify-auth';
+import { isIOSDevice } from './platform';
+import { TranslationService } from '../i18n/translation.service';
+
+const SDK_READY_TIMEOUT_MS = 15000;
+// /callback is unprefixed; this carries the player's locale across the OAuth redirect.
+export const OAUTH_LOCALE_KEY = 'oauth_locale';
 
 declare global {
   interface Window {
@@ -36,10 +43,10 @@ export class SpotifyService {
   // real device where Spotify Connect showed "musicguessr" progressing with
   // no sound. So on iOS we skip the local SDK player entirely and always go
   // straight through Spotify Connect to an actual device.
-  private readonly isIOS =
-    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+  private readonly isIOS = isIOSDevice();
 
   private config = inject(ConfigService);
+  private i18n = inject(TranslationService);
   private state = inject(GameStateService);
   private reporter = inject(ClientErrorReporterService);
 
@@ -63,9 +70,10 @@ export class SpotifyService {
 
   // Step 1: redirect to Spotify auth
   async authorize(): Promise<void> {
-    const verifier = this.generateVerifier();
-    const challenge = await this.generateChallenge(verifier);
+    const verifier = generateVerifier();
+    const challenge = await generateChallenge(verifier);
     sessionStorage.setItem('pkce_verifier', verifier);
+    sessionStorage.setItem(OAUTH_LOCALE_KEY, this.i18n.locale());
 
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -90,22 +98,16 @@ export class SpotifyService {
       throw new Error('Missing PKCE verifier');
     }
 
-    const resp = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: this.redirectUri,
-        code_verifier: verifier,
-      }),
+    const data = await requestToken({
+      client_id: this.clientId,
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: this.redirectUri,
+      code_verifier: verifier,
     });
-
-    if (!resp.ok) {
+    if (!data) {
       throw new Error('Token exchange failed');
     }
-    const data = await resp.json();
     this.state.setSpotifyToken(data.access_token, data.refresh_token, data.expires_in);
     sessionStorage.removeItem('pkce_verifier');
   }
@@ -117,20 +119,10 @@ export class SpotifyService {
       return false;
     }
 
-    const resp = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: this.clientId,
-        grant_type: 'refresh_token',
-        refresh_token: refresh,
-      }),
-    });
-
-    if (!resp.ok) {
+    const data = await requestToken({ client_id: this.clientId, grant_type: 'refresh_token', refresh_token: refresh });
+    if (!data) {
       return false;
     }
-    const data = await resp.json();
     this.state.setSpotifyToken(data.access_token, data.refresh_token || refresh, data.expires_in);
     return true;
   }
@@ -154,7 +146,22 @@ export class SpotifyService {
   }
 
   private doInitSDK(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolveRaw, rejectRaw) => {
+      // Without a deadline, a blocked sdk.scdn.co script (or any SDK failure
+      // that fires no listener below) left TAP TO PLAY on LOADING… forever.
+      const timeout = setTimeout(() => {
+        this.reportIssue('Spotify Web Playback SDK not ready before timeout', 'spotify-init-timeout');
+        rejectRaw(new Error('Spotify player did not load — check your connection or content blocker.'));
+      }, SDK_READY_TIMEOUT_MS);
+      const resolve = (): void => {
+        clearTimeout(timeout);
+        resolveRaw();
+      };
+      const reject = (err: Error): void => {
+        clearTimeout(timeout);
+        rejectRaw(err);
+      };
+
       const setup = async (): Promise<void> => {
         let token = this.state.getSpotifyToken();
         if (!token) {
@@ -235,6 +242,18 @@ export class SpotifyService {
             reject(new Error(message));
           });
 
+          // Fired for accounts without Premium, and never followed by 'ready'.
+          this.player.addListener('account_error', ({ message }: any) => {
+            this.error.set('Spotify Premium is required for in-browser playback');
+            this.reportIssue(`Spotify Web Playback SDK account_error: ${message}`, 'spotify-account-error');
+            this.player = null;
+            reject(new Error('Spotify Premium is required for in-browser playback'));
+          });
+
+          this.player.addListener('playback_error', ({ message }: any) => {
+            this.reportIssue(`Spotify Web Playback SDK playback_error: ${message}`, 'spotify-playback-error');
+          });
+
           this.player.connect();
         };
 
@@ -248,8 +267,16 @@ export class SpotifyService {
         }
       };
 
-      setup();
+      // A throw inside async setup() (e.g. refreshToken's fetch) otherwise never settles this promise.
+      setup().catch((e: unknown) => reject(e instanceof Error ? e : new Error(String(e))));
     });
+  }
+
+  // Call synchronously in the tap handler — play() awaits a fetch before audio starts.
+  activateElement(): void {
+    if (typeof this.player?.activateElement === 'function') {
+      void this.player.activateElement();
+    }
   }
 
   // Play track by Spotify URI — must be called in click handler
@@ -322,15 +349,13 @@ export class SpotifyService {
     throw new Error(`Spotify error ${status}`);
   }
 
-  // Pausing only the local SDK player was a no-op wherever playback had been
-  // handed off through Spotify Connect — which is every iOS session, since
-  // we deliberately never construct a local player there. The music simply
-  // kept playing on the user's phone after "End game", after "Next card",
-  // and after navigating away from /game.
+  // Pauses the local SDK player, or else the Connect device playback was handed
+  // off to (every iOS session — pausing only the SDK there was a no-op).
   stop(): void {
     if (typeof this.player?.pause === 'function') {
       this.player.pause();
-    } else {
+    } else if (this.connectDeviceId) {
+      // Never without a handed-off device: that would pause the user's own listening elsewhere.
       void this.pauseViaConnect();
     }
     this.isPlaying.set(false);
@@ -342,14 +367,8 @@ export class SpotifyService {
       return;
     }
     try {
-      // Targets the device we actually handed playback to, not whatever
-      // Spotify currently calls active — by now the user may have started
-      // something else somewhere, and pausing that would be worse than
-      // doing nothing.
       const resp = await pauseOnDevice(token, this.connectDeviceId);
-      // 404 = no active device and 403 = restricted (most often "already
-      // paused"). Both mean the music isn't playing, which is the goal —
-      // neither is worth reporting.
+      // 404 (no active device) and 403 (usually already paused) both mean it isn't playing.
       if (!resp.ok && resp.status !== 404 && resp.status !== 403) {
         this.reportIssue(`Spotify Connect pause failed: HTTP ${resp.status}`, 'spotify-connect-pause-failed');
       }
@@ -366,6 +385,8 @@ export class SpotifyService {
       this.player.removeListener('player_state_changed');
       this.player.removeListener('initialization_error');
       this.player.removeListener('authentication_error');
+      this.player.removeListener('account_error');
+      this.player.removeListener('playback_error');
       this.player.disconnect();
       this.player = null;
     }
@@ -373,24 +394,5 @@ export class SpotifyService {
     this.isPlaying.set(false);
     this.deviceId = null;
     this.connectDeviceId = null;
-  }
-
-  // PKCE helpers
-  private generateVerifier(): string {
-    const arr = new Uint8Array(32);
-    crypto.getRandomValues(arr);
-    return btoa(String.fromCharCode(...arr))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-  }
-
-  private async generateChallenge(verifier: string): Promise<string> {
-    const data = new TextEncoder().encode(verifier);
-    const digest = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
   }
 }

@@ -81,6 +81,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private canvasPoisoned = false;
   // Shown under the scan frame after SCAN_STUCK_MS (used to be telemetry-only).
   readonly stuckHint = signal(false);
+  // scanning() flips only after getUserMedia resolves; a double tap orphaned a stream.
+  private starting = false;
+  private destroyed = false;
   // A signal (not a plain field) so the template can show/hide the "Try
   // again" button — kept so a resolve failure (e.g. the backend being
   // briefly unreachable) can be retried directly, without the only recovery
@@ -100,12 +103,13 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.stopScanner();
     this.clearLoadingMessageTimers();
   }
 
   async startScanner(): Promise<void> {
-    if (this.scanning()) {
+    if (this.scanning() || this.starting) {
       return;
     }
     this.error.set(null);
@@ -116,6 +120,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.starting = true;
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -134,12 +139,18 @@ export class ScannerComponent implements OnInit, OnDestroy {
       const video = this.videoRef.nativeElement;
       video.srcObject = this.stream;
       await video.play();
+      if (this.destroyed) {
+        this.starting = false;
+        this.stopScanner();
+        return;
+      }
 
       this.videoTrack = this.stream.getVideoTracks()[0] ?? null;
       await this.setupContinuousFocus();
       this.setupTorchSupport();
 
       this.scanning.set(true);
+      this.starting = false;
       this.timer = setInterval(() => this.scan(), SCAN_INTERVAL);
       this.scanStuckTimer = setTimeout(() => this.reportScanStuck(), SCAN_STUCK_MS);
     } catch {
@@ -147,6 +158,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       // (e.g. video.play() rejecting) threw — release it here, otherwise the
       // camera stays on with no indicator that it's ever stopped, and the
       // next startScanner() call overwrites this.stream, orphaning it.
+      this.starting = false;
       this.stopScanner();
       this.error.set(this.i18n.t('scanner.errCameraDenied'));
     }
@@ -361,6 +373,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     ];
     try {
       const track = await this.hitster.resolve(url, this.state.ytVariants());
+      if (this.destroyed) {
+        // User tapped Back while this was loading — don't pull them into /game.
+        return;
+      }
       this.state.clearCustomDeck();
       this.state.currentTrack.set(track);
       this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/game'));

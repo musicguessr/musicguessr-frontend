@@ -96,7 +96,12 @@ export class DeckService {
   }
 
   async getDeck(id: string): Promise<Deck> {
-    const res = await fetch(`${this.apiUrl}/api/deck/${id}`);
+    // The id comes from the URL — unencoded, "/deck/..%2Fresolve" reached a
+    // different API endpoint and its response was treated as a deck.
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+      throw new Error('Deck not found');
+    }
+    const res = await fetch(`${this.apiUrl}/api/deck/${encodeURIComponent(id)}`);
     if (res.status === 404) {
       throw new Error('Deck not found');
     }
@@ -106,7 +111,11 @@ export class DeckService {
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
-    return res.json();
+    const deck = await res.json();
+    if (!Array.isArray(deck?.cards)) {
+      throw new Error('Invalid deck data');
+    }
+    return deck;
   }
 
   /** Fisher-Yates shuffle — always client-side */

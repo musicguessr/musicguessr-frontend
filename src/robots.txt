@@ -1,20 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /play
-Disallow: /scan
-Disallow: /game
-Disallow: /callback
-Disallow: /pl/play
-Disallow: /pl/scan
-Disallow: /pl/game
-Disallow: /pl/callback
-Disallow: /de/play
-Disallow: /de/scan
-Disallow: /de/game
-Disallow: /de/callback
-Disallow: /nl/play
-Disallow: /nl/scan
-Disallow: /nl/game
-Disallow: /nl/callback
 
 Sitemap: __SITE_URL__/sitemap.xml

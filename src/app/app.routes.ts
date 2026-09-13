@@ -91,6 +91,11 @@ const pageRoutes: Routes = [
     path: 'deck/:id',
     loadComponent: () => import('./pages/deck-detail/deck-detail.component').then((m) => m.DeckDetailComponent),
   },
+  // Inside each locale branch, so /pl/nope renders the Polish not-found page.
+  {
+    path: '**',
+    loadComponent: () => import('./pages/not-found/not-found.component').then((m) => m.NotFoundComponent),
+  },
 ];
 
 // One locale-prefixed branch per non-default locale (see locale.ts —
@@ -120,5 +125,4 @@ export const routes: Routes = [
     resolve: { locale: localeResolver('en') },
     children: pageRoutes,
   },
-  { path: '**', redirectTo: '' },
 ];

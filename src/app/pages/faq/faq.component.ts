@@ -47,6 +47,7 @@ export class FaqComponent implements OnInit {
         {
           '@context': 'https://schema.org',
           '@type': 'FAQPage',
+          inLanguage: this.i18n.locale(),
           mainEntity: this.i18n.faqItems().map((item) => ({
             '@type': 'Question',
             name: item.q,

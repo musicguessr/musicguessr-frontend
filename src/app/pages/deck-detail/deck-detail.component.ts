@@ -98,7 +98,8 @@ export class DeckDetailComponent implements OnInit {
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(this.shareUrl());
+    // Undefined outside secure contexts, and rejects when permission is denied.
+    void navigator.clipboard?.writeText(this.shareUrl())?.catch(() => undefined);
   }
 
   isExpired(): boolean {
