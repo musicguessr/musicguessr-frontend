@@ -52,5 +52,22 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
+    // A real Firefox engine with privacy.resistFingerprinting turned on —
+    // the same preference IronFox and similar hardened forks ship enabled
+    // by default, and a supported Playwright launch option, not a spoof.
+    // Runs the full suite (still useful, if redundant — none of it touches
+    // canvas), but exists specifically for e2e/canvas-fingerprinting.spec.ts,
+    // which verifies the actual premise behind webcodecs-qr.ts: that canvas
+    // reads are genuinely unusable under this setting, in a real engine,
+    // not just asserted in a comment.
+    {
+      name: 'firefox-rfp',
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: {
+          firefoxUserPrefs: { 'privacy.resistFingerprinting': true },
+        },
+      },
+    },
   ],
 });
