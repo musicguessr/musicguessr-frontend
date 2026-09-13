@@ -17,7 +17,7 @@
 # the final nginx stage and the Go stages below, which do use Red Hat
 # Hardened Images. Re-test with a newer hi/nodejs tag before switching this
 # back.
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
