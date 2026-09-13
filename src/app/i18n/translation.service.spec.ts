@@ -18,7 +18,7 @@ describe('TranslationService', () => {
   it('switches every string on the page when the locale changes', () => {
     expect(service.t('scanner.scanCard')).toBe('SCAN CARD');
     service.setLocale('pl');
-    expect(service.t('scanner.scanCard')).toBe('ZESKANUJ KARTĘ');
+    expect(service.t('scanner.scanCard')).toBe('SKANUJ KARTĘ');
     service.setLocale('de');
     expect(service.t('scanner.scanCard')).toBe('KARTE SCANNEN');
     service.setLocale('nl');
