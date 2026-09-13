@@ -44,7 +44,9 @@
         <div class="scan-corner bl"></div>
         <div class="scan-corner br"></div>
       </div>
-      <p class="scan-hint">{{ i18n.t('scanner.scanHint') }}</p>
+      <p class="scan-hint">
+        {{ stuckHint() ? i18n.t('scanner.stuckHint') : i18n.t('scanner.scanHint') }}
+      </p>
 
       @if (torchSupported()) {
         <button

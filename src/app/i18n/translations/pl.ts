@@ -317,6 +317,9 @@ export const pl = {
     errCameraDenied: 'Brak dostępu do kamery. Zezwól na kamerę w ustawieniach.',
     errTorch: 'Nie udało się włączyć latarki na tym urządzeniu.',
     errFailedToResolve: 'Nie udało się rozpoznać utworu',
+    errCanvasBlocked:
+      'Ta przeglądarka blokuje skanowanie QR przez kamerę ze względu na ustawienia prywatności. Spróbuj innej przeglądarki (Chrome, Safari albo Firefox bez wzmocnionej ochrony przed śledzeniem).',
+    stuckHint: 'Dalej nic nie widać? Dorzuć trochę światła, trzymaj kartę spokojnie i wypełnij nią większość kadru.',
   },
   createDeck: {
     seoTitle: 'Stwórz talię',

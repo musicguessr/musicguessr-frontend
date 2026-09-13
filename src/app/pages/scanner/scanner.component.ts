@@ -20,20 +20,8 @@ import { TranslationService } from '../../i18n/translation.service';
 import { LanguageSwitcherComponent } from '../../i18n/language-switcher.component';
 import { localizedPath } from '../../i18n/locale';
 import { decodeQRViaWebCodecs, webCodecsSupported } from './webcodecs-qr';
-
-declare global {
-  interface Window {
-    // Shape Detection API — not yet in TS's DOM lib, and only implemented by
-    // Chromium. Declared the same way window.YT/window.Spotify are elsewhere
-    // in this codebase for other browser-only globals.
-    BarcodeDetector?: {
-      new (options: { formats: string[] }): {
-        detect(source: CanvasImageSource): Promise<{ rawValue: string }[]>;
-      };
-      getSupportedFormats(): Promise<string[]>;
-    };
-  }
-}
+import { detectCanvasPoisoning } from './canvas-poisoning';
+import { BarcodeDetectorInstance, setupBarcodeDetector } from './barcode-detector';
 
 const SCAN_INTERVAL = 250;
 const MAX_DIMENSION = 600;
@@ -80,17 +68,19 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
   private loadingMessageTimers: ReturnType<typeof setTimeout>[] = [];
-  // Native QR detection (Chromium only) — no canvas pixel readback involved.
-  // Preferred whenever available: canvas.getImageData() is unusable for QR
-  // decoding on some hardened/privacy browsers (see webcodecs-qr.ts and
-  // github.com/musicguessr/musicguessr-frontend/issues/7).
-  private barcodeDetector: InstanceType<NonNullable<Window['BarcodeDetector']>> | null = null;
+  // See barcode-detector.ts — preferred detection tier whenever available.
+  private barcodeDetector: BarcodeDetectorInstance | null = null;
   // Guards overlapping async detect()/decode calls (BarcodeDetector and
   // WebCodecs below) — shared, the two are mutually exclusive in practice.
   private detecting = false;
   // Set once decodeQRViaWebCodecs() fails — stops retrying a broken API
   // every SCAN_INTERVAL and falls back to canvas/jsQR. See webcodecs-qr.ts.
   private webCodecsBroken = false;
+  // See canvas-poisoning.ts — jsQR can never decode when true, so scan()
+  // skips straight to an error instead of spinning silently.
+  private canvasPoisoned = false;
+  // Shown under the scan frame after SCAN_STUCK_MS (used to be telemetry-only).
+  readonly stuckHint = signal(false);
   // A signal (not a plain field) so the template can show/hide the "Try
   // again" button — kept so a resolve failure (e.g. the backend being
   // briefly unreachable) can be retried directly, without the only recovery
@@ -103,26 +93,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.loadingMessage.set(this.i18n.t('scanner.loadingLookingUp'));
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
-    void this.setupBarcodeDetector();
-  }
-
-  // Capability doesn't change mid-session, so this only needs to run once
-  // (not per startScanner() call) — a no-op quietly leaves barcodeDetector
-  // null and scan() falls back to jsQR.
-  private async setupBarcodeDetector(): Promise<void> {
-    const BarcodeDetectorCtor = window.BarcodeDetector;
-    if (!BarcodeDetectorCtor) {
-      return;
-    }
-    try {
-      const formats = await BarcodeDetectorCtor.getSupportedFormats();
-      if (formats.includes('qr_code')) {
-        this.barcodeDetector = new BarcodeDetectorCtor({ formats: ['qr_code'] });
-      }
-    } catch {
-      // Present but throws (e.g. blocked by a permissions policy) — jsQR
-      // fallback covers this the same as "not supported at all".
-    }
+    this.canvasPoisoned = detectCanvasPoisoning();
+    void setupBarcodeDetector().then((detector) => {
+      this.barcodeDetector = detector;
+    });
   }
 
   ngOnDestroy(): void {
@@ -135,6 +109,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       return;
     }
     this.error.set(null);
+    this.stuckHint.set(false);
 
     if (!navigator.mediaDevices?.getUserMedia) {
       this.error.set(this.i18n.t('scanner.errCameraUnavailable'));
@@ -226,6 +201,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.scanning.set(false);
     this.torchOn.set(false);
     this.torchSupported.set(false);
+    this.stuckHint.set(false);
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
@@ -248,6 +224,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (!this.scanning()) {
       return;
     }
+    this.stuckHint.set(true);
     const detector = this.barcodeDetector
       ? 'BarcodeDetector'
       : webCodecsSupported && !this.webCodecsBroken
@@ -272,6 +249,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     if (webCodecsSupported && !this.webCodecsBroken) {
       this.scanWithWebCodecs(video);
+      return;
+    }
+
+    if (this.canvasPoisoned) {
+      // jsQR would spin forever here — surface it now instead of after
+      // SCAN_STUCK_MS of silent, doomed attempts.
+      this.stopScanner();
+      this.error.set(this.i18n.t('scanner.errCanvasBlocked'));
       return;
     }
 

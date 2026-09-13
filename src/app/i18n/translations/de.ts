@@ -318,6 +318,10 @@ export const de = {
     errCameraDenied: 'Kein Kamerazugriff. Erlaub die Kamera in den Einstellungen.',
     errTorch: 'Die Taschenlampe ließ sich auf diesem Gerät nicht einschalten.',
     errFailedToResolve: 'Song ließ sich nicht erkennen',
+    errCanvasBlocked:
+      'Dieser Browser blockiert das Scannen per Kamera aus Datenschutzgründen. Probier einen anderen Browser (Chrome, Safari oder Firefox ohne verstärkten Tracking-Schutz).',
+    stuckHint:
+      'Findet er die Karte immer noch nicht? Mehr Licht, Karte ruhig halten, und sie sollte möglichst den ganzen Rahmen ausfüllen.',
   },
   createDeck: {
     seoTitle: 'Deck erstellen',

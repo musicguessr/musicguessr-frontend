@@ -317,6 +317,10 @@ export const nl = {
     errCameraDenied: 'Geen cameratoegang. Sta de camera toe in je instellingen.',
     errTorch: 'De zaklamp kon niet worden aangezet op dit toestel.',
     errFailedToResolve: 'Nummer kon niet worden herkend',
+    errCanvasBlocked:
+      'Deze browser blokkeert QR-scannen via de camera vanwege privacy-instellingen. Probeer een andere browser (Chrome, Safari of Firefox zonder verscherpte trackingbescherming).',
+    stuckHint:
+      'Nog steeds niks gevonden? Zorg voor meer licht, houd de kaart stil en laat hem het grootste deel van het beeld vullen.',
   },
   createDeck: {
     seoTitle: 'Deck maken',

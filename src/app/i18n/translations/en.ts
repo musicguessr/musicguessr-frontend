@@ -320,6 +320,9 @@ export const en = {
     errCameraDenied: 'Camera access denied. Please allow camera permissions.',
     errTorch: 'Could not turn on the flash on this device.',
     errFailedToResolve: 'Failed to resolve track',
+    errCanvasBlocked:
+      "This browser's privacy settings block camera-based QR scanning. Try a different browser (Chrome, Safari, or Firefox without strict tracking protection).",
+    stuckHint: 'Still not finding it? Make sure the card is well lit, steady, and filling most of the frame.',
   },
   createDeck: {
     seoTitle: 'Create Deck',
