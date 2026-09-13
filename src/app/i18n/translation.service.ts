@@ -21,6 +21,21 @@ function interpolate(template: string, params: Record<string, string | number>):
   });
 }
 
+function resolve(dict: Translations, path: string, params?: Record<string, string | number>): string {
+  const value = path.split('.').reduce<unknown>((node, segment) => {
+    if (node && typeof node === 'object' && segment in node) {
+      return (node as Record<string, unknown>)[segment];
+    }
+    return undefined;
+  }, dict);
+  if (typeof value !== 'string') {
+    // Never throw from a template — a missing/mistyped key should degrade
+    // to a visibly-wrong-but-harmless string, not take down the page.
+    return path;
+  }
+  return params ? interpolate(value, params) : value;
+}
+
 // Locale is set once per navigation, synchronously, before any component
 // under that route renders — see localeResolver in locale-route.ts, the
 // only intended caller of setLocale(). It's a plain writable signal rather
@@ -52,18 +67,17 @@ export class TranslationService {
   // *translation*, which is the failure mode that actually costs someone an
   // English string appearing on a Polish page.
   t(path: string, params?: Record<string, string | number>): string {
-    const value = path.split('.').reduce<unknown>((node, segment) => {
-      if (node && typeof node === 'object' && segment in node) {
-        return (node as Record<string, unknown>)[segment];
-      }
-      return undefined;
-    }, this.dict());
-    if (typeof value !== 'string') {
-      // Never throw from a template — a missing/mistyped key should degrade
-      // to a visibly-wrong-but-harmless string, not take down the page.
-      return path;
-    }
-    return params ? interpolate(value, params) : value;
+    return resolve(DICTIONARIES[this._locale()], path, params);
+  }
+
+  // Reads from a *specific* locale's dictionary regardless of which one is
+  // currently active — used for the one case where showing the active
+  // locale's own text would defeat the point: the locale-suggestion banner
+  // (see LocaleSuggestionService) offers to switch away from English, so the
+  // offer itself needs to be readable in the language being offered, not in
+  // English.
+  tFor(locale: Locale, path: string, params?: Record<string, string | number>): string {
+    return resolve(DICTIONARIES[locale], path, params);
   }
 
   // Typed accessor for array content (FAQ items) that t()'s string-only

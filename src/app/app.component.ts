@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { AppErrorService } from './services/app-error.service';
 import { AppUpdateService } from './services/app-update.service';
 import { TranslationService } from './i18n/translation.service';
+import { LocaleSuggestionService } from './i18n/locale-suggestion.service';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,22 @@ import { TranslationService } from './i18n/translation.service';
   imports: [RouterOutlet],
   template: `
     <router-outlet />
+    @if (suggestedLocale(); as locale) {
+      <div class="locale-banner" role="status">
+        <span class="locale-banner-text">{{ i18n.tFor(locale, 'localeSuggestion.message') }}</span>
+        <button class="locale-banner-switch" type="button" (click)="acceptLocaleSuggestion()">
+          {{ i18n.tFor(locale, 'localeSuggestion.switchTo') }}
+        </button>
+        <button
+          class="locale-banner-dismiss"
+          type="button"
+          [attr.aria-label]="i18n.tFor(locale, 'localeSuggestion.dismiss')"
+          (click)="dismissLocaleSuggestion()"
+        >
+          ×
+        </button>
+      </div>
+    }
     @if (updateAvailable()) {
       <div class="update-banner" role="status">
         <span class="update-text">{{ i18n.t('app.updateAvailable') }}</span>
@@ -89,6 +106,54 @@ import { TranslationService } from './i18n/translation.service';
         font-weight: 600;
         cursor: pointer;
       }
+      /* Positioned at the top, not the bottom (where .update-banner already
+         lives) — the two are unlikely to overlap in practice (this one is
+         one-time-ever, that one only after a deploy), but sharing a corner
+         would risk stacking if they ever did. */
+      .locale-banner {
+        position: fixed;
+        top: calc(12px + env(safe-area-inset-top, 0px));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 900;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: calc(100vw - 32px);
+        padding: 8px 8px 8px 14px;
+        border: 1px solid var(--border, #2a2a2a);
+        border-radius: 999px;
+        background: #1a1a1a;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      }
+      .locale-banner-text {
+        color: var(--text);
+        font-size: 0.82rem;
+        white-space: nowrap;
+      }
+      .locale-banner-switch {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        border: none;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #0a0a0a;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .locale-banner-dismiss {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--muted, #888);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -96,16 +161,27 @@ import { TranslationService } from './i18n/translation.service';
 export class AppComponent implements OnInit {
   private appError = inject(AppErrorService);
   private appUpdate = inject(AppUpdateService);
+  private localeSuggestion = inject(LocaleSuggestionService);
   i18n = inject(TranslationService);
   readonly fatalError = this.appError.fatalError;
   readonly updateAvailable = this.appUpdate.updateAvailable;
+  readonly suggestedLocale = this.localeSuggestion.suggested;
 
   ngOnInit(): void {
     this.appUpdate.init();
+    this.localeSuggestion.init();
   }
 
   applyUpdate(): void {
     void this.appUpdate.applyUpdate();
+  }
+
+  acceptLocaleSuggestion(): void {
+    this.localeSuggestion.accept();
+  }
+
+  dismissLocaleSuggestion(): void {
+    this.localeSuggestion.dismiss();
   }
 
   reload(): void {

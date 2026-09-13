@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Locale, LOCALE_LABELS, LOCALES, localizedPath, stripLocalePrefix } from './locale';
 import { TranslationService } from './translation.service';
+import { LocaleSuggestionService } from './locale-suggestion.service';
 
 // Preserves the current page across a language switch (landing -> landing,
 // faq -> faq, ...) rather than always sending the user back home — computed
@@ -15,7 +16,9 @@ import { TranslationService } from './translation.service';
   template: `
     <div class="lang-switcher">
       @for (l of locales; track l; let last = $last) {
-        <a [class.active]="l === i18n.locale()" [routerLink]="pathFor(l)">{{ labelFor(l) }}</a>
+        <a [class.active]="l === i18n.locale()" [routerLink]="pathFor(l)" (click)="localeSuggestion.markHandled()">{{
+          labelFor(l)
+        }}</a>
         @if (!last) {
           <span class="lang-sep">·</span>
         }
@@ -48,6 +51,7 @@ import { TranslationService } from './translation.service';
 })
 export class LanguageSwitcherComponent {
   i18n = inject(TranslationService);
+  localeSuggestion = inject(LocaleSuggestionService);
   private router = inject(Router);
   readonly locales = LOCALES;
 

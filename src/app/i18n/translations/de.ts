@@ -385,6 +385,11 @@ export const de = {
     songsHeading: 'Songs in diesem Deck',
     errFailedToLoad: 'Deck konnte nicht geladen werden',
   },
+  localeSuggestion: {
+    message: 'Lieber auf Deutsch lesen?',
+    switchTo: 'Wechseln',
+    dismiss: 'Nein danke',
+  },
   callback: {
     seoTitle: 'Verbinden…',
     connectingTo: 'Verbinde mit {{provider}}…',

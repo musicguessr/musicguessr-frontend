@@ -391,6 +391,11 @@ export const pl = {
     songsHeading: 'Piosenki w tej talii',
     errFailedToLoad: 'Nie udało się wczytać talii',
   },
+  localeSuggestion: {
+    message: 'Wolisz czytać to po polsku?',
+    switchTo: 'Przełącz',
+    dismiss: 'Nie, dzięki',
+  },
   callback: {
     seoTitle: 'Łączenie…',
     connectingTo: 'Łączenie z {{provider}}…',

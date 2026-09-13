@@ -389,6 +389,15 @@ export const en = {
     songsHeading: 'Songs in this deck',
     errFailedToLoad: 'Failed to load deck',
   },
+  localeSuggestion: {
+    // Not actually shown to English readers by the app's own logic (we
+    // never suggest switching *to* English), but still required so
+    // `satisfies Translations` has something to check every other locale
+    // against — see translation.service.ts's tFor().
+    message: 'Prefer to read this in English?',
+    switchTo: 'Switch',
+    dismiss: 'No thanks',
+  },
   callback: {
     seoTitle: 'Connecting…',
     connectingTo: 'Connecting to {{provider}}…',

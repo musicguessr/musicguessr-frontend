@@ -385,6 +385,11 @@ export const nl = {
     songsHeading: 'Nummers in dit deck',
     errFailedToLoad: 'Deck laden mislukt',
   },
+  localeSuggestion: {
+    message: 'Liever in het Nederlands lezen?',
+    switchTo: 'Wisselen',
+    dismiss: 'Nee bedankt',
+  },
   callback: {
     seoTitle: 'Verbinden…',
     connectingTo: 'Verbinden met {{provider}}…',
