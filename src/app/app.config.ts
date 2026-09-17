@@ -11,7 +11,7 @@ import localeDe from '@angular/common/locales/de';
 import localeNl from '@angular/common/locales/nl';
 import localePl from '@angular/common/locales/pl';
 import { PreloadAllModules, provideRouter, withComponentInputBinding, withPreloading } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { ConfigService } from './services/config.service';
@@ -27,7 +27,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding(), withPreloading(PreloadAllModules)),
-    provideHttpClient(),
+    provideHttpClient(withXhr()),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideAppInitializer(async () => {
       const configService = inject(ConfigService);
