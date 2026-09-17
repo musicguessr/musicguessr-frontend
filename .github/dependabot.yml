@@ -10,21 +10,50 @@ updates:
       actions:
         patterns: ['*']
 
-  # Angular packages have to move in lockstep (core, cli, build, ssr, ...),
-  # so they're one grouped PR instead of a dozen that each fail CI alone.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
+      # Everything that has to move in lockstep with an Angular major: the
+      # framework, its CLI/builders, angular-eslint and jest-preset-angular
+      # (both pin a peer range on @angular/*), and TypeScript. Split across two
+      # PRs, neither side compiles on its own (see closed #10/#11).
       angular:
-        patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'zone.js', 'typescript']
+        patterns:
+          - '@angular/*'
+          - '@angular-devkit/*'
+          - '@schematics/angular'
+          - 'angular-eslint'
+          - '@angular-eslint/*'
+          - 'jest-preset-angular'
+          - 'zone.js'
+          - 'typescript'
       dev-tooling:
         dependency-type: development
-        exclude-patterns: ['@angular/*', '@angular-devkit/*', '@schematics/angular', 'typescript']
+        exclude-patterns:
+          - '@angular/*'
+          - '@angular-devkit/*'
+          - '@schematics/angular'
+          - 'angular-eslint'
+          - '@angular-eslint/*'
+          - 'jest-preset-angular'
+          - 'typescript'
+    ignore:
+      # Angular's compiler accepts one TypeScript minor range per release
+      # (22.x: >=6.0 <6.1). A TypeScript major is only ever safe as part of an
+      # Angular major, which `ng update` handles, so Dependabot doesn't
+      # propose it on its own.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
 
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Build stage tracks Node's Active LTS line (same as CI's node-version);
+      # odd/Current majors are bumped by hand once they become LTS.
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
