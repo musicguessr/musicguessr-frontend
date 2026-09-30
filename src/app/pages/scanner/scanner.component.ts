@@ -20,7 +20,8 @@ import { LanguageSwitcherComponent } from '../../i18n/language-switcher.componen
 import { localizedPath } from '../../i18n/locale';
 import { decodeQRViaWebCodecs, webCodecsSupported } from './webcodecs-qr';
 import { detectCanvasPoisoning } from './canvas-poisoning';
-import { decodeFrame } from './jsqr-scan';
+import { decodeFrame, planForTick } from './jsqr-scan';
+import { cameraErrorReport, resolveFailedReport, ScanDiagnostics, ScanExtra } from './scan-diagnostics';
 import { BarcodeDetectorInstance, setupBarcodeDetector } from './barcode-detector';
 
 const SCAN_INTERVAL = 250;
@@ -80,6 +81,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private canvasPoisoned = false;
   // Advances once per jsQR attempt so each one can use a different scale (see jsqr-scan.ts).
   private scanTick = 0;
+  // Measurements attached to the scanner's client reports (see scan-diagnostics.ts).
+  private diag = new ScanDiagnostics();
   // Shown under the scan frame after SCAN_STUCK_MS (used to be telemetry-only).
   readonly stuckHint = signal(false);
   // scanning() flips only after getUserMedia resolves; a double tap orphaned a stream.
@@ -149,12 +152,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.videoTrack = this.stream.getVideoTracks()[0] ?? null;
       await this.setupContinuousFocus();
       this.setupTorchSupport();
+      this.diag.begin(video, this.videoTrack, this.canvasPoisoned);
 
       this.scanning.set(true);
       this.starting = false;
       this.timer = setInterval(() => this.scan(), SCAN_INTERVAL);
       this.scanStuckTimer = setTimeout(() => this.reportScanStuck(), SCAN_STUCK_MS);
-    } catch {
+    } catch (e) {
+      this.errorReporter.report(cameraErrorReport(e));
       // getUserMedia may have already granted a stream before a later step
       // (e.g. video.play() rejecting) threw — release it here, otherwise the
       // camera stays on with no indicator that it's ever stopped, and the
@@ -233,20 +238,21 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.videoTrack = null;
   }
 
-  private reportScanStuck(): void {
-    if (!this.scanning()) {
-      return;
-    }
-    this.stuckHint.set(true);
+  private diagExtra(): ScanExtra {
     const detector = this.barcodeDetector
       ? 'BarcodeDetector'
       : webCodecsSupported && !this.webCodecsBroken
         ? 'WebCodecs'
         : 'jsQR';
-    this.errorReporter.report({
-      message: `QR not detected after ${SCAN_STUCK_MS / 1000}s of active scanning (detector=${detector})`,
-      context: 'scanner-timeout',
-    });
+    return { detector, torchOn: this.torchOn(), webCodecsBroken: this.webCodecsBroken };
+  }
+
+  private reportScanStuck(): void {
+    if (!this.scanning()) {
+      return;
+    }
+    this.stuckHint.set(true);
+    this.errorReporter.report(this.diag.stuckReport(SCAN_STUCK_MS / 1000, this.diagExtra()));
   }
 
   private scan(): void {
@@ -254,6 +260,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (video.readyState < 2) {
       return;
     }
+    this.diag.tick();
 
     if (this.barcodeDetector) {
       this.scanWithBarcodeDetector(video);
@@ -292,11 +299,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
         if (!this.scanning()) {
           return;
         }
-        const match = codes.find((c) => isHitsterCardUrl(c.rawValue));
-        if (match) {
-          this.stopScanner();
-          this.onQRFound(match.rawValue);
-        }
+        codes.forEach((c) => this.onDecoded(c.rawValue));
       })
       .catch(() => {
         this.detecting = false;
@@ -312,10 +315,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       .then((data) => {
         this.detecting = false;
         // Async — may resolve after stopScanner() already ran, same as above.
-        if (this.scanning() && data && isHitsterCardUrl(data)) {
-          this.stopScanner();
-          this.onQRFound(data);
-        }
+        this.onDecoded(data);
       })
       .catch(() => {
         // Not usable in this browser/session — stop retrying every tick and
@@ -326,11 +326,26 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private scanWithJsQR(video: HTMLVideoElement): void {
-    const data = decodeFrame(video, this.canvas, this.ctx, this.scanTick++);
-    if (data && isHitsterCardUrl(data)) {
-      this.stopScanner();
-      this.onQRFound(data);
+    const tick = this.scanTick++;
+    const t0 = performance.now();
+    const data = decodeFrame(video, this.canvas, this.ctx, tick);
+    this.diag.attempt(planForTick(tick).maxSide, performance.now() - t0);
+    this.onDecoded(data);
+  }
+
+  // Every detector's result ends up here: a card starts the lookup, any other
+  // QR is only counted (and described) for the diagnostics.
+  private onDecoded(data: string | null): void {
+    if (!data || !this.scanning()) {
+      return;
     }
+    if (!isHitsterCardUrl(data)) {
+      this.diag.rejected(data);
+      return;
+    }
+    this.errorReporter.report(this.diag.successReport(this.diagExtra()));
+    this.stopScanner();
+    this.onQRFound(data);
   }
 
   retryResolve(): void {
@@ -366,6 +381,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.state.currentTrack.set(track);
       this.router.navigateByUrl(localizedPath(this.i18n.locale(), '/game'));
     } catch (e: any) {
+      this.errorReporter.report(resolveFailedReport(e));
       this.error.set(e.message || this.i18n.t('scanner.errFailedToResolve'));
     } finally {
       this.loading.set(false);

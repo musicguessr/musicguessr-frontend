@@ -10,6 +10,13 @@ export type ClientErrorReport = {
   // YouTube-blocked report for the card that request resolved) — lets a
   // maintainer grep straight to that request's own backend log line.
   requestId?: string;
+  // "info" marks a diagnostic event rather than a failure (e.g. a successful
+  // scan, so failure rates have a denominator). The backend logs it as a
+  // "client event" at INFO instead of a "client error report" at WARN.
+  level?: 'info';
+  // Flat, measured diagnostics — become queryable fields (details.<key>) in
+  // the logs. Keys must be snake_case; nested values are dropped server-side.
+  details?: Record<string, string | number | boolean>;
 };
 
 // A no-cost stand-in for a real error-tracking service: without this, a
