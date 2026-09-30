@@ -420,6 +420,7 @@ export const nl = {
     videoNotFound: 'Video niet gevonden of niet beschikbaar.',
     playlistNotFound: 'Afspeellijst niet gevonden of privé.',
     playlistEmpty: 'De afspeellijst is leeg of geen enkele video is beschikbaar.',
+    playlistMix: 'YouTube Mix-afspeellijsten kunnen niet worden geïmporteerd. Gebruik een gewone afspeellijst.',
     tryLater: 'Dit lukt nu even niet — probeer het zo opnieuw.',
     tooManyCards: 'Een deck mag maximaal 300 kaarten hebben.',
     invalidVideoUrl: 'Dat lijkt geen geldige YouTube-link.',

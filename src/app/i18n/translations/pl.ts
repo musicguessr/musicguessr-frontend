@@ -422,6 +422,7 @@ export const pl = {
     videoNotFound: 'Film nie istnieje albo jest niedostępny.',
     playlistNotFound: 'Nie ma takiej playlisty albo jest prywatna.',
     playlistEmpty: 'Playlista jest pusta albo żaden film nie jest dostępny.',
+    playlistMix: 'Playlist typu Mix z YouTube nie da się zaimportować. Użyj zwykłej playlisty.',
     tryLater: 'Nie da się tego teraz sprawdzić — spróbuj za chwilę.',
     tooManyCards: 'Talia może mieć maksymalnie 300 kart.',
     invalidVideoUrl: 'To nie wygląda na link do YouTube.',

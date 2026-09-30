@@ -11,6 +11,7 @@ const RULES: [RegExp, string][] = [
   [/deck has expired/i, 'errors.deckExpired'],
   [/deck not found|invalid deck id|missing deck id/i, 'errors.deckNotFound'],
   [/playlist is empty/i, 'errors.playlistEmpty'],
+  [/mix playlists/i, 'errors.playlistMix'],
   [/playlist not found|is private/i, 'errors.playlistNotFound'],
   [/try again shortly/i, 'errors.tryLater'],
   [/video not found|unavailable/i, 'errors.videoNotFound'],

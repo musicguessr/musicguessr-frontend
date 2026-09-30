@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProviderNamePipe } from '../../shared/provider-name.pipe';
-import jsQR from 'jsqr';
 import { HitsterService } from '../../services/hitster.service';
 import { GameStateService } from '../../services/game-state.service';
 import { SeoService } from '../../services/seo.service';
@@ -21,10 +20,10 @@ import { LanguageSwitcherComponent } from '../../i18n/language-switcher.componen
 import { localizedPath } from '../../i18n/locale';
 import { decodeQRViaWebCodecs, webCodecsSupported } from './webcodecs-qr';
 import { detectCanvasPoisoning } from './canvas-poisoning';
+import { decodeFrame } from './jsqr-scan';
 import { BarcodeDetectorInstance, setupBarcodeDetector } from './barcode-detector';
 
 const SCAN_INTERVAL = 250;
-const MAX_DIMENSION = 600;
 const SCAN_STUCK_MS = 10_000;
 
 @Component({
@@ -79,6 +78,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // See canvas-poisoning.ts — jsQR can never decode when true, so scan()
   // skips straight to an error instead of spinning silently.
   private canvasPoisoned = false;
+  // Advances once per jsQR attempt so each one can use a different scale (see jsqr-scan.ts).
+  private scanTick = 0;
   // Shown under the scan frame after SCAN_STUCK_MS (used to be telemetry-only).
   readonly stuckHint = signal(false);
   // scanning() flips only after getUserMedia resolves; a double tap orphaned a stream.
@@ -325,26 +326,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private scanWithJsQR(video: HTMLVideoElement): void {
-    const vw = video.videoWidth;
-    const vh = video.videoHeight;
-    if (!vw || !vh) {
-      return;
-    }
-
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(vw, vh));
-    const w = Math.floor(vw * scale);
-    const h = Math.floor(vh * scale);
-
-    this.canvas.width = w;
-    this.canvas.height = h;
-    this.ctx.drawImage(video, 0, 0, w, h);
-
-    const imageData = this.ctx.getImageData(0, 0, w, h);
-    const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
-
-    if (code && isHitsterCardUrl(code.data)) {
+    const data = decodeFrame(video, this.canvas, this.ctx, this.scanTick++);
+    if (data && isHitsterCardUrl(data)) {
       this.stopScanner();
-      this.onQRFound(code.data);
+      this.onQRFound(data);
     }
   }
 

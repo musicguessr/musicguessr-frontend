@@ -422,6 +422,7 @@ export const en = {
     videoNotFound: 'Video not found or unavailable.',
     playlistNotFound: 'Playlist not found or private.',
     playlistEmpty: 'The playlist is empty or none of its videos are available.',
+    playlistMix: "YouTube Mix playlists can't be imported. Use a regular playlist instead.",
     tryLater: "Couldn't check this right now — try again shortly.",
     tooManyCards: 'A deck can have at most 300 cards.',
     invalidVideoUrl: "That doesn't look like a valid YouTube link.",

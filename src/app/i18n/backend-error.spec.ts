@@ -19,6 +19,8 @@ describe('localizeBackendError', () => {
     // Contains "unavailable" — must not fall through to the video rule.
     ['playlist is empty or all videos are unavailable', 'errors.playlistEmpty'],
     ['playlist not found or is private', 'errors.playlistNotFound'],
+    // Contains "youtube" — must not fall through to the invalid-URL rule.
+    ["youtube mix playlists can't be imported, use a regular playlist", 'errors.playlistMix'],
     ['could not verify video right now, try again shortly', 'errors.tryLater'],
     ['video not found or unavailable', 'errors.videoNotFound'],
     ['maximum 300 cards per deck', 'errors.tooManyCards'],

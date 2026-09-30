@@ -421,6 +421,7 @@ export const de = {
     videoNotFound: 'Video nicht gefunden oder nicht verfügbar.',
     playlistNotFound: 'Playlist nicht gefunden oder privat.',
     playlistEmpty: 'Die Playlist ist leer oder kein Video ist verfügbar.',
+    playlistMix: 'YouTube-Mix-Playlists lassen sich nicht importieren. Nutze stattdessen eine normale Playlist.',
     tryLater: 'Das lässt sich gerade nicht prüfen — versuch es gleich nochmal.',
     tooManyCards: 'Ein Deck darf maximal 300 Karten haben.',
     invalidVideoUrl: 'Das sieht nicht nach einem YouTube-Link aus.',
